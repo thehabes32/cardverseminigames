@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>SIGNTVRE</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0f0e17;--s:#1a1928;--s2:#232235;--s3:#2a293d;
+  --b:rgba(255,255,255,.09);--t:#f2f0ff;--m:rgba(242,240,255,.5);--dim:rgba(242,240,255,.25);
+  --a:#7c6cfc;--orange:#ff6b35;--g:#538d4e;--yellow:#b59f3b;--grey:#3a3a3c;--r:#fc6c6c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow-x:hidden;}
+body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--b);}
+.logo{font-size:20px;font-weight:900;letter-spacing:.04em;}
+.logo span{color:var(--orange);}
+.mode-tabs{display:flex;gap:4px;background:var(--s2);border-radius:99px;padding:3px;}
+.mode-tab{padding:5px 14px;border-radius:99px;font-size:11px;font-weight:800;cursor:pointer;color:var(--m);border:none;background:none;font-family:'Nunito',sans-serif;transition:all .15s;}
+.mode-tab.active{background:var(--a);color:#fff;}
+.back-btn{color:var(--m);text-decoration:none;font-size:12px;font-weight:800;}
+
+/* AUTOGRAPH IMAGE */
+.auto-wrap{margin:14px 16px;position:relative;border-radius:16px;overflow:hidden;background:var(--s);border:1px solid var(--b);}
+.auto-img{width:100%;height:200px;object-fit:cover;display:block;transition:filter .4s ease;}
+
+.auto-placeholder{height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--m);}
+.auto-placeholder .icon{font-size:48px;}
+.auto-placeholder .lbl{font-size:13px;font-weight:800;}
+.auto-overlay{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:800;color:#fff;}
+.guesses-left{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.65);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;color:#fff;}
+
+/* SEARCH */
+.search-wrap{padding:0 16px 12px;position:relative;}
+.search-input{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:12px;color:var(--t);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;padding:11px 44px 11px 14px;outline:none;transition:border .15s;}
+.search-input:focus{border-color:var(--a);}
+.search-input:disabled{opacity:.5;}
+.search-input::placeholder{color:var(--dim);}
+.search-btn{position:absolute;right:22px;top:50%;transform:translateY(-50%);background:var(--a);border:none;border-radius:8px;color:#fff;font-family:'Nunito',sans-serif;font-size:11px;font-weight:900;padding:6px 10px;cursor:pointer;}
+.dropdown{position:absolute;left:16px;right:16px;top:calc(100% - 8px);background:var(--s2);border:1.5px solid var(--b);border-radius:12px;z-index:50;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.dropdown-item{padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--b);}
+.dropdown-item:last-child{border-bottom:none;}
+.dropdown-item:hover{background:var(--s3);}
+.dropdown-item .di-name{font-weight:800;}
+.dropdown-item .di-meta{font-size:10px;color:var(--m);}
+
+/* HINT TABLE */
+.hint-table{padding:0 16px 12px;}
+.hint-header{display:grid;grid-template-columns:2fr repeat(6,1fr);gap:3px;margin-bottom:4px;}
+.hh{font-size:9px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;text-align:center;}
+.hh:first-child{text-align:left;padding-left:4px;}
+
+/* GUESS ROW */
+.guess-row{display:grid;grid-template-columns:2fr repeat(6,1fr);gap:3px;margin-bottom:3px;}
+.g-name{background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:8px 8px;font-size:12px;font-weight:800;display:flex;align-items:center;}
+.g-tile{border-radius:8px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:900;text-align:center;line-height:1.2;opacity:0;transform:scale(.8) rotateX(-90deg);transition:opacity .3s, transform .3s;}
+.g-tile.revealed{opacity:1;transform:scale(1) rotateX(0);}
+.g-tile.correct{background:var(--g);color:#fff;}
+.g-tile.close{background:var(--yellow);color:#fff;}
+.g-tile.wrong{background:var(--grey);color:rgba(255,255,255,.7);}
+.g-tile .arrow{font-size:9px;margin-top:1px;opacity:.8;}
+
+/* EMPTY ROWS */
+.empty-row{display:grid;grid-template-columns:2fr repeat(6,1fr);gap:3px;margin-bottom:3px;opacity:.35;}
+.empty-cell{background:var(--s2);border:1px solid var(--b);border-radius:8px;height:44px;}
+.empty-name{background:var(--s2);border:1px solid var(--b);border-radius:8px;height:44px;}
+
+/* RESULT BANNER */
+.result-banner{margin:0 16px 16px;background:var(--s);border:1px solid var(--b);border-radius:14px;padding:16px;text-align:center;}
+.result-emoji{font-size:36px;margin-bottom:8px;}
+.result-title{font-size:18px;font-weight:900;margin-bottom:4px;}
+.result-sub{font-size:12px;color:var(--m);font-weight:700;margin-bottom:12px;}
+.result-answer{background:var(--s2);border-radius:10px;padding:10px;font-size:14px;font-weight:900;color:var(--orange);margin-bottom:12px;}
+.result-btns{display:flex;gap:8px;justify-content:center;}
+.rbtn{border:none;border-radius:99px;font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;padding:9px 20px;cursor:pointer;}
+.rbtn-primary{background:var(--a);color:#fff;}
+.rbtn-ghost{background:transparent;border:1.5px solid var(--b);color:var(--m);}
+.rbtn-ghost:hover{color:var(--t);}
+
+/* EMOJI SHARE GRID */
+.share-preview{background:var(--s2);border-radius:8px;padding:10px;font-size:13px;font-family:monospace;text-align:center;margin-bottom:10px;white-space:pre-wrap;word-break:break-all;}
+
+/* HOW TO PLAY */
+.how-panel{margin:0 16px 16px;background:var(--s);border:1px solid var(--b);border-radius:14px;padding:14px;}
+.how-title{font-size:13px;font-weight:900;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.legend{display:flex;flex-direction:column;gap:6px;}
+.legend-row{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--m);}
+.legend-tile{width:24px;height:24px;border-radius:5px;flex-shrink:0;}
+.lt-green{background:var(--g);}
+.lt-yellow{background:var(--yellow);}
+.lt-grey{background:var(--grey);}
+
+/* MSG */
+.msg-bar{text-align:center;padding:6px 16px;font-size:12px;font-weight:800;min-height:28px;color:var(--a);}
+.msg-bar.err{color:var(--r);}
+.msg-bar.ok{color:#3ecf8e;}
+
+/* NO PUZZLE STATE */
+.no-puzzle{text-align:center;padding:40px 20px;}
+.no-puzzle-icon{font-size:48px;margin-bottom:12px;}
+.no-puzzle-title{font-size:16px;font-weight:900;margin-bottom:6px;}
+.no-puzzle-sub{font-size:12px;color:var(--m);font-weight:700;line-height:1.6;}
+.no-puzzle-link{color:var(--a);font-weight:800;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <a href="home.html" class="back-btn">← Games</a>
+  <div class="logo">Sign<span>tvre</span></div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tab-daily" onclick="setMode('daily')">Daily</button>
+    <button class="mode-tab" id="tab-unlimited" onclick="setMode('unlimited')">Unlimited</button>
+  </div>
+</div>
+
+<div id="game-wrap">
+
+  <!-- AUTOGRAPH IMAGE -->
+  <div class="auto-wrap" id="auto-wrap">
+    <div class="auto-placeholder" id="auto-placeholder">
+      <div class="icon">✍️</div>
+      <div class="lbl">No puzzle loaded</div>
+    </div>
+    <!-- Autograph cutout - shown during guessing -->
+    <img id="auto-img" class="auto-img" style="display:none;"/>
+    <!-- Full card reveal - shown on win/loss -->
+    <img id="card-img" class="auto-img" style="display:none;"/>
+    <div class="auto-overlay" id="auto-overlay" style="display:none;">✍️ Guess the Autograph</div>
+    <div class="guesses-left" id="guesses-left" style="display:none;">10 guesses left</div>
+    <!-- Reveal badge shown when card is shown -->
+    <div id="reveal-badge" style="display:none;position:absolute;top:10px;left:10px;background:rgba(62,207,142,.9);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:900;color:#fff;">✓ Revealed!</div>
+  </div>
+
+  <!-- MESSAGE BAR -->
+  <div class="msg-bar" id="msg-bar"></div>
+
+  <!-- SEARCH -->
+  <div class="search-wrap" id="search-wrap">
+    <input type="text" class="search-input" id="search-input"
+      placeholder="Search for a player..." autocomplete="off"
+      oninput="handleSearch(this.value)"
+      onkeydown="handleSearchKey(event)"/>
+    <div class="dropdown" id="dropdown" style="display:none;"></div>
+  </div>
+
+  <!-- HINT TABLE -->
+  <div class="hint-table">
+    <div class="hint-header">
+      <div class="hh">Player</div>
+      <div class="hh">Pos</div>
+      <div class="hh">Team</div>
+      <div class="hh">Conf</div>
+      <div class="hh">#</div>
+      <div class="hh">Age</div>
+      <div class="hh">Ht</div>
+    </div>
+    <div id="guess-rows"></div>
+    <div id="empty-rows"></div>
+  </div>
+
+  <!-- HOW TO PLAY -->
+  <div class="how-panel">
+    <div class="how-title">
+      <span>How to play</span>
+      <span style="font-size:10px;color:var(--dim);font-weight:700;cursor:pointer;" onclick="this.parentElement.parentElement.style.display='none'">✕ Hide</span>
+    </div>
+    <div class="legend">
+      <div class="legend-row"><div class="legend-tile lt-green"></div>Exact match — correct!</div>
+      <div class="legend-row"><div class="legend-tile lt-yellow"></div>Close — within 5 for jersey/age/height. ▲▼ shows direction.</div>
+      <div class="legend-row"><div class="legend-tile lt-grey"></div>Wrong — too far off</div>
+    </div>
+    <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:10px;line-height:1.6;">
+      Guess the mystery player from their autograph. Each guess reveals hints about position, team, conference, jersey number, age, and height.
+    </div>
+  </div>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div id="result-wrap" style="display:none;">
+  <div class="result-banner">
+    <div class="result-emoji" id="result-emoji">🎉</div>
+    <div class="result-title" id="result-title">Got it!</div>
+    <div class="result-sub" id="result-sub">You solved today's SIGNTVRE!</div>
+    <div class="result-answer" id="result-answer"></div>
+    <div class="share-preview" id="share-grid"></div>
+    <div class="result-btns">
+      <button class="rbtn rbtn-ghost" onclick="copyShare()">📋 Copy Result</button>
+      <button class="rbtn rbtn-primary" onclick="newPuzzle()" id="play-again-btn" style="display:none;">Play Again ▶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── PLAYER DATABASE ──
+const PLAYERS = [
+  // ── NBA CURRENT ──
+  {name:'LeBron James',                pos:'SF', team:'Lakers',        conf:'West',jersey:23, age:40,height:81,sport:'basketball'},
+  {name:'Stephen Curry',               pos:'PG', team:'Warriors',      conf:'West',jersey:30, age:37,height:74,sport:'basketball'},
+  {name:'Kevin Durant',                pos:'SF', team:'Suns',          conf:'West',jersey:35, age:36,height:82,sport:'basketball'},
+  {name:'Giannis Antetokounmpo',       pos:'PF', team:'Bucks',         conf:'East',jersey:34, age:30,height:83,sport:'basketball'},
+  {name:'Nikola Jokic',                pos:'C',  team:'Nuggets',       conf:'West',jersey:15, age:29,height:83,sport:'basketball'},
+  {name:'Joel Embiid',                 pos:'C',  team:'76ers',         conf:'East',jersey:21, age:30,height:84,sport:'basketball'},
+  {name:'Luka Doncic',                 pos:'PG', team:'Mavericks',     conf:'West',jersey:77, age:25,height:79,sport:'basketball'},
+  {name:'Jayson Tatum',                pos:'SF', team:'Celtics',       conf:'East',jersey:0,  age:26,height:80,sport:'basketball'},
+  {name:'Shai Gilgeous-Alexander',     pos:'PG', team:'Thunder',       conf:'West',jersey:2,  age:26,height:79,sport:'basketball'},
+  {name:'Anthony Edwards',             pos:'SG', team:'Timberwolves',  conf:'West',jersey:5,  age:23,height:78,sport:'basketball'},
+  {name:'Devin Booker',                pos:'SG', team:'Suns',          conf:'West',jersey:1,  age:28,height:78,sport:'basketball'},
+  {name:'Jaylen Brown',                pos:'SG', team:'Celtics',       conf:'East',jersey:7,  age:27,height:78,sport:'basketball'},
+  {name:'Tyrese Haliburton',           pos:'PG', team:'Pacers',        conf:'East',jersey:0,  age:24,height:78,sport:'basketball'},
+  {name:'Ja Morant',                   pos:'PG', team:'Grizzlies',     conf:'West',jersey:12, age:25,height:76,sport:'basketball'},
+  {name:'Zion Williamson',             pos:'PF', team:'Pelicans',      conf:'West',jersey:1,  age:24,height:79,sport:'basketball'},
+  {name:'Donovan Mitchell',            pos:'SG', team:'Cavaliers',     conf:'East',jersey:45, age:28,height:74,sport:'basketball'},
+  {name:'Bam Adebayo',                 pos:'C',  team:'Heat',          conf:'East',jersey:13, age:27,height:81,sport:'basketball'},
+  {name:'Damian Lillard',              pos:'PG', team:'Bucks',         conf:'East',jersey:0,  age:34,height:75,sport:'basketball'},
+  {name:'Trae Young',                  pos:'PG', team:'Hawks',         conf:'East',jersey:11, age:26,height:73,sport:'basketball'},
+  {name:'Karl-Anthony Towns',          pos:'C',  team:'Knicks',        conf:'East',jersey:32, age:29,height:84,sport:'basketball'},
+  {name:'Jalen Brunson',               pos:'PG', team:'Knicks',        conf:'East',jersey:11, age:28,height:74,sport:'basketball'},
+  {name:'Victor Wembanyama',           pos:'C',  team:'Spurs',         conf:'West',jersey:1,  age:21,height:89,sport:'basketball'},
+  {name:'Cade Cunningham',             pos:'PG', team:'Pistons',       conf:'East',jersey:2,  age:23,height:78,sport:'basketball'},
+  {name:'Paolo Banchero',              pos:'PF', team:'Magic',         conf:'East',jersey:5,  age:22,height:82,sport:'basketball'},
+  {name:'Evan Mobley',                 pos:'C',  team:'Cavaliers',     conf:'East',jersey:4,  age:23,height:83,sport:'basketball'},
+  {name:'Scottie Barnes',              pos:'PF', team:'Raptors',       conf:'East',jersey:4,  age:24,height:80,sport:'basketball'},
+  {name:'Franz Wagner',                pos:'SF', team:'Magic',         conf:'East',jersey:21, age:23,height:81,sport:'basketball'},
+  {name:'Demar DeRozan',               pos:'SG', team:'Bulls',         conf:'East',jersey:11, age:35,height:78,sport:'basketball'},
+  {name:'Paul George',                 pos:'SF', team:'76ers',         conf:'East',jersey:8,  age:34,height:80,sport:'basketball'},
+  {name:'Kyrie Irving',                pos:'PG', team:'Mavericks',     conf:'West',jersey:11, age:32,height:75,sport:'basketball'},
+  // ── NBA LEGENDS ──
+  {name:'Michael Jordan',              pos:'SG', team:'Bulls',         conf:'East',jersey:23, age:61,height:78,sport:'basketball'},
+  {name:'Kobe Bryant',                 pos:'SG', team:'Lakers',        conf:'West',jersey:24, age:41,height:78,sport:'basketball'},
+  {name:'Magic Johnson',               pos:'PG', team:'Lakers',        conf:'West',jersey:32, age:65,height:81,sport:'basketball'},
+  {name:'Larry Bird',                  pos:'SF', team:'Celtics',       conf:'East',jersey:33, age:68,height:81,sport:'basketball'},
+  {name:'Shaquille ONeal',             pos:'C',  team:'Lakers',        conf:'West',jersey:34, age:52,height:85,sport:'basketball'},
+  {name:'Hakeem Olajuwon',             pos:'C',  team:'Rockets',       conf:'West',jersey:34, age:62,height:84,sport:'basketball'},
+  {name:'Charles Barkley',             pos:'PF', team:'Suns',          conf:'West',jersey:34, age:61,height:78,sport:'basketball'},
+  {name:'Allen Iverson',               pos:'PG', team:'76ers',         conf:'East',jersey:3,  age:49,height:72,sport:'basketball'},
+  {name:'Tim Duncan',                  pos:'PF', team:'Spurs',         conf:'West',jersey:21, age:48,height:84,sport:'basketball'},
+  {name:'Dirk Nowitzki',               pos:'PF', team:'Mavericks',     conf:'West',jersey:41, age:46,height:84,sport:'basketball'},
+  {name:'Dwyane Wade',                 pos:'SG', team:'Heat',          conf:'East',jersey:3,  age:42,height:76,sport:'basketball'},
+  {name:'Chris Paul',                  pos:'PG', team:'Warriors',      conf:'West',jersey:3,  age:39,height:72,sport:'basketball'},
+  {name:'Carmelo Anthony',             pos:'SF', team:'Knicks',        conf:'East',jersey:7,  age:40,height:80,sport:'basketball'},
+  {name:'Russell Westbrook',           pos:'PG', team:'Clippers',      conf:'West',jersey:0,  age:36,height:75,sport:'basketball'},
+  {name:'James Harden',                pos:'SG', team:'Clippers',      conf:'West',jersey:1,  age:35,height:77,sport:'basketball'},
+  {name:'Vince Carter',                pos:'SG', team:'Raptors',       conf:'East',jersey:15, age:47,height:78,sport:'basketball'},
+  {name:'Tracy McGrady',               pos:'SG', team:'Rockets',       conf:'West',jersey:1,  age:45,height:80,sport:'basketball'},
+  {name:'Steve Nash',                  pos:'PG', team:'Suns',          conf:'West',jersey:13, age:50,height:75,sport:'basketball'},
+  {name:'Kevin Garnett',               pos:'PF', team:'Celtics',       conf:'East',jersey:5,  age:48,height:83,sport:'basketball'},
+  {name:'Paul Pierce',                 pos:'SF', team:'Celtics',       conf:'East',jersey:34, age:47,height:79,sport:'basketball'},
+  // ── NFL CURRENT ──
+  {name:'Patrick Mahomes',             pos:'QB', team:'Chiefs',        conf:'AFC', jersey:15, age:29,height:75,sport:'football'},
+  {name:'Josh Allen',                  pos:'QB', team:'Bills',         conf:'AFC', jersey:17, age:28,height:77,sport:'football'},
+  {name:'Jalen Hurts',                 pos:'QB', team:'Eagles',        conf:'NFC', jersey:1,  age:26,height:72,sport:'football'},
+  {name:'Lamar Jackson',               pos:'QB', team:'Ravens',        conf:'AFC', jersey:8,  age:27,height:74,sport:'football'},
+  {name:'Joe Burrow',                  pos:'QB', team:'Bengals',       conf:'AFC', jersey:9,  age:28,height:76,sport:'football'},
+  {name:'Justin Herbert',              pos:'QB', team:'Chargers',      conf:'AFC', jersey:10, age:26,height:78,sport:'football'},
+  {name:'Dak Prescott',                pos:'QB', team:'Cowboys',       conf:'NFC', jersey:4,  age:31,height:74,sport:'football'},
+  {name:'Tua Tagovailoa',              pos:'QB', team:'Dolphins',      conf:'AFC', jersey:1,  age:26,height:73,sport:'football'},
+  {name:'Jordan Love',                 pos:'QB', team:'Packers',       conf:'NFC', jersey:10, age:26,height:76,sport:'football'},
+  {name:'Caleb Williams',              pos:'QB', team:'Bears',         conf:'NFC', jersey:18, age:23,height:73,sport:'football'},
+  {name:'Jayden Daniels',              pos:'QB', team:'Commanders',    conf:'NFC', jersey:5,  age:24,height:76,sport:'football'},
+  {name:'Justin Jefferson',            pos:'WR', team:'Vikings',       conf:'NFC', jersey:18, age:25,height:73,sport:'football'},
+  {name:'Ja'Marr Chase',              pos:'WR', team:'Bengals',       conf:'AFC', jersey:1,  age:24,height:72,sport:'football'},
+  {name:'CeeDee Lamb',                 pos:'WR', team:'Cowboys',       conf:'NFC', jersey:88, age:25,height:73,sport:'football'},
+  {name:'Tyreek Hill',                 pos:'WR', team:'Dolphins',      conf:'AFC', jersey:10, age:30,height:70,sport:'football'},
+  {name:'Davante Adams',               pos:'WR', team:'Raiders',       conf:'AFC', jersey:17, age:32,height:73,sport:'football'},
+  {name:'Cooper Kupp',                 pos:'WR', team:'Rams',          conf:'NFC', jersey:10, age:31,height:73,sport:'football'},
+  {name:'Stefon Diggs',                pos:'WR', team:'Patriots',      conf:'AFC', jersey:14, age:30,height:72,sport:'football'},
+  {name:'Travis Kelce',                pos:'TE', team:'Chiefs',        conf:'AFC', jersey:87, age:35,height:77,sport:'football'},
+  {name:'Sam LaPorta',                 pos:'TE', team:'Lions',         conf:'NFC', jersey:85, age:24,height:76,sport:'football'},
+  {name:'Brock Purdy',                 pos:'QB', team:'49ers',         conf:'NFC', jersey:13, age:24,height:74,sport:'football'},
+  {name:'Christian McCaffrey',         pos:'RB', team:'49ers',         conf:'NFC', jersey:23, age:28,height:71,sport:'football'},
+  {name:'Derrick Henry',               pos:'RB', team:'Ravens',        conf:'AFC', jersey:22, age:30,height:73,sport:'football'},
+  {name:'Saquon Barkley',              pos:'RB', team:'Eagles',        conf:'NFC', jersey:26, age:27,height:72,sport:'football'},
+  {name:'Nick Chubb',                  pos:'RB', team:'Browns',        conf:'AFC', jersey:24, age:29,height:71,sport:'football'},
+  {name:'Micah Parsons',               pos:'LB', team:'Cowboys',       conf:'NFC', jersey:11, age:25,height:75,sport:'football'},
+  {name:'TJ Watt',                     pos:'LB', team:'Steelers',      conf:'AFC', jersey:90, age:30,height:76,sport:'football'},
+  {name:'Myles Garrett',               pos:'DE', team:'Browns',        conf:'AFC', jersey:95, age:29,height:77,sport:'football'},
+  // ── NFL LEGENDS ──
+  {name:'Tom Brady',                   pos:'QB', team:'Patriots',      conf:'AFC', jersey:12, age:47,height:76,sport:'football'},
+  {name:'Aaron Rodgers',               pos:'QB', team:'Jets',          conf:'AFC', jersey:8,  age:41,height:74,sport:'football'},
+  {name:'Peyton Manning',              pos:'QB', team:'Colts',         conf:'AFC', jersey:18, age:48,height:77,sport:'football'},
+  {name:'Brett Favre',                 pos:'QB', team:'Packers',       conf:'NFC', jersey:4,  age:55,height:74,sport:'football'},
+  {name:'Drew Brees',                  pos:'QB', team:'Saints',        conf:'NFC', jersey:9,  age:46,height:72,sport:'football'},
+  {name:'Jerry Rice',                  pos:'WR', team:'49ers',         conf:'NFC', jersey:80, age:62,height:74,sport:'football'},
+  {name:'Randy Moss',                  pos:'WR', team:'Vikings',       conf:'NFC', jersey:84, age:47,height:76,sport:'football'},
+  {name:'Terrell Owens',               pos:'WR', team:'Cowboys',       conf:'NFC', jersey:81, age:51,height:75,sport:'football'},
+  {name:'Barry Sanders',               pos:'RB', team:'Lions',         conf:'NFC', jersey:20, age:56,height:68,sport:'football'},
+  {name:'Emmitt Smith',                pos:'RB', team:'Cowboys',       conf:'NFC', jersey:22, age:55,height:69,sport:'football'},
+  {name:'Walter Payton',               pos:'RB', team:'Bears',         conf:'NFC', jersey:34, age:45,height:70,sport:'football'},
+  {name:'Lawrence Taylor',             pos:'LB', team:'Giants',        conf:'NFC', jersey:56, age:65,height:75,sport:'football'},
+  {name:'Reggie Bush',                 pos:'RB', team:'Saints',        conf:'NFC', jersey:25, age:39,height:72,sport:'football'},
+  {name:'Adrian Peterson',             pos:'RB', team:'Vikings',       conf:'NFC', jersey:28, age:39,height:73,sport:'football'},
+  {name:'Rob Gronkowski',              pos:'TE', team:'Patriots',      conf:'AFC', jersey:87, age:35,height:78,sport:'football'},
+  // ── MLB CURRENT ──
+  {name:'Shohei Ohtani',               pos:'DH', team:'Dodgers',       conf:'NL',  jersey:17, age:30,height:76,sport:'baseball'},
+  {name:'Mike Trout',                   pos:'CF', team:'Angels',        conf:'AL',  jersey:27, age:33,height:75,sport:'baseball'},
+  {name:'Juan Soto',                   pos:'RF', team:'Yankees',       conf:'AL',  jersey:22, age:26,height:74,sport:'baseball'},
+  {name:'Ronald Acuna Jr',             pos:'RF', team:'Braves',        conf:'NL',  jersey:13, age:27,height:72,sport:'baseball'},
+  {name:'Mookie Betts',                pos:'RF', team:'Dodgers',       conf:'NL',  jersey:50, age:32,height:69,sport:'baseball'},
+  {name:'Freddie Freeman',             pos:'1B', team:'Dodgers',       conf:'NL',  jersey:5,  age:35,height:76,sport:'baseball'},
+  {name:'Fernando Tatis Jr',           pos:'SS', team:'Padres',        conf:'NL',  jersey:23, age:26,height:73,sport:'baseball'},
+  {name:'Elly De La Cruz',             pos:'SS', team:'Reds',          conf:'NL',  jersey:44, age:23,height:79,sport:'baseball'},
+  {name:'Paul Skenes',                 pos:'SP', team:'Pirates',       conf:'NL',  jersey:30, age:22,height:78,sport:'baseball'},
+  {name:'Gunnar Henderson',            pos:'SS', team:'Orioles',       conf:'AL',  jersey:2,  age:23,height:75,sport:'baseball'},
+  {name:'Jackson Chourio',             pos:'LF', team:'Brewers',       conf:'NL',  jersey:11, age:21,height:72,sport:'baseball'},
+  {name:'Francisco Lindor',            pos:'SS', team:'Mets',          conf:'NL',  jersey:12, age:31,height:71,sport:'baseball'},
+  {name:'Yordan Alvarez',              pos:'DH', team:'Astros',        conf:'AL',  jersey:44, age:27,height:76,sport:'baseball'},
+  {name:'Rafael Devers',               pos:'3B', team:'Red Sox',       conf:'AL',  jersey:11, age:28,height:72,sport:'baseball'},
+  {name:'Jose Ramirez',                pos:'3B', team:'Guardians',     conf:'AL',  jersey:11, age:32,height:71,sport:'baseball'},
+  {name:'Corbin Carroll',              pos:'LF', team:'Diamondbacks',  conf:'NL',  jersey:7,  age:24,height:70,sport:'baseball'},
+  {name:'Bryce Harper',                pos:'1B', team:'Phillies',      conf:'NL',  jersey:3,  age:32,height:75,sport:'baseball'},
+  {name:'Aaron Judge',                 pos:'RF', team:'Yankees',       conf:'AL',  jersey:99, age:32,height:79,sport:'baseball'},
+  // ── MLB LEGENDS ──
+  {name:'Derek Jeter',                 pos:'SS', team:'Yankees',       conf:'AL',  jersey:2,  age:50,height:75,sport:'baseball'},
+  {name:'Ken Griffey Jr',              pos:'CF', team:'Mariners',      conf:'AL',  jersey:24, age:54,height:75,sport:'baseball'},
+  {name:'Mariano Rivera',              pos:'RP', team:'Yankees',       conf:'AL',  jersey:42, age:55,height:74,sport:'baseball'},
+  {name:'Alex Rodriguez',              pos:'SS', team:'Yankees',       conf:'AL',  jersey:13, age:49,height:75,sport:'baseball'},
+  {name:'David Ortiz',                 pos:'DH', team:'Red Sox',       conf:'AL',  jersey:34, age:49,height:74,sport:'baseball'},
+  {name:'Barry Bonds',                 pos:'LF', team:'Giants',        conf:'NL',  jersey:25, age:60,height:74,sport:'baseball'},
+  {name:'Cal Ripken Jr',               pos:'SS', team:'Orioles',       conf:'AL',  jersey:8,  age:64,height:76,sport:'baseball'},
+  {name:'Randy Johnson',               pos:'SP', team:'Mariners',      conf:'AL',  jersey:51, age:61,height:82,sport:'baseball'},
+  {name:'Roger Clemens',               pos:'SP', team:'Yankees',       conf:'AL',  jersey:21, age:62,height:75,sport:'baseball'},
+  {name:'Tony Gwynn',                  pos:'RF', team:'Padres',        conf:'NL',  jersey:19, age:54,height:71,sport:'baseball'},
+  {name:'Mike Piazza',                 pos:'C',  team:'Mets',          conf:'NL',  jersey:31, age:56,height:76,sport:'baseball'},
+  {name:'Chipper Jones',               pos:'3B', team:'Braves',        conf:'NL',  jersey:10, age:52,height:76,sport:'baseball'},
+  {name:'Pedro Martinez',              pos:'SP', team:'Red Sox',       conf:'AL',  jersey:45, age:53,height:71,sport:'baseball'},
+  // ── NHL CURRENT ──
+  {name:'Connor McDavid',              pos:'C',  team:'Oilers',        conf:'West',jersey:97, age:28,height:73,sport:'hockey'},
+  {name:'Nathan MacKinnon',            pos:'C',  team:'Avalanche',     conf:'West',jersey:29, age:29,height:72,sport:'hockey'},
+  {name:'Auston Matthews',             pos:'C',  team:'Maple Leafs',   conf:'East',jersey:34, age:27,height:75,sport:'hockey'},
+  {name:'David Pastrnak',              pos:'RW', team:'Bruins',        conf:'East',jersey:88, age:28,height:72,sport:'hockey'},
+  {name:'Cale Makar',                  pos:'D',  team:'Avalanche',     conf:'West',jersey:8,  age:26,height:72,sport:'hockey'},
+  {name:'Leon Draisaitl',              pos:'C',  team:'Oilers',        conf:'West',jersey:29, age:29,height:74,sport:'hockey'},
+  {name:'Artemi Panarin',              pos:'LW', team:'Rangers',       conf:'East',jersey:10, age:33,height:72,sport:'hockey'},
+  {name:'Mikko Rantanen',              pos:'RW', team:'Avalanche',     conf:'West',jersey:96, age:28,height:76,sport:'hockey'},
+  {name:'Matthew Tkachuk',             pos:'LW', team:'Panthers',      conf:'East',jersey:19, age:26,height:75,sport:'hockey'},
+  {name:'Nikita Kucherov',             pos:'RW', team:'Lightning',     conf:'East',jersey:86, age:31,height:71,sport:'hockey'},
+  {name:'Igor Shesterkin',             pos:'G',  team:'Rangers',       conf:'East',jersey:31, age:29,height:74,sport:'hockey'},
+  {name:'Jack Hughes',                 pos:'C',  team:'Devils',        conf:'East',jersey:86, age:23,height:71,sport:'hockey'},
+  {name:'Quinn Hughes',                pos:'D',  team:'Canucks',       conf:'West',jersey:43, age:25,height:71,sport:'hockey'},
+  {name:'Brady Tkachuk',               pos:'LW', team:'Senators',      conf:'East',jersey:7,  age:25,height:76,sport:'hockey'},
+  // ── NHL LEGENDS ──
+  {name:'Wayne Gretzky',               pos:'C',  team:'Oilers',        conf:'West',jersey:99, age:63,height:72,sport:'hockey'},
+  {name:'Mario Lemieux',               pos:'C',  team:'Penguins',      conf:'East',jersey:66, age:59,height:76,sport:'hockey'},
+  {name:'Gordie Howe',                 pos:'RW', team:'Red Wings',     conf:'West',jersey:9,  age:77,height:72,sport:'hockey'},
+  {name:'Bobby Orr',                   pos:'D',  team:'Bruins',        conf:'East',jersey:4,  age:77,height:72,sport:'hockey'},
+  {name:'Mark Messier',                pos:'C',  team:'Oilers',        conf:'West',jersey:11, age:64,height:74,sport:'hockey'},
+  {name:'Jaromir Jagr',                pos:'RW', team:'Penguins',      conf:'East',jersey:68, age:52,height:74,sport:'hockey'},
+  {name:'Patrick Roy',                 pos:'G',  team:'Avalanche',     conf:'West',jersey:33, age:59,height:73,sport:'hockey'},
+  {name:'Martin Brodeur',              pos:'G',  team:'Devils',        conf:'East',jersey:30, age:52,height:74,sport:'hockey'},
+  {name:'Steve Yzerman',               pos:'C',  team:'Red Wings',     conf:'West',jersey:19, age:59,height:71,sport:'hockey'},
+  {name:'Sidney Crosby',               pos:'C',  team:'Penguins',      conf:'East',jersey:87, age:37,height:71,sport:'hockey'},
+  {name:'Alexander Ovechkin',          pos:'LW', team:'Capitals',      conf:'East',jersey:8,  age:39,height:75,sport:'hockey'},
+  {name:'Evgeni Malkin',               pos:'C',  team:'Penguins',      conf:'East',jersey:71, age:38,height:75,sport:'hockey'},
+  {name:'Eric Lindros',                pos:'C',  team:'76ers',         conf:'East',jersey:88, age:51,height:77,sport:'hockey'},
+  {name:'Brendan Shanahan',            pos:'LW', team:'Red Wings',     conf:'West',jersey:14, age:56,height:75,sport:'hockey'},
+  {name:'Brett Hull',                  pos:'RW', team:'Blues',         conf:'West',jersey:16, age:60,height:73,sport:'hockey'},
+  // ── GOLF ──
+  {name:'Tiger Woods',                 pos:'PGA',team:'PGA',           conf:'PGA', jersey:0,  age:49,height:73,sport:'golf'},
+  {name:'Scottie Scheffler',           pos:'PGA',team:'PGA',           conf:'PGA', jersey:0,  age:28,height:75,sport:'golf'},
+  {name:'Rory McIlroy',                pos:'PGA',team:'PGA',           conf:'PGA', jersey:0,  age:35,height:71,sport:'golf'},
+  {name:'Jon Rahm',                    pos:'PGA',team:'PGA',           conf:'PGA', jersey:0,  age:30,height:73,sport:'golf'},
+  {name:'Xander Schauffele',           pos:'PGA',team:'PGA',           conf:'PGA', jersey:0,  age:30,height:71,sport:'golf'},
+  {name:'Collin Morikawa',             pos:'PGA',team:'PGA',           conf:'PGA', jersey:0,  age:27,height:71,sport:'golf'},
+  {name:'Justin Thomas',               pos:'PGA',team:'PGA',           conf:'PGA', jersey:0,  age:31,height:70,sport:'golf'},
+  {name:'Jordan Spieth',               pos:'PGA',team:'PGA',           conf:'PGA', jersey:0,  age:31,height:73,sport:'golf'},
+  {name:'Phil Mickelson',              pos:'PGA',team:'PGA',           conf:'PGA', jersey:0,  age:54,height:75,sport:'golf'},
+  {name:'Bryson DeChambeau',           pos:'PGA',team:'PGA',           conf:'PGA', jersey:0,  age:31,height:74,sport:'golf'},
+  // ── BOXING / MMA ──
+  {name:'Muhammad Ali',                pos:'HW', team:'Boxing',        conf:'Box', jersey:0,  age:77,height:75,sport:'boxing'},
+  {name:'Mike Tyson',                  pos:'HW', team:'Boxing',        conf:'Box', jersey:0,  age:58,height:71,sport:'boxing'},
+  {name:'Floyd Mayweather',            pos:'WW', team:'Boxing',        conf:'Box', jersey:0,  age:47,height:68,sport:'boxing'},
+  {name:'Conor McGregor',              pos:'LW', team:'UFC',           conf:'UFC', jersey:0,  age:36,height:69,sport:'mma'},
+  {name:'Jon Jones',                   pos:'HW', team:'UFC',           conf:'UFC', jersey:0,  age:37,height:76,sport:'mma'},
+  {name:'Anderson Silva',              pos:'MW', team:'UFC',           conf:'UFC', jersey:0,  age:49,height:74,sport:'mma'},
+  {name:'Georges St-Pierre',           pos:'WW', team:'UFC',           conf:'UFC', jersey:0,  age:43,height:71,sport:'mma'},
+  // ── SOCCER ──
+  {name:'Lionel Messi',                pos:'RW', team:'Inter Miami',   conf:'MLS', jersey:10, age:37,height:67,sport:'soccer'},
+  {name:'Cristiano Ronaldo',           pos:'ST', team:'Al-Nassr',      conf:'SPL', jersey:7,  age:39,height:74,sport:'soccer'},
+  {name:'Kylian Mbappe',               pos:'ST', team:'Real Madrid',   conf:'UCL', jersey:9,  age:26,height:71,sport:'soccer'},
+  {name:'Erling Haaland',              pos:'ST', team:'Man City',      conf:'UCL', jersey:9,  age:24,height:76,sport:'soccer'},
+  {name:'Vinicius Jr',                 pos:'LW', team:'Real Madrid',   conf:'UCL', jersey:7,  age:24,height:72,sport:'soccer'},
+  {name:'Jude Bellingham',             pos:'CM', team:'Real Madrid',   conf:'UCL', jersey:5,  age:21,height:74,sport:'soccer'},
+  {name:'Neymar Jr',                   pos:'LW', team:'Al-Hilal',      conf:'SPL', jersey:10, age:32,height:69,sport:'soccer'},
+  {name:'Lamine Yamal',                pos:'RW', team:'Barcelona',     conf:'UCL', jersey:19, age:17,height:70,sport:'soccer'},
+  {name:'Rodri',                       pos:'CM', team:'Man City',      conf:'UCL', jersey:16, age:28,height:74,sport:'soccer'},
+  {name:'Harry Kane',                  pos:'ST', team:'Bayern Munich', conf:'UCL', jersey:9,  age:31,height:73,sport:'soccer'},
+];
+
+// ── STATE ──
+let mode = 'daily';
+let currentPuzzle = null;
+let guesses = [];
+let gameOver = false;
+const MAX_GUESSES = 10;
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadPuzzle();
+  buildEmptyRows();
+});
+
+async function setMode(m) {
+  mode = m;
+  document.getElementById('tab-daily').classList.toggle('active', m === 'daily');
+  document.getElementById('tab-unlimited').classList.toggle('active', m === 'unlimited');
+  resetGame();
+  await loadPuzzle();
+}
+
+// ── PUZZLE LOADING ──
+async function loadPuzzle() {
+  // Read from Supabase (live website data)
+  let autos = [];
+  try {
+    if(typeof supabase !== 'undefined' && !window._sb) {
+      window._sb = supabase.createClient('https://nwzsomfhidefbldsloxz.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA');
+    }
+    if(window._sb) {
+      const {data} = await window._sb.from('autograph_puzzles').select('*').eq('status','active');
+      autos = data || [];
+      // Also map field names for compatibility
+      autos = autos.map(a => ({...a, playerName: a.player_name, img: a.autograph_img}));
+    }
+  } catch(e) { console.log('Supabase unavailable:', e.message); }
+  
+  // Fallback to localStorage if Supabase fails
+  if(!autos.length) {
+    autos = JSON.parse(localStorage.getItem('cv_autographs') || '[]');
+    autos = autos.map(a => ({...a, playerName: a.playerName || a.player}));
+  }
+
+  if(!autos.length) { showNoPuzzle(); return; }
+
+  if(mode === 'daily') {
+    const today = new Date().toISOString().split('T')[0];
+    const daily = autos.find(a => a.game_date === today || a.date === today);
+    const dayIdx = Math.floor(Date.now() / 86400000) % autos.length;
+    currentPuzzle = daily || autos[dayIdx];
+  } else {
+    const played = JSON.parse(sessionStorage.getItem('sv_played') || '[]');
+    const remaining = autos.filter(a => !played.includes(a.id));
+    if(!remaining.length) { sessionStorage.removeItem('sv_played'); currentPuzzle = autos[Math.floor(Math.random()*autos.length)]; }
+    else currentPuzzle = remaining[Math.floor(Math.random()*remaining.length)];
+  }
+
+  // Load images
+  const autoImgEl = document.getElementById('auto-img');
+  const cardImgEl = document.getElementById('card-img');
+  const ph = document.getElementById('auto-placeholder');
+  
+  // Autograph cutout (what players guess from)
+  if(currentPuzzle.autograph_img || currentPuzzle.img) {
+    autoImgEl.src = currentPuzzle.autograph_img || currentPuzzle.img;
+    autoImgEl.style.display = 'block';
+    autoImgEl.className = 'auto-img';
+    ph.style.display = 'none';
+    document.getElementById('auto-overlay').style.display = 'block';
+    document.getElementById('guesses-left').style.display = 'block';
+  } else {
+    autoImgEl.style.display = 'none';
+    ph.style.display = 'flex';
+    ph.innerHTML = '<div class="icon">✍️</div><div class="lbl">No autograph image uploaded</div>';
+  }
+  
+  // Card image (preload but hide - revealed on game end)
+  if(currentPuzzle.card_img) {
+    cardImgEl.src = currentPuzzle.card_img;
+    cardImgEl.style.display = 'none';
+  } else {
+    cardImgEl.style.display = 'none';
+  }
+  
+  setMsg('Guess the mystery autograph in ' + MAX_GUESSES + ' tries!');
+}
+
+function showNoPuzzle() {
+  document.getElementById('auto-placeholder').innerHTML = `
+    <div class="icon">✍️</div>
+    <div class="lbl" style="font-weight:800;">No puzzles added yet</div>
+    <div style="font-size:11px;color:var(--dim);text-align:center;margin-top:4px;padding:0 20px;">Add autograph photos in the <a href="admin.html" class="no-puzzle-link">Admin Dashboard</a></div>`;
+  document.getElementById('search-input').disabled = true;
+  setMsg('No puzzles available — add some in Admin', 'err');
+}
+
+// ── SEARCH ──
+function handleSearch(val) {
+  const q = val.trim().toLowerCase();
+  const dd = document.getElementById('dropdown');
+  if(q.length < 1) { dd.style.display = 'none'; return; }
+
+  const usedNames = new Set(guesses.map(g => g.name.toLowerCase()));
+  const matches = PLAYERS
+    .filter(p => p.name.toLowerCase().includes(q) && !usedNames.has(p.name.toLowerCase()))
+    .slice(0, 8);
+
+  if(!matches.length) { dd.style.display = 'none'; return; }
+  dd.innerHTML = matches.map(p => `
+    <div class="dropdown-item" onclick="selectPlayer('${p.name.replace(/'/g,"\\'")}')">
+      <div>
+        <div class="di-name">${p.name}</div>
+        <div class="di-meta">${p.pos} · ${p.team} · #${p.jersey}</div>
+      </div>
+      <div style="font-size:10px;color:var(--dim);font-weight:700;">${p.sport}</div>
+    </div>`).join('');
+  dd.style.display = 'block';
+}
+
+function handleSearchKey(e) {
+  if(e.key === 'Enter') {
+    const val = document.getElementById('search-input').value.trim();
+    const match = PLAYERS.find(p => p.name.toLowerCase() === val.toLowerCase());
+    if(match) selectPlayer(match.name);
+    else if(val) setMsg('Player not found — check spelling', 'err');
+  } else if(e.key === 'Escape') {
+    document.getElementById('dropdown').style.display = 'none';
+  }
+}
+
+function selectPlayer(name) {
+  document.getElementById('search-input').value = '';
+  document.getElementById('dropdown').style.display = 'none';
+  submitGuess(name);
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  if(!e.target.closest('.search-wrap')) document.getElementById('dropdown').style.display = 'none';
+});
+
+// ── GUESS LOGIC ──
+function submitGuess(name) {
+  if(gameOver || !currentPuzzle) return;
+  const player = PLAYERS.find(p => p.name.toLowerCase() === name.toLowerCase());
+  if(!player) { setMsg('Player not in database', 'err'); return; }
+  if(guesses.find(g => g.name.toLowerCase() === name.toLowerCase())) { setMsg('Already guessed!', 'err'); return; }
+
+  const answer = PLAYERS.find(p => p.name.toLowerCase() === currentPuzzle.playerName.toLowerCase());
+
+  // Build hint row
+  const hint = buildHint(player, answer);
+  guesses.push({name: player.name, hint});
+
+  // Image stays clear the whole game
+
+  updateGuessesLeft();
+  renderGuessRows();
+  buildEmptyRows();
+
+  // Check win/lose
+  const won = hint.every(h => h.status === 'correct');
+  if(won) {
+    gameOver = true;
+    if(mode === 'unlimited') markPlayed();
+    setTimeout(() => showResult(true), 600);
+  } else if(guesses.length >= MAX_GUESSES) {
+    gameOver = true;
+    if(mode === 'unlimited') markPlayed();
+    setTimeout(() => showResult(false), 600);
+  } else {
+    setMsg('');
+    document.getElementById('search-input').focus();
+  }
+}
+
+function buildHint(player, answer) {
+  if(!answer) {
+    // No answer player found in DB — just show wrong for everything
+    return ['pos','team','conf','jersey','age','height'].map(f => ({field:f, value:player[f], status:'wrong', arrow:''}));
+  }
+  return [
+    tileExact(player, answer, 'pos'),
+    tileExact(player, answer, 'team'),
+    tileExact(player, answer, 'conf'),
+    tileNum(player, answer, 'jersey', 5),
+    tileNum(player, answer, 'age', 3),
+    tileNum(player, answer, 'height', 3),
+  ];
+}
+
+function tileExact(p, a, field) {
+  return {field, value: p[field], status: p[field] === a[field] ? 'correct' : 'wrong', arrow: ''};
+}
+
+function tileNum(p, a, field, tolerance) {
+  const diff = p[field] - a[field];
+  let status = 'wrong', arrow = '';
+  if(diff === 0) { status = 'correct'; }
+  else if(Math.abs(diff) <= tolerance) { status = 'close'; arrow = diff > 0 ? '▼' : '▲'; }
+  else { arrow = diff > 0 ? '▼' : '▲'; }
+  return {field, value: p[field], status, arrow};
+}
+
+// ── RENDER ──
+function renderGuessRows() {
+  const el = document.getElementById('guess-rows');
+  el.innerHTML = guesses.map((g, gi) => {
+    const tiles = g.hint.map((h, i) => {
+      const delay = (i * 80) + 'ms';
+      const label = formatTileLabel(h);
+      return `<div class="g-tile ${h.status}" style="transition-delay:${delay};">${label}${h.arrow ? `<div class="arrow">${h.arrow}</div>` : ''}</div>`;
+    }).join('');
+    return `<div class="guess-row">
+      <div class="g-name" style="font-size:${g.name.length > 14 ? '10px' : '12px'}">${g.name}</div>
+      ${tiles}
+    </div>`;
+  }).join('');
+
+  // Trigger reveal animation
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.g-tile').forEach(t => t.classList.add('revealed'));
+    });
+  });
+}
+
+function formatTileLabel(h) {
+  if(h.field === 'height') {
+    const ft = Math.floor(h.value / 12);
+    const inc = h.value % 12;
+    return `${ft}'${inc}"`;
+  }
+  if(h.field === 'jersey') return '#' + h.value;
+  return h.value;
+}
+
+function buildEmptyRows() {
+  const remaining = MAX_GUESSES - guesses.length;
+  const el = document.getElementById('empty-rows');
+  if(gameOver || remaining <= 0) { el.innerHTML = ''; return; }
+  el.innerHTML = Array(remaining).fill(0).map(() => `
+    <div class="empty-row">
+      <div class="empty-name"></div>
+      ${Array(6).fill('<div class="empty-cell"></div>').join('')}
+    </div>`).join('');
+}
+
+function updateGuessesLeft() {
+  const rem = MAX_GUESSES - guesses.length;
+  const el = document.getElementById('guesses-left');
+  if(el) el.textContent = rem + ' guess' + (rem !== 1 ? 'es' : '') + ' left';
+}
+
+// ── RESULT ──
+function showResult(won) {
+  // Swap autograph image for full card reveal
+  const autoImgEl = document.getElementById('auto-img');
+  const cardImgEl = document.getElementById('card-img');
+  const overlayEl = document.getElementById('auto-overlay');
+  const revealBadge = document.getElementById('reveal-badge');
+  
+  if(currentPuzzle.card_img) {
+    // Smooth transition to full card
+    autoImgEl.style.transition = 'opacity .4s';
+    autoImgEl.style.opacity = '0';
+    setTimeout(() => {
+      autoImgEl.style.display = 'none';
+      cardImgEl.style.display = 'block';
+      cardImgEl.style.opacity = '0';
+      cardImgEl.style.transition = 'opacity .4s';
+      setTimeout(() => cardImgEl.style.opacity = '1', 50);
+    }, 400);
+    overlayEl.textContent = '🃏 Full Card';
+    revealBadge.style.display = 'block';
+  } else if(autoImgEl.style.display !== 'none') {
+    // No card image - just unblur the autograph
+    // no blur to remove
+    overlayEl.textContent = won ? '✓ Correct!' : '✍️ Autograph';
+  }
+  
+  document.getElementById('result-wrap').style.display = 'block';
+  document.getElementById('result-emoji').textContent = won ? '🎉' : '😔';
+  document.getElementById('result-title').textContent = won ? 'Nailed it!' : 'Better luck next time';
+
+  const guessWord = guesses.length === 1 ? '1 guess' : guesses.length + ' guesses';
+  document.getElementById('result-sub').textContent = won
+    ? `Solved in ${guessWord}!`
+    : `The answer was...`;
+
+  document.getElementById('result-answer').textContent = currentPuzzle.playerName;
+
+  // Build share grid
+  const emoji = {correct:'🟩', close:'🟨', wrong:'⬛'};
+  const grid = guesses.map(g => g.hint.map(h => emoji[h.status]).join('')).join('\n');
+  const shareText = `SIGNTVRE ${mode === 'daily' ? new Date().toLocaleDateString() : 'Unlimited'}\n${won ? guesses.length : 'X'}/${MAX_GUESSES}\n\n${grid}\n\ncardverseminigames.com`;
+  document.getElementById('share-grid').textContent = shareText;
+
+  if(mode === 'unlimited') {
+    document.getElementById('play-again-btn').style.display = 'inline-block';
+  }
+
+  document.getElementById('search-wrap').style.display = 'none';
+}
+
+function copyShare() {
+  const text = document.getElementById('share-grid').textContent;
+  navigator.clipboard.writeText(text).then(() => setMsg('Copied to clipboard!', 'ok'))
+    .catch(() => setMsg('Copy failed', 'err'));
+}
+
+function markPlayed() {
+  if(!currentPuzzle) return;
+  const played = JSON.parse(sessionStorage.getItem('sv_played') || '[]');
+  played.push(currentPuzzle.id);
+  sessionStorage.setItem('sv_played', JSON.stringify(played));
+}
+
+function newPuzzle() {
+  document.getElementById('result-wrap').style.display = 'none';
+  document.getElementById('search-wrap').style.display = 'block';
+  resetGame();
+  loadPuzzle();
+  buildEmptyRows();
+}
+
+function resetGame() {
+  guesses = [];
+  gameOver = false;
+  currentPuzzle = null;
+  document.getElementById('guess-rows').innerHTML = '';
+  document.getElementById('result-wrap').style.display = 'none';
+  document.getElementById('search-wrap').style.display = 'block';
+  document.getElementById('search-input').disabled = false;
+  document.getElementById('search-input').value = '';
+  const imgEl = document.getElementById('auto-img');
+  imgEl.className = 'auto-img';
+  imgEl.style.opacity = '1';
+  imgEl.style.display = 'none';
+  const cardImgEl = document.getElementById('card-img');
+  cardImgEl.style.display = 'none';
+  document.getElementById('reveal-badge').style.display = 'none';
+  document.getElementById('auto-overlay').textContent = '✍️ Mystery Autograph';
+  setMsg('');
+}
+
+function setMsg(msg, type = '') {
+  const el = document.getElementById('msg-bar');
+  el.textContent = msg;
+  el.className = 'msg-bar' + (type ? ' ' + type : '');
+}
+</script>
+</body>
+</html>

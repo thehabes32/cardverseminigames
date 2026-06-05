@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cardverse Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#080810;--s:#0f0e1a;--s2:#161525;--s3:#1d1c2e;--b:rgba(255,255,255,.07);--b2:rgba(255,255,255,.13);--t:#f2f0ff;--m:rgba(242,240,255,.5);--dim:rgba(242,240,255,.25);--a:#7c6cfc;--a2:#9d8fff;--g:#3ecf8e;--r:#fc6c6c;--gold:#fcd96c;--orange:#ff6b35;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-height:100vh;}
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
+.sidebar{background:var(--s);border-right:1px solid var(--b);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto;}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--b);}
+.wordmark{font-size:15px;font-weight:900;}.wordmark span{color:var(--a);}
+.badge{font-size:9px;font-weight:800;background:rgba(124,108,252,.15);color:var(--a);padding:2px 7px;border-radius:99px;margin-top:4px;display:inline-block;text-transform:uppercase;}
+.sb-status{font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;margin-top:6px;display:inline-block;}
+.sb-ok{background:rgba(62,207,142,.15);color:var(--g);}
+.sb-err{background:rgba(252,108,108,.15);color:var(--r);}
+.nav-sec{padding:12px 10px 4px;font-size:9px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;border-radius:10px;margin:1px 8px;cursor:pointer;font-size:13px;font-weight:800;color:var(--m);transition:all .15s;border:none;background:none;font-family:'Nunito',sans-serif;width:calc(100% - 16px);text-align:left;}
+.nav-item:hover{background:var(--s2);color:var(--t);}
+.nav-item.active{background:rgba(124,108,252,.15);color:var(--a2);}
+.nav-item .ni{font-size:15px;width:20px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding:14px 16px;border-top:1px solid var(--b);font-size:11px;color:var(--dim);font-weight:700;}
+.main{background:var(--bg);overflow-y:auto;}
+.topbar{padding:16px 24px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:10;}
+.page-title{font-size:18px;font-weight:900;}
+.page-sub{font-size:12px;color:var(--m);margin-top:2px;font-weight:700;}
+.btn{border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;padding:8px 16px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
+.btn-primary{background:var(--a);color:#fff;}
+.btn-primary:hover{background:var(--a2);}
+.btn-success{background:rgba(62,207,142,.15);color:var(--g);border:1px solid rgba(62,207,142,.25);}
+.btn-danger{background:rgba(252,108,108,.12);color:var(--r);border:1px solid rgba(252,108,108,.2);}
+.btn-ghost{background:transparent;color:var(--m);border:1px solid var(--b2);}
+.btn-ghost:hover{color:var(--t);}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:7px;}
+.content{padding:24px;}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+.stat-card{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:16px;}
+.sc-icon{font-size:22px;margin-bottom:8px;}
+.sc-val{font-size:28px;font-weight:900;}
+.sc-lbl{font-size:11px;color:var(--m);font-weight:700;margin-top:2px;}
+.panel{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:20px;margin-bottom:20px;}
+.panel-title{font-size:15px;font-weight:900;margin-bottom:16px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.06em;}
+.field input,.field select,.field textarea{background:var(--s2);border:1.5px solid var(--b);border-radius:8px;color:var(--t);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;padding:8px 10px;outline:none;transition:border .15s;width:100%;}
+.field input:focus,.field select:focus{border-color:var(--a);}
+.field select option{background:var(--s2);}
+.photo-upload{border:2px dashed var(--b2);border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:var(--s2);min-height:100px;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.photo-upload:hover{border-color:var(--a);}
+.table{background:var(--s);border:1px solid var(--b);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+.table-head{display:grid;padding:10px 16px;background:var(--s2);font-size:10px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--b);}
+.table-row{display:grid;padding:12px 16px;border-bottom:1px solid var(--b);align-items:center;}
+.table-row:last-child{border-bottom:none;}
+.table-row:hover{background:var(--s2);}
+.tabs{display:flex;gap:2px;background:var(--s2);border-radius:12px;padding:4px;margin-bottom:20px;width:fit-content;}
+.tab-btn{padding:7px 18px;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;color:var(--m);border:none;background:none;font-family:'Nunito',sans-serif;transition:all .15s;}
+.tab-btn.active{background:var(--s3);color:var(--t);}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--s);border:1px solid var(--b2);border-radius:12px;padding:12px 18px;font-size:13px;font-weight:800;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.ok{border-color:rgba(62,207,142,.3);color:var(--g);}
+.toast.err{border-color:rgba(252,108,108,.3);color:var(--r);}
+.page{display:none;}
+.page.active{display:block;}
+.empty-state{text-align:center;padding:40px;color:var(--m);}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+.empty-title{font-size:14px;font-weight:800;color:var(--t);}
+#login-gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;}
+.login-box{background:var(--s);border:1px solid var(--b);border-radius:20px;padding:32px;width:340px;text-align:center;}
+.login-box h2{font-size:20px;font-weight:900;margin-bottom:4px;}
+.login-box p{font-size:12px;color:var(--m);font-weight:700;margin-bottom:20px;}
+.login-box input{width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:10px;color:var(--t);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;padding:10px 14px;outline:none;margin-bottom:10px;}
+.login-box input:focus{border-color:var(--a);}
+.preview-box{background:#0f0e17;border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,.06);}
+.gp-arena{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;}
+.gp-card{background:#1a1928;border:1.5px solid rgba(255,255,255,.09);border-radius:12px;padding:10px;text-align:center;}
+.gp-ph{width:80px;height:80px;border-radius:8px;background:#232235;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.gp-player{font-size:11px;font-weight:900;}
+.gp-set{font-size:9px;color:var(--m);margin-top:2px;}
+.gp-grade{font-size:10px;font-weight:800;color:#7c6cfc;margin-top:3px;}
+.pair-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:start;}
+.card-picker{background:var(--s2);border:1.5px solid var(--b);border-radius:10px;padding:12px;}
+.card-picker label{font-size:10px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px;}
+.card-picker select{width:100%;background:transparent;border:none;color:var(--t);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;outline:none;}
+.vs-badge{background:rgba(124,108,252,.15);border-radius:99px;padding:8px 12px;font-size:12px;font-weight:900;color:var(--a);text-align:center;margin-top:20px;}
+.sport-pill{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;}
+.sp-basketball{background:rgba(252,108,108,.12);color:#fc8c6c;}
+.sp-football{background:rgba(62,207,142,.12);color:#3ecf8e;}
+.sp-baseball{background:rgba(252,217,108,.12);color:#fcd96c;}
+.sp-hockey{background:rgba(124,108,252,.12);color:#9d8fff;}
+.sp-pokemon{background:rgba(255,107,53,.12);color:#ff6b35;}
+.status-pill{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;}
+.status-active{background:rgba(62,207,142,.12);color:var(--g);}
+.status-draft{background:rgba(255,255,255,.06);color:var(--dim);}
+.loading{display:flex;align-items:center;gap:8px;color:var(--m);font-size:13px;font-weight:700;}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--a);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="login-gate">
+  <div class="login-box">
+    <div style="font-size:36px;margin-bottom:12px;">🃏</div>
+    <h2>Cardverse Admin</h2>
+    <p>This updates the live website directly</p>
+    <input type="password" id="gate-pw" placeholder="Admin password"/>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="checkPass()">Enter Admin</button>
+    <div id="gate-err" style="font-size:12px;color:var(--r);margin-top:10px;display:none;">Wrong password</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="layout" id="main-layout" style="display:none;">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="wordmark">Cardverse <span>Admin</span></div>
+      <div class="badge">Live Dashboard</div>
+      <div class="sb-status" id="sb-status">⏳ Connecting...</div>
+    </div>
+    <div class="nav-sec">Content</div>
+    <button class="nav-item active" onclick="nav('dashboard',this)"><span class="ni">📊</span>Overview</button>
+    <button class="nav-item" onclick="nav('cards',this)"><span class="ni">🃏</span>Pop Report Cards</button>
+    <button class="nav-item" onclick="nav('daily',this)"><span class="ni">📅</span>Daily Game</button>
+    <button class="nav-item" onclick="nav('signtvre',this)"><span class="ni">✍️</span>SIGNTVRE Puzzles</button>
+    <div class="nav-sec">Players</div>
+    <button class="nav-item" onclick="nav('users',this)"><span class="ni">👥</span>Users</button>
+    <button class="nav-item" onclick="nav('leaderboard',this)"><span class="ni">🏆</span>Leaderboard</button>
+    <div class="sidebar-footer">Changes go live instantly on the website</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="page-title">Overview</div>
+        <div class="page-sub" id="page-sub">Cardverse Mini Games — Live Admin</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="today-badge" style="background:rgba(252,217,108,.1);border:1px solid rgba(252,217,108,.2);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:800;color:var(--gold);"></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="sc-icon">🃏</div><div class="sc-val" id="d-cards">—</div><div class="sc-lbl">Total Cards</div></div>
+          <div class="stat-card"><div class="sc-icon">✍️</div><div class="sc-val" id="d-puzzles">—</div><div class="sc-lbl">Auto Puzzles</div></div>
+          <div class="stat-card"><div class="sc-icon">👥</div><div class="sc-val" id="d-users">—</div><div class="sc-lbl">Users</div></div>
+          <div class="stat-card"><div class="sc-icon">🎮</div><div class="sc-val" id="d-games">—</div><div class="sc-lbl">Games Today</div></div>
+        </div>
+        <div class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div class="panel-title" style="margin-bottom:0;">🔥 Today's Daily Game</div>
+            <button class="btn btn-primary btn-sm" onclick="nav('daily',document.querySelectorAll('.nav-item')[2])">Edit →</button>
+          </div>
+          <div id="d-today" style="font-size:13px;font-weight:700;color:var(--m);">Loading...</div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">📋 Recent Games</div>
+          <div id="d-recent" style="font-size:13px;font-weight:700;color:var(--m);">Loading...</div>
+        </div>
+      </div>
+
+      <!-- CARDS -->
+      <div class="page" id="page-cards">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div class="tabs" style="margin-bottom:0;">
+            <button class="tab-btn active" onclick="cardTab('add',this)">➕ Add Card</button>
+            <button class="tab-btn" onclick="cardTab('manage',this)">📋 All Cards</button>
+          </div>
+          <a href="bulk-import.html" target="_blank" class="btn btn-primary">⚡ Bulk Import</a>
+        </div>
+
+        <div id="card-add">
+          <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;">
+            <div class="panel" style="margin-bottom:0;">
+              <div class="panel-title">Add New Card</div>
+              <div class="form-grid" style="margin-bottom:12px;">
+                <div class="field"><label>Player Name</label><input id="c-player" placeholder="e.g. LeBron James" oninput="updateCardPrev()"/></div>
+                <div class="field"><label>Year</label><input id="c-year" type="number" placeholder="2003" oninput="updateCardPrev()"/></div>
+              </div>
+              <div class="form-grid" style="margin-bottom:12px;">
+                <div class="field"><label>Set Name</label><input id="c-set" placeholder="Topps Chrome RC" oninput="updateCardPrev()"/></div>
+                <div class="field"><label>Grade</label>
+                  <select id="c-grade" onchange="updateCardPrev()">
+                    <option>PSA 10</option><option>PSA 9</option><option>PSA 8</option><option>BGS 9.5</option><option>BGS 9</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-grid-3" style="margin-bottom:12px;">
+                <div class="field"><label>PSA Pop Count</label><input id="c-pop" type="number" placeholder="1842" oninput="updateCardPrev()"/></div>
+                <div class="field"><label>Sport</label>
+                  <select id="c-sport" onchange="updateCardPrev()">
+                    <option value="basketball">Basketball</option><option value="football">Football</option>
+                    <option value="baseball">Baseball</option><option value="hockey">Hockey</option><option value="pokemon">Pokemon</option>
+                  </select>
+                </div>
+                <div class="field"><label>Status</label>
+                  <select id="c-status"><option value="active">Active (Live)</option><option value="draft">Draft</option></select>
+                </div>
+              </div>
+              <div class="field" style="margin-bottom:16px;"><label>Card Photo</label>
+                <div class="photo-upload" onclick="document.getElementById('c-photo').click()">
+                  <input type="file" id="c-photo" accept="image/*" style="display:none" onchange="handleCardPhoto(this)"/>
+                  <img id="c-photo-prev" style="display:none;max-height:120px;border-radius:8px;"/>
+                  <div id="c-photo-ph" style="color:var(--m);font-size:12px;font-weight:800;">📷 Click to upload card photo</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-primary" onclick="addCard()" style="flex:1;" id="add-card-btn">💾 Save to Website</button>
+                <button class="btn btn-ghost" onclick="clearCardForm()">Clear</button>
+              </div>
+            </div>
+            <div class="panel" style="margin-bottom:0;position:sticky;top:80px;height:fit-content;">
+              <div class="panel-title">👁 Preview</div>
+              <div class="preview-box">
+                <div style="font-size:10px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Live preview</div>
+                <div class="gp-card" style="margin-bottom:8px;">
+                  <div class="gp-ph" id="prev-ph">🃏</div>
+                  <img id="prev-img" style="display:none;width:80px;height:80px;border-radius:8px;object-fit:cover;margin:0 auto 8px;"/>
+                  <div class="gp-player" id="prev-player">Player Name</div>
+                  <div class="gp-set" id="prev-set">Year · Set</div>
+                  <div class="gp-grade" id="prev-grade">PSA 10</div>
+                </div>
+                <div style="font-size:11px;font-weight:700;color:var(--m);">
+                  Pop: <span id="prev-pop" style="color:var(--a2);">—</span> &nbsp;·&nbsp; Sport: <span id="prev-sport" style="color:var(--a2);">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="card-manage" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div style="font-size:14px;font-weight:900;" id="cards-count">Loading...</div>
+            <div style="display:flex;gap:6px;">
+              <select id="filter-sport" onchange="loadCards()" style="background:var(--s2);border:1px solid var(--b);border-radius:8px;color:var(--t);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:6px 10px;outline:none;">
+                <option value="">All Sports</option><option value="basketball">Basketball</option><option value="football">Football</option><option value="baseball">Baseball</option><option value="hockey">Hockey</option><option value="pokemon">Pokemon</option>
+              </select>
+            </div>
+          </div>
+          <div class="table">
+            <div class="table-head" style="grid-template-columns:60px 1fr 90px 100px 80px 100px 120px;">
+              <div>Photo</div><div>Card</div><div>Pop</div><div>Sport</div><div>Grade</div><div>Status</div><div>Actions</div>
+            </div>
+            <div id="cards-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DAILY GAME -->
+      <div class="page" id="page-daily">
+        <div class="panel">
+          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(252,217,108,.1);border:1px solid rgba(252,217,108,.2);border-radius:99px;padding:4px 12px;font-size:12px;font-weight:800;color:var(--gold);margin-bottom:14px;">📅 <span id="daily-date-lbl">Today</span></div>
+          <div class="panel-title" style="margin-bottom:4px;">Set Today's Featured Matchup</div>
+          <div style="font-size:12px;color:var(--m);font-weight:700;margin-bottom:16px;">Pick 2 cards. Players see this matchup first when they open Pop Report. Saves directly to the website.</div>
+          <div class="pair-grid">
+            <div class="card-picker">
+              <label>Card A</label>
+              <select id="daily-a" onchange="updateDailyPrev()"><option value="">— Pick a card —</option></select>
+              <div id="daily-prev-a" style="margin-top:8px;font-size:11px;font-weight:800;color:var(--a2);min-height:24px;"></div>
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="card-picker">
+              <label>Card B</label>
+              <select id="daily-b" onchange="updateDailyPrev()"><option value="">— Pick a card —</option></select>
+              <div id="daily-prev-b" style="margin-top:8px;font-size:11px;font-weight:800;color:var(--a2);min-height:24px;"></div>
+            </div>
+          </div>
+          <div id="daily-preview" style="display:none;margin-top:14px;">
+            <div class="preview-box">
+              <div style="font-size:10px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Today's matchup preview</div>
+              <div class="gp-arena" id="daily-arena"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:16px;">
+            <button class="btn btn-primary" onclick="saveDailyGame()" id="save-daily-btn">📅 Save Today's Game Live</button>
+            <button class="btn btn-ghost" onclick="clearDaily()">Clear</button>
+          </div>
+          <div id="daily-msg" style="font-size:12px;font-weight:700;margin-top:8px;min-height:18px;"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">How daily games work</div>
+          <div style="font-size:12px;color:var(--m);font-weight:700;line-height:2;">
+            1. Add cards in <b style="color:var(--t);">Pop Report Cards</b> tab<br/>
+            2. Come here each morning and pick 2 cards<br/>
+            3. Hit <b style="color:var(--t);">Save Today's Game Live</b> — updates the website instantly<br/>
+            4. Everyone playing Pop Report that day sees this matchup first
+          </div>
+        </div>
+      </div>
+
+      <!-- SIGNTVRE -->
+      <div class="page" id="page-signtvre">
+        <div class="panel">
+          <div class="panel-title">Add Autograph Puzzle</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="field"><label>Player Name</label><input id="a-player" placeholder="e.g. LeBron James"/></div>
+            <div class="field"><label>Sport</label>
+              <select id="a-sport"><option value="basketball">Basketball</option><option value="football">Football</option><option value="baseball">Baseball</option><option value="hockey">Hockey</option></select>
+            </div>
+            <div class="field"><label>Daily Date (optional)</label><input id="a-date" type="date"/></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div class="field">
+              <label>✍️ Autograph Photo (what players see)</label>
+              <div class="photo-upload" onclick="document.getElementById('a-auto-photo').click()">
+                <input type="file" id="a-auto-photo" accept="image/*" style="display:none" onchange="handleAutoPhoto(this,'auto')"/>
+                <img id="a-auto-prev" style="display:none;max-height:100px;border-radius:6px;"/>
+                <div id="a-auto-ph" style="color:var(--m);font-size:12px;font-weight:800;">✍️ Upload autograph cutout</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>🃏 Full Card (revealed when game ends)</label>
+              <div class="photo-upload" onclick="document.getElementById('a-card-photo').click()">
+                <input type="file" id="a-card-photo" accept="image/*" style="display:none" onchange="handleAutoPhoto(this,'card')"/>
+                <img id="a-card-prev" style="display:none;max-height:100px;border-radius:6px;"/>
+                <div id="a-card-ph" style="color:var(--m);font-size:12px;font-weight:800;">🃏 Upload full card photo</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="addPuzzle()" id="add-puzzle-btn">💾 Save Puzzle to Website</button>
+        </div>
+
+        <div style="font-size:15px;font-weight:900;margin-bottom:12px;">All Autograph Puzzles</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="puzzles-grid">
+          <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✍️</div><div class="empty-title">No puzzles yet</div></div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div class="page" id="page-users">
+        <div class="table">
+          <div class="table-head" style="grid-template-columns:1fr 100px 110px 120px;">
+            <div>Username</div><div>Total Pts</div><div>Best Streak</div><div>Joined</div>
+          </div>
+          <div id="users-list"><div class="empty-state"><div class="empty-icon">☁️</div><div class="empty-title">Loading...</div></div></div>
+        </div>
+      </div>
+
+      <!-- LEADERBOARD -->
+      <div class="page" id="page-leaderboard">
+        <div class="table">
+          <div class="table-head" style="grid-template-columns:50px 1fr 110px 110px;">
+            <div>Rank</div><div>Player</div><div>Best Streak</div><div>Total Pts</div>
+          </div>
+          <div id="lb-list"><div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">Loading...</div></div></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL  = 'https://nwzsomfhidefbldsloxz.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA';
+const ADMIN_PW = 'cardverse2024';
+
+let sb = null;
+let allCards = [];
+
+// ── AUTH GATE ──
+function checkPass() {
+  if(document.getElementById('gate-pw').value === ADMIN_PW) {
+    document.getElementById('login-gate').style.display = 'none';
+    document.getElementById('main-layout').style.display = 'grid';
+    initAdmin();
+  } else {
+    document.getElementById('gate-err').style.display = 'block';
+    document.getElementById('gate-pw').value = '';
+  }
+}
+document.getElementById('gate-pw').addEventListener('keydown', e => { if(e.key==='Enter') checkPass(); });
+
+// ── INIT ──
+async function initAdmin() {
+  document.getElementById('today-badge').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  document.getElementById('daily-date-lbl').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+  try {
+    sb = supabase.createClient(SB_URL, SB_ANON);
+    // Test connection
+    const {error} = await sb.from('pr_cards').select('id',{count:'exact',head:true});
+    if(error) throw error;
+    document.getElementById('sb-status').textContent = '✓ Live';
+    document.getElementById('sb-status').className = 'sb-status sb-ok';
+  } catch(e) {
+    document.getElementById('sb-status').textContent = '⚠ Run SQL setup first';
+    document.getElementById('sb-status').className = 'sb-status sb-err';
+    toast('Run supabase_setup_v2.sql in Supabase SQL Editor first!', 'err');
+  }
+
+  await Promise.all([loadDashboard(), loadCards(), loadPuzzles(), loadUsers(), loadLB()]);
+  populateDailySelects();
+}
+
+// ── NAVIGATION ──
+function nav(page, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el) el.classList.add('active');
+  const titles = {
+    dashboard:['Overview','Live stats'],
+    cards:['Pop Report Cards','Add and manage cards — saves directly to the website'],
+    daily:['Daily Game','Set today's matchup — goes live instantly'],
+    signtvre:['SIGNTVRE Puzzles','Manage autograph puzzles — saves to the website'],
+    users:['Users','Everyone who has signed up'],
+    leaderboard:['Leaderboard','Top players by streak'],
+  };
+  const [t,s]=titles[page]||['',''];
+  document.getElementById('page-title').textContent=t;
+  document.getElementById('page-sub').textContent=s;
+}
+
+function cardTab(tab, el) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('card-add').style.display = tab==='add'?'block':'none';
+  document.getElementById('card-manage').style.display = tab==='manage'?'block':'none';
+  if(tab==='manage') loadCards();
+}
+
+// ── TOAST ──
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = (type==='ok'?'✓ ':' ✕ ')+msg;
+  el.className = 'toast show '+type;
+  setTimeout(()=>el.classList.remove('show'), 3500);
+}
+
+function setLoading(id, loading, label) {
+  const b=document.getElementById(id);
+  if(!b) return;
+  b.disabled=loading;
+  b.innerHTML=loading?'<span class="spinner"></span> Saving...':label;
+}
+
+// ── COMPRESS IMAGE ──
+function compressImage(file, maxSize=400, quality=0.78) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w=img.width, h=img.height;
+        if(w>maxSize){h=h*(maxSize/w);w=maxSize;}
+        if(h>maxSize){w=w*(maxSize/h);h=maxSize;}
+        canvas.width=w; canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── CARDS ──
+function updateCardPrev() {
+  const p=document.getElementById('c-player').value||'Player Name';
+  const y=document.getElementById('c-year').value||'';
+  const s=document.getElementById('c-set').value||'Set';
+  const g=document.getElementById('c-grade').value||'PSA 10';
+  const pop=document.getElementById('c-pop').value||'';
+  const sport=document.getElementById('c-sport').value||'';
+  document.getElementById('prev-player').textContent=p;
+  document.getElementById('prev-set').textContent=(y?y+' · ':'') +s;
+  document.getElementById('prev-grade').textContent=g;
+  document.getElementById('prev-pop').textContent=pop?Number(pop).toLocaleString():'—';
+  document.getElementById('prev-sport').textContent=sport;
+}
+
+async function handleCardPhoto(input) {
+  const file=input.files[0]; if(!file) return;
+  const src = await compressImage(file);
+  document.getElementById('c-photo-prev').src=src;
+  document.getElementById('c-photo-prev').style.display='block';
+  document.getElementById('c-photo-ph').style.display='none';
+  document.getElementById('prev-img').src=src;
+  document.getElementById('prev-img').style.display='block';
+  document.getElementById('prev-ph').style.display='none';
+}
+
+async function addCard() {
+  const player = document.getElementById('c-player').value.trim();
+  const pop = parseInt(document.getElementById('c-pop').value)||0;
+  if(!player||!pop){toast('Player name and pop count required','err');return;}
+
+  setLoading('add-card-btn', true, '💾 Save to Website');
+  const imgEl = document.getElementById('c-photo-prev');
+  const img = imgEl.style.display!=='none' ? imgEl.src : null;
+
+  const card = {
+    player,
+    year: parseInt(document.getElementById('c-year').value)||null,
+    set_name: document.getElementById('c-set').value.trim()||null,
+    grade: document.getElementById('c-grade').value,
+    pop,
+    sport: document.getElementById('c-sport').value,
+    status: document.getElementById('c-status').value,
+    img
+  };
+
+  try {
+    const {error} = await sb.from('pr_cards').insert(card);
+    if(error) throw error;
+    toast(player+' saved to website!');
+    clearCardForm();
+    loadCards();
+    loadDashboard();
+    populateDailySelects();
+  } catch(e) {
+    toast('Error: '+e.message,'err');
+  }
+  setLoading('add-card-btn', false, '💾 Save to Website');
+}
+
+function clearCardForm() {
+  ['c-player','c-year','c-set','c-pop'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-grade').value='PSA 10';
+  document.getElementById('c-sport').value='basketball';
+  document.getElementById('c-status').value='active';
+  document.getElementById('c-photo-prev').style.display='none';
+  document.getElementById('c-photo-ph').style.display='block';
+  document.getElementById('prev-img').style.display='none';
+  document.getElementById('prev-ph').style.display='block';
+  updateCardPrev();
+}
+
+async function loadCards() {
+  const sf = document.getElementById('filter-sport')?.value||'';
+  let q = sb.from('pr_cards').select('*').order('created_at',{ascending:false}).limit(100);
+  if(sf) q=q.eq('sport',sf);
+  const {data,error} = await q;
+  if(error){toast('Error loading cards','err');return;}
+  allCards = data||[];
+  document.getElementById('cards-count').textContent = allCards.length+' cards';
+  const list = document.getElementById('cards-list');
+  if(!allCards.length){
+    list.innerHTML='<div class="empty-state"><div class="empty-icon">🃏</div><div class="empty-title">No cards yet</div></div>';
+    return;
+  }
+  list.innerHTML = allCards.map(c=>`
+    <div class="table-row" style="grid-template-columns:60px 1fr 90px 100px 80px 100px 120px;">
+      <div>${c.img?`<img src="${c.img}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;"/>`:' 🃏'}</div>
+      <div><div style="font-size:13px;font-weight:800;">${c.player}</div><div style="font-size:10px;color:var(--m);font-weight:700;">${c.year||''} ${c.set_name||''}</div></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--a2);">${(c.pop||0).toLocaleString()}</div>
+      <div><span class="sport-pill sp-${c.sport||'basketball'}">${c.sport||'—'}</span></div>
+      <div style="font-size:11px;font-weight:700;color:var(--m);">${c.grade||'—'}</div>
+      <div><span class="status-pill status-${c.status||'active'}">${c.status||'active'}</span></div>
+      <div style="display:flex;gap:5px;">
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.06);color:var(--m);border:1px solid var(--b);" onclick="toggleCardStatus('${c.id}','${c.status||'active'}')">
+          ${c.status==='draft'?'Publish':'Draft'}
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCard('${c.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+async function toggleCardStatus(id, current) {
+  const newStatus = current==='draft'?'active':'draft';
+  const {error} = await sb.from('pr_cards').update({status:newStatus}).eq('id',id);
+  if(error){toast('Error','err');return;}
+  toast('Card set to '+newStatus);
+  loadCards();
+}
+
+async function deleteCard(id) {
+  if(!confirm('Delete this card from the website?')) return;
+  const {error} = await sb.from('pr_cards').delete().eq('id',id);
+  if(error){toast('Error','err');return;}
+  toast('Card deleted');
+  loadCards();
+  populateDailySelects();
+  loadDashboard();
+}
+
+// ── DAILY GAME ──
+async function populateDailySelects() {
+  const {data} = await sb.from('pr_cards').select('id,player,year,grade,pop').eq('status','active').order('player');
+  const cards = data||[];
+  const opts = '<option value="">— Select a card —</option>'+cards.map(c=>`<option value="${c.id}">${c.player} (${c.year||''} ${c.grade}) — Pop: ${(c.pop||0).toLocaleString()}</option>`).join('');
+  document.getElementById('daily-a').innerHTML=opts;
+  document.getElementById('daily-b').innerHTML=opts;
+
+  // Load today's saved daily
+  const today = new Date().toISOString().split('T')[0];
+  const {data:daily} = await sb.from('daily_games').select('*').eq('game_date',today).maybeSingle();
+  if(daily) {
+    if(daily.card_a_id) document.getElementById('daily-a').value=daily.card_a_id;
+    if(daily.card_b_id) document.getElementById('daily-b').value=daily.card_b_id;
+    updateDailyPrev();
+  }
+}
+
+function updateDailyPrev() {
+  const idA=document.getElementById('daily-a').value;
+  const idB=document.getElementById('daily-b').value;
+  const cA=allCards.find(c=>c.id===idA);
+  const cB=allCards.find(c=>c.id===idB);
+  const mini=(c,el)=>{if(!el)return;el.innerHTML=c?`${c.player} · Pop: ${(c.pop||0).toLocaleString()}`:''};
+  mini(cA,document.getElementById('daily-prev-a'));
+  mini(cB,document.getElementById('daily-prev-b'));
+  const prev=document.getElementById('daily-preview');
+  const arena=document.getElementById('daily-arena');
+  if(cA&&cB){
+    prev.style.display='block';
+    const gpCard=c=>`<div class="gp-card">${c.img?`<img src="${c.img}" style="width:80px;height:80px;border-radius:8px;object-fit:cover;margin:0 auto 8px;display:block;"/>`:`<div class="gp-ph">🃏</div>`}<div class="gp-player">${c.player}</div><div class="gp-set">${c.year||''} · ${c.set_name||''}</div><div class="gp-grade">${c.grade}</div></div>`;
+    arena.innerHTML=gpCard(cA)+'<div class="gp-vs" style="font-size:12px;font-weight:900;color:var(--dim);">VS</div>'+gpCard(cB);
+  } else prev.style.display='none';
+}
+
+async function saveDailyGame() {
+  const cardA=document.getElementById('daily-a').value;
+  const cardB=document.getElementById('daily-b').value;
+  if(!cardA||!cardB){toast('Select both cards','err');return;}
+  if(cardA===cardB){toast('Pick two different cards','err');return;}
+  setLoading('save-daily-btn',true,'📅 Save Today's Game Live');
+  const today=new Date().toISOString().split('T')[0];
+  const {error}=await sb.from('daily_games').upsert({game_date:today,card_a_id:cardA,card_b_id:cardB},{onConflict:'game_date'});
+  if(error){toast('Error: '+error.message,'err');}
+  else{
+    toast('Today's game is live on the website!');
+    document.getElementById('daily-msg').innerHTML='<span style="color:var(--g);">✓ Live! Players see this matchup now.</span>';
+    loadDashboard();
+  }
+  setLoading('save-daily-btn',false,'📅 Save Today's Game Live');
+}
+
+function clearDaily() {
+  document.getElementById('daily-a').value='';
+  document.getElementById('daily-b').value='';
+  document.getElementById('daily-prev-a').innerHTML='';
+  document.getElementById('daily-prev-b').innerHTML='';
+  document.getElementById('daily-preview').style.display='none';
+  document.getElementById('daily-msg').innerHTML='';
+}
+
+// ── SIGNTVRE PUZZLES ──
+async function handleAutoPhoto(input, type) {
+  const file=input.files[0]; if(!file) return;
+  const src = await compressImage(file, 600, 0.82);
+  const prev=document.getElementById('a-'+type+'-prev');
+  const ph=document.getElementById('a-'+type+'-ph');
+  prev.src=src; prev.style.display='block'; ph.style.display='none';
+}
+
+async function addPuzzle() {
+  const player=document.getElementById('a-player').value.trim();
+  if(!player){toast('Player name required','err');return;}
+  const autoEl=document.getElementById('a-auto-prev');
+  if(autoEl.style.display==='none'){toast('Upload the autograph image','err');return;}
+  setLoading('add-puzzle-btn',true,'💾 Save Puzzle to Website');
+  const cardEl=document.getElementById('a-card-prev');
+  const puzzle={
+    player_name:player,
+    sport:document.getElementById('a-sport').value,
+    game_date:document.getElementById('a-date').value||null,
+    autograph_img:autoEl.src,
+    card_img:cardEl.style.display!=='none'?cardEl.src:null,
+    status:'active'
+  };
+  const {error}=await sb.from('autograph_puzzles').insert(puzzle);
+  if(error){toast('Error: '+error.message,'err');}
+  else{
+    toast(player+' puzzle saved to website!');
+    document.getElementById('a-player').value='';
+    document.getElementById('a-date').value='';
+    autoEl.style.display='none'; document.getElementById('a-auto-ph').style.display='flex';
+    cardEl.style.display='none'; document.getElementById('a-card-ph').style.display='flex';
+    loadPuzzles();
+    loadDashboard();
+  }
+  setLoading('add-puzzle-btn',false,'💾 Save Puzzle to Website');
+}
+
+async function loadPuzzles() {
+  const {data}=await sb.from('autograph_puzzles').select('*').order('created_at',{ascending:false});
+  const puzzles=data||[];
+  document.getElementById('d-puzzles').textContent=puzzles.length;
+  const grid=document.getElementById('puzzles-grid');
+  if(!puzzles.length){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✍️</div><div class="empty-title">No puzzles yet</div></div>';
+    return;
+  }
+  grid.innerHTML=puzzles.map(p=>`
+    <div style="background:var(--s);border:1px solid var(--b);border-radius:12px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;">
+        ${p.autograph_img?`<div style="position:relative;"><img src="${p.autograph_img}" style="width:100%;height:90px;object-fit:cover;"/><div style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.7);border-radius:4px;padding:2px 5px;font-size:8px;font-weight:800;color:#fff;">✍️ Auto</div></div>`:' <div style="height:90px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:24px;color:rgba(255,255,255,.2);">✍️</div>'}
+        ${p.card_img?`<div style="position:relative;"><img src="${p.card_img}" style="width:100%;height:90px;object-fit:cover;"/><div style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.7);border-radius:4px;padding:2px 5px;font-size:8px;font-weight:800;color:#fff;">🃏 Card</div></div>`:' <div style="height:90px;background:var(--s2);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;"><span style="font-size:24px;color:rgba(255,255,255,.2);">🃏</span><span style="font-size:8px;color:var(--dim);font-weight:700;">No card</span></div>'}
+      </div>
+      <div style="padding:10px;">
+        <div style="font-size:13px;font-weight:800;">${p.player_name}</div>
+        <div style="font-size:10px;color:var(--m);font-weight:700;margin-top:2px;">${p.game_date?'📅 '+p.game_date:'Unlimited'} · ${p.sport||'—'}</div>
+        <button class="btn btn-danger btn-sm" style="margin-top:8px;" onclick="deletePuzzle('${p.id}')">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deletePuzzle(id) {
+  if(!confirm('Delete this puzzle from the website?')) return;
+  await sb.from('autograph_puzzles').delete().eq('id',id);
+  toast('Puzzle deleted');
+  loadPuzzles();
+  loadDashboard();
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  const [{count:cc},{count:pc},{count:uc},{count:gc}] = await Promise.all([
+    sb.from('pr_cards').select('id',{count:'exact',head:true}),
+    sb.from('autograph_puzzles').select('id',{count:'exact',head:true}),
+    sb.from('profiles').select('id',{count:'exact',head:true}),
+    sb.from('scores').select('id',{count:'exact',head:true}).gte('created_at',new Date().toISOString().split('T')[0])
+  ]);
+  document.getElementById('d-cards').textContent=cc||0;
+  document.getElementById('d-puzzles').textContent=pc||0;
+  document.getElementById('d-users').textContent=uc||0;
+  document.getElementById('d-games').textContent=gc||0;
+
+  // Today's daily
+  const today=new Date().toISOString().split('T')[0];
+  const {data:daily}=await sb.from('daily_games').select('*,card_a:card_a_id(player,pop),card_b:card_b_id(player,pop)').eq('game_date',today).maybeSingle();
+  const todayEl=document.getElementById('d-today');
+  if(daily?.card_a&&daily?.card_b){
+    todayEl.innerHTML=`<span style="color:var(--t);font-weight:800;">${daily.card_a.player}</span> <span style="color:var(--dim);">vs</span> <span style="color:var(--t);font-weight:800;">${daily.card_b.player}</span> <span style="color:var(--g);margin-left:8px;font-size:11px;font-weight:800;">● Live now</span>`;
+  } else {
+    todayEl.innerHTML='<span style="color:var(--r);font-weight:800;">No daily game set.</span> <button class="btn btn-ghost btn-sm" onclick="nav('daily',document.querySelectorAll('.nav-item')[2])" style="margin-left:8px;">Set it now →</button>';
+  }
+
+  // Recent activity
+  const {data:recent}=await sb.from('scores').select('username,streak,pts,created_at').order('created_at',{ascending:false}).limit(5);
+  const actEl=document.getElementById('d-recent');
+  if(recent?.length){
+    actEl.innerHTML=recent.map(s=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--b);font-size:12px;"><span style="font-weight:800;color:var(--t);">${s.username||'Guest'}</span><span style="color:var(--m);">Streak ${s.streak} · ${s.pts} pts</span><span style="color:var(--dim);">${new Date(s.created_at).toLocaleTimeString()}</span></div>`).join('');
+  } else actEl.textContent='No games played yet today';
+}
+
+// ── USERS & LB ──
+async function loadUsers() {
+  const {data}=await sb.from('profiles').select('username,total_pts,best_streak,created_at').order('total_pts',{ascending:false}).limit(50);
+  const list=document.getElementById('users-list');
+  if(!data?.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No users yet</div></div>';return;}
+  list.innerHTML=data.map(u=>`
+    <div class="table-row" style="grid-template-columns:1fr 100px 110px 120px;">
+      <div style="font-size:13px;font-weight:800;">${u.username||'—'}</div>
+      <div style="font-size:13px;font-weight:800;color:var(--a2);">${(u.total_pts||0).toLocaleString()}</div>
+      <div style="font-size:14px;font-weight:900;color:var(--gold);">${u.best_streak||0}</div>
+      <div style="font-size:11px;color:var(--m);">${new Date(u.created_at||Date.now()).toLocaleDateString()}</div>
+    </div>`).join('');
+}
+
+async function loadLB() {
+  const {data}=await sb.from('profiles').select('username,best_streak,total_pts').order('best_streak',{ascending:false}).limit(20);
+  const list=document.getElementById('lb-list');
+  if(!data?.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-title">No players yet</div></div>';return;}
+  const m=['🥇','🥈','🥉'];
+  list.innerHTML=data.map((u,i)=>`
+    <div class="table-row" style="grid-template-columns:50px 1fr 110px 110px;">
+      <div style="font-size:16px;">${m[i]||'#'+(i+1)}</div>
+      <div style="font-size:13px;font-weight:800;">${u.username||'—'}</div>
+      <div style="font-size:15px;font-weight:900;color:var(--gold);">${u.best_streak||0}</div>
+      <div style="font-size:13px;font-weight:800;color:var(--a2);">${(u.total_pts||0).toLocaleString()}</div>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>

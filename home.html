@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Cardverse Mini Games</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0f0e17;--s:#1a1928;--s2:#232235;--b:rgba(255,255,255,.09);--t:#f2f0ff;--m:rgba(242,240,255,.5);--a:#7c6cfc;--g:#3ecf8e;--r:#fc6c6c;--gold:#fcd96c;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-height:100vh;}
+.stars{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle linear infinite;}
+@keyframes twinkle{0%,100%{opacity:.06}50%{opacity:.7}}
+.wrap{max-width:480px;margin:0 auto;padding:1.75rem 1rem 4rem;position:relative;z-index:1;}
+
+/* header */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;}
+.logo{font-size:21px;font-weight:900;letter-spacing:-.3px;}
+.logo span{color:var(--a);}
+.user-pill{display:flex;align-items:center;gap:6px;background:var(--s);border:1px solid var(--b);border-radius:99px;padding:.35rem .85rem;font-size:12px;font-weight:800;color:var(--m);cursor:pointer;}
+.user-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--g);flex-shrink:0;}
+
+/* stats */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem;}
+.stat-box{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:.85rem .5rem;text-align:center;}
+.stat-val{font-size:24px;font-weight:900;}
+.stat-lbl{font-size:10px;color:var(--m);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+
+/* section label */
+.sec-lbl{font-size:11px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;}
+
+/* game cards */
+.game-card{background:var(--s);border:1.5px solid var(--b);border-radius:20px;padding:1.35rem 1.25rem;margin-bottom:.85rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:1.1rem;text-decoration:none;color:var(--t);}
+.game-card:hover,.game-card:active{border-color:var(--a);transform:translateY(-2px);box-shadow:0 8px 28px rgba(124,108,252,.2);}
+.game-icon{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.icon-purple{background:linear-gradient(135deg,#7c6cfc,#4338ca);}
+.icon-orange{background:linear-gradient(135deg,#ff6b35,#f7931e);}
+.game-info{flex:1;}
+.game-title{font-size:17px;font-weight:900;margin-bottom:3px;}
+.game-desc{font-size:12px;color:var(--m);line-height:1.5;}
+.game-tag{font-size:10px;font-weight:800;padding:2px 9px;border-radius:99px;margin-top:.5rem;display:inline-block;}
+.tag-live{background:rgba(62,207,142,.15);color:var(--g);}
+.tag-new{background:rgba(252,217,108,.15);color:var(--gold);}
+.arrow{color:rgba(242,240,255,.25);font-size:20px;flex-shrink:0;}
+
+/* signout */
+.signout-wrap{text-align:center;margin-top:1.75rem;}
+.signout-btn{background:none;border:1px solid var(--b);border-radius:99px;color:var(--m);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;padding:.4rem 1.25rem;cursor:pointer;transition:all .15s;}
+.signout-btn:hover{color:var(--r);border-color:rgba(252,108,108,.4);}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">Cardverse <span>Mini Games</span></div>
+    <div class="user-pill" onclick="signOut()">
+      <div class="dot"></div>
+      <span id="user-name">Loading...</span>
+    </div>
+  </div>
+
+  <div class="sec-lbl">Your stats</div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val" id="stat-streak">—</div><div class="stat-lbl">Best Streak</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-pts">—</div><div class="stat-lbl">Total Pts</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-games">—</div><div class="stat-lbl">Games Played</div></div>
+  </div>
+
+  <div class="sec-lbl">Choose a game</div>
+
+  <a class="game-card" href="game.html">
+    <div class="game-icon icon-purple">🃏</div>
+    <div class="game-info">
+      <div class="game-title">Pop Report</div>
+      <div class="game-desc">Which card has the lower PSA pop count? Test your slab knowledge and build a streak.</div>
+      <span class="game-tag tag-live">● Live now</span>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <a class="game-card" href="signtvre.html">
+    <div class="game-icon icon-orange">✍️</div>
+    <div class="game-info">
+      <div class="game-title">SIGNTVRE</div>
+      <div class="game-desc">Guess the mystery autograph in 10 tries. Wordle meets the hobby — Poeltl style hints.</div>
+      <span class="game-tag tag-new">★ New</span>
+    </div>
+    <div class="arrow">›</div>
+  </a>
+
+  <div class="signout-wrap">
+    <button class="signout-btn" onclick="signOut()">Sign out</button>
+  </div>
+</div>
+
+<script>
+const SB_URL  = 'https://nwzsomfhidefbldsloxz.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA';
+const sb = supabase.createClient(SB_URL, SB_ANON);
+
+// Stars
+const starsEl = document.getElementById('stars');
+for(let i=0;i<60;i++){
+  const s=document.createElement('div'); s.className='star';
+  const sz=Math.random()*2+.5;
+  s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*3}s;`;
+  starsEl.appendChild(s);
+}
+
+async function init(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session){
+    // Allow guest access
+    const isGuest = sessionStorage.getItem('cv_guest') === '1';
+    if(!isGuest){ window.location.href='login.html'; return; }
+    // Guest mode - show placeholder stats
+    document.getElementById('user-name').textContent = 'Guest';
+    ['stat-streak','stat-pts','stat-games'].forEach(id=>document.getElementById(id).textContent='—');
+    return;
+  }
+
+  const {data:p} = await sb.from('profiles').select('*').eq('id',session.user.id).maybeSingle();
+  if(p){
+    document.getElementById('user-name').textContent = p.username || 'Player';
+    document.getElementById('stat-streak').textContent = p.best_streak || 0;
+    document.getElementById('stat-pts').textContent = (p.total_pts||0).toLocaleString();
+  } else {
+    document.getElementById('user-name').textContent = session.user.email?.split('@')[0] || 'Player';
+    ['stat-streak','stat-pts'].forEach(id=>document.getElementById(id).textContent='0');
+  }
+  const {count} = await sb.from('scores').select('id',{count:'exact',head:true}).eq('user_id',session.user.id);
+  document.getElementById('stat-games').textContent = count||0;
+}
+
+async function signOut(){
+  await sb.auth.signOut();
+  window.location.href='login.html';
+}
+
+init();
+</script>
+</body>
+</html>

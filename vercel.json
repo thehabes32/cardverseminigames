@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/",         "destination": "/login.html"       },
+    { "source": "/home",     "destination": "/home.html"        },
+    { "source": "/play",     "destination": "/game.html"        },
+    { "source": "/signtvre", "destination": "/signtvre.html"    },
+    { "source": "/admin",    "destination": "/admin.html"       },
+    { "source": "/import",   "destination": "/bulk-import.html" }
+  ]
+}
