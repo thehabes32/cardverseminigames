@@ -2528,6 +2528,18 @@ function importPickerCards() {
 function _cvHarvest(B){
   var send=function(d){location.href=B+'#psaimport='+btoa(unescape(encodeURIComponent(JSON.stringify(d))))};
   var p=location.pathname;
+  var salesApi=function(specId,grade,cb){
+    var inp=btoa(JSON.stringify({json:{specId:String(specId),grade:String(grade),pageSize:5,timeRange:0,cursor:1,direction:'forward',gradingType:'SINGLE_GRADED',viewQualifiers:false}}));
+    fetch('/api/psa/trpc/researchJourney.getSalesBySpecId?batch=1&input='+encodeURIComponent(JSON.stringify({0:inp})),{headers:{Accept:'application/json'}})
+      .then(function(x){return x.json()})
+      .then(function(j){var s=null;try{s=j[0].result.data.json.sales||[]}catch(e){s=[]}cb(s);})
+      .catch(function(){cb([])});
+  };
+  var pickImg=function(sales){
+    for(var k=0;k<sales.length;k++){ if(sales[k].imageURL) return sales[k].imageURL; }
+    for(var k2=0;k2<sales.length;k2++){ if(sales[k2].thumbnailURL) return sales[k2].thumbnailURL; }
+    return null;
+  };
   if(p.indexOf('/cert/')===0){
     var h=document.documentElement.outerHTML.replace(/\\+"/g,'"');
     var g=function(re){var m=h.match(re);return m?m[1]:null};
@@ -2538,22 +2550,59 @@ function _cvHarvest(B){
     var imgs=[];
     h.replace(/https:\/\/[a-z0-9]+\.cloudfront\.net\/cert\/[^"\s\\]+/g,function(u){if(imgs.indexOf(u)<0)imgs.push(u);return u});
     var sp=h.match(/\/spec\/psa\/(\d+)/);
-    send({kind:'cert',cert:p.split('/')[2],grade:f('Item Grade'),year:f('Year'),brand:f('Brand/Title'),subject:f('Subject'),cardNumber:f('Card Number'),category:f('Category'),variety:f('Variety/Pedigree'),pop:pop?+pop.replace(/,/g,''):null,popHigher:hi?+hi.replace(/,/g,''):null,specId:sp?+sp[1]:null,imgs:imgs.slice(0,2)});
+    var payload={kind:'cert',cert:p.split('/')[2],grade:f('Item Grade'),year:f('Year'),brand:f('Brand/Title'),subject:f('Subject'),cardNumber:f('Card Number'),category:f('Category'),variety:f('Variety/Pedigree'),pop:pop?+pop.replace(/,/g,''):null,popHigher:hi?+hi.replace(/,/g,''):null,specId:sp?+sp[1]:null,imgs:imgs.slice(0,2)};
+    var gn=(payload.grade||'').match(/([\d.]+)\s*$/);
+    if(payload.specId&&gn){
+      salesApi(payload.specId,gn[1],function(sales){
+        if(sales[0]){ payload.lastPrice=sales[0].salePrice||null; payload.lastSaleDate=(sales[0].saleDate||'').slice(0,10)||null; }
+        if(!payload.imgs.length){ var im=pickImg(sales); if(im) payload.imgs=[im]; }
+        send(payload);
+      });
+    } else send(payload);
   } else if(p.indexOf('/pop/')===0){
     var tbl=document.querySelector('table');
     if(!tbl){alert('No pop table found — open a specific set page');return;}
-    var ths=[].map.call(tbl.querySelectorAll('thead th'),function(x){return x.innerText.trim()});
-    var i10=ths.lastIndexOf('10'); if(i10<0) i10=ths.length-1;
-    var rows=[].map.call(tbl.querySelectorAll('tbody tr'),function(r){
-      var c=r.cells; if(!c||c.length<5) return null;
-      var name=(c[2]?c[2].innerText:'').split('\n')[0].replace(/\s+/g,' ').trim();
-      var no=(c[1]?c[1].innerText:'').trim();
-      if(!name||/TOTAL POPULATION/i.test(name+' '+no)) return null;
-      var v=(c[i10]?c[i10].innerText:'').split('\n')[0].replace(/,/g,'');
-      var pop=parseInt(v);
-      return {no:no,name:name,pop10:isNaN(pop)?0:pop};
-    }).filter(Boolean);
-    send({kind:'pop',title:document.title,url:location.href,rows:rows});
+    var rows=[];
+    var data=null;
+    try{ if(window.jQuery&&window.jQuery.fn.dataTable) data=window.jQuery('table').DataTable().rows().data().toArray(); }catch(e){}
+    if(data&&data.length){
+      rows=data.filter(function(d){return d&&d.SpecID&&(d.SubjectName||'').length;}).map(function(d){
+        return {no:String(d.CardNumber||''),name:((d.SubjectName||'')+(d.Variety?(' '+d.Variety):'')).trim(),pop10:+d.Grade10||0,pop9:+d.Grade9||0,total:+d.GradeTotal||+d.Total||0,specId:d.SpecID};
+      });
+    } else {
+      var ths=[].map.call(tbl.querySelectorAll('thead th'),function(x){return x.innerText.trim()});
+      var i10=ths.lastIndexOf('10'); if(i10<0) i10=ths.length-1;
+      rows=[].map.call(tbl.querySelectorAll('tbody tr'),function(r){
+        var c=r.cells; if(!c||c.length<5) return null;
+        var name=(c[2]?c[2].innerText:'').split('\n')[0].replace(/\s+/g,' ').trim();
+        var no=(c[1]?c[1].innerText:'').trim();
+        if(!name||/TOTAL POPULATION/i.test(name+' '+no)) return null;
+        var v=(c[i10]?c[i10].innerText:'').split('\n')[0].replace(/,/g,'');
+        var pop=parseInt(v);
+        return {no:no,name:name,pop10:isNaN(pop)?0:pop};
+      }).filter(Boolean);
+    }
+    if(!rows.length){alert('No cards found in this pop table');return;}
+    var ov=document.createElement('div');
+    ov.style.cssText='position:fixed;top:20px;right:20px;z-index:999999;background:#111;color:#fff;padding:14px 18px;border-radius:12px;font:700 14px sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.45)';
+    ov.textContent='CardVerse: reading set ('+rows.length+' cards)…';
+    document.body.appendChild(ov);
+    var next=function(i){
+      if(i>=rows.length){ ov.textContent='CardVerse: importing…'; send({kind:'pop',title:document.title,url:location.href,rows:rows}); return; }
+      var r=rows[i];
+      if(!r.specId){ next(i+1); return; }
+      ov.textContent='CardVerse: fetching images '+(i+1)+'/'+rows.length+'…';
+      salesApi(r.specId,'10',function(sales){
+        var apply=function(s2){
+          var im=pickImg(s2);
+          if(im) r.img=im;
+          if(s2[0]){ r.lastPrice=s2[0].salePrice||null; r.lastSaleDate=(s2[0].saleDate||'').slice(0,10)||null; }
+          setTimeout(function(){next(i+1)},120);
+        };
+        if(!sales.length){ salesApi(r.specId,'9',apply); } else apply(sales);
+      });
+    };
+    next(0);
   } else alert('Open a PSA cert page (psacard.com/cert/...) or a pop report set page first');
 }
 
@@ -2624,7 +2673,10 @@ function renderPsaImportReview(){
       +'<div style="max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:.5rem;margin-bottom:.75rem;">'
       +rows.map(function(r,i){return '<label style="display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 2px;cursor:pointer;">'
         +'<input type="checkbox" class="psa-row-cb" data-i="'+i+'" '+(r.pop10>0?'checked':'')+'/>'
-        +'<span style="flex:1;">#'+r.no+' '+r.name+'</span><b>'+r.pop10.toLocaleString()+'</b></label>';}).join('')
+        +(r.img?('<img src="'+r.img+'" style="width:26px;height:36px;object-fit:cover;border-radius:4px;" onerror="this.style.display=\'none\'"/>'):'<span style="width:26px;text-align:center;">🃏</span>')
+        +'<span style="flex:1;">#'+r.no+' '+r.name+'</span>'
+        +(r.lastPrice?('<span style="color:var(--muted);">$'+Math.round(r.lastPrice).toLocaleString()+'</span>'):'')
+        +'<b>'+r.pop10.toLocaleString()+'</b></label>';}).join('')
       +'</div>'
       +'<button class="btn btn-green btn-full" onclick="confirmPsaImport()">＋ Import checked (PSA 10 pops)</button>'
       +'<button class="btn btn-secondary btn-full mt-2" onclick="cancelPsaImport()">Cancel</button>'
@@ -2659,7 +2711,8 @@ async function confirmPsaImport(){
       popHigher:(d.popHigher!=null?d.popHigher:null),
       sport:psaSportFromText(d.category||''),
       img:(d.imgs&&d.imgs[0])? d.imgs[0].replace('/small/','/medium/') : null,
-      cert:d.cert, specId:d.specId||null, cardNumber:d.cardNumber||null
+      cert:d.cert, specId:d.specId||null, cardNumber:d.cardNumber||null,
+      lastPrice:d.lastPrice||null, lastSaleDate:d.lastSaleDate||null
     });
   } else if(d.kind==='pop'){
     const meta=parsePopTitle(d.title);
@@ -2669,9 +2722,12 @@ async function confirmPsaImport(){
       const r=d.rows[+cb.dataset.i];
       if(!r) return;
       cards.push({
-        import_key:'spec:'+spec+':'+r.no,
+        import_key:(r.specId?('spec:'+r.specId):('spec:'+spec+':'+r.no)),
         player:r.name, year:meta.year, set:meta.set, grade:'PSA 10', pop:r.pop10,
-        popHigher:null, sport:meta.sport, img:null, cert:null, specId:+spec||null, cardNumber:r.no
+        popHigher:null, sport:meta.sport,
+        img:r.img||null,
+        cert:null, specId:r.specId||(+spec||null), cardNumber:r.no,
+        lastPrice:r.lastPrice||null, lastSaleDate:r.lastSaleDate||null
       });
     });
   }
@@ -2698,7 +2754,7 @@ async function savePsaCards(cards){
   let cloudMsg='';
   if(sb){
     try{
-      const rows=cards.map(function(c){return {player:c.player, year:c.year||null, set_name:c.set||null, grade:c.grade, pop:c.pop, sport:c.sport, img:c.img||null, status:'active', cert:c.cert||null, spec_id:c.specId||null, card_number:c.cardNumber||null, pop_higher:c.popHigher, source:'psa_import', import_key:c.import_key||null};});
+      const rows=cards.map(function(c){return {player:c.player, year:c.year||null, set_name:c.set||null, grade:c.grade, pop:c.pop, sport:c.sport, img:c.img||null, status:'active', cert:c.cert||null, spec_id:c.specId||null, card_number:c.cardNumber||null, pop_higher:c.popHigher, source:'psa_import', import_key:c.import_key||null, last_price:c.lastPrice||null, last_sale_date:c.lastSaleDate||null};});
       const res=await sb.from('pr_cards').upsert(rows,{onConflict:'import_key',ignoreDuplicates:true});
       cloudMsg=res.error? ' (cloud sync failed: '+res.error.message+')' : ' · synced to cloud';
     }catch(e){ cloudMsg=' (cloud sync failed)'; }
