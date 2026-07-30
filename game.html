@@ -32,6 +32,10 @@
 
   /* LAYOUT */
   .app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; padding-top: 44px; }
+  @media (min-width: 700px) {
+    .app { max-width: 660px; }
+    .nav { max-width: 660px; }
+  }
   .screen { display: none; flex: 1; padding: 1rem .75rem 5rem; }
   .screen.active { display: flex; flex-direction: column; }
 
@@ -1231,6 +1235,24 @@ function getHint(pop) {
   return 'Very common';
 }
 
+// Serve a fast-loading size for gameplay (eBay images accept any s-lNNN)
+function displayImg(u) {
+  if(!u) return u;
+  if(u.indexOf('i.ebayimg.com')>=0) return u.replace(/s-l\d+/,'s-l500');
+  return u;
+}
+
+// Warm the browser cache with upcoming card images
+function preloadPoolImages(n) {
+  try {
+    const pool=getAllCards().filter(c=>c.img);
+    for(let i=0;i<Math.min(n||8,pool.length);i++){
+      const c=pool[Math.floor(Math.random()*pool.length)];
+      const im=new Image(); im.decoding='async'; im.src=displayImg(c.img);
+    }
+  } catch(e) {}
+}
+
 function renderCard(side, card, showPop, isSurvivor, isNew) {
   const s = side;
   const imgWrap = document.getElementById('img-'+s);
@@ -1240,7 +1262,8 @@ function renderCard(side, card, showPop, isSurvivor, isNew) {
 
   if(card.img) {
     const img=document.createElement('img');
-    img.src=card.img;
+    img.src=displayImg(card.img);
+    img.decoding='async'; img.fetchPriority='high';
     img.style.cssText='width:100%;height:100%;object-fit:contain;background:var(--surface2);';
     img.onload = function() {
       const rot = card.rotation || 0;
@@ -1317,6 +1340,7 @@ function dealCards() {
   document.getElementById('img-right').style.pointerEvents='auto';
   renderCard('left', leftCard, false, false, false);
   renderCard('right', rightCard, false, false, false);
+  preloadPoolImages(8);
 }
 
 function countUp(elId, targetNum, duration=900) {
