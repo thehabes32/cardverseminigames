@@ -885,33 +885,21 @@
       <!-- ── TAB: PSA IMPORT ── -->
       <div id="admin-tab-psa" style="display:none;">
         <div class="card mb-3">
-          <div class="label mb-2">Import from PSA URL</div>
-          <div class="subtitle mb-3" style="font-size:12px;line-height:1.6;">
-            Find your card at <a href="https://www.psacard.com/pop" target="_blank" style="color:var(--accent);">psacard.com/pop</a>, then paste the URL here. We'll extract the card info — just add the pop count.
+          <div class="label mb-2">One-click PSA import</div>
+          <div class="subtitle mb-2" style="font-size:12px;line-height:1.6;">
+            <b>One-time setup:</b> drag this button to your bookmarks bar (don't click it here):
           </div>
-          <label>PSA Pop Report URL *</label>
-          <input id="psa-url-input" placeholder="https://www.psacard.com/pop/..." style="margin-bottom:.65rem;" oninput="parsePsaUrl(this.value)"/>
-          <div id="psa-parse-error" style="display:none;font-size:12px;color:var(--red);padding:.3rem 0;margin-bottom:.5rem;"></div>
-          <div id="psa-parsed-preview" style="display:none;">
-            <div style="background:var(--surface2);border-radius:10px;padding:.75rem;margin-bottom:.75rem;">
-              <div id="psa-preview-name" style="font-size:14px;font-weight:800;color:var(--text);"></div>
-              <div id="psa-preview-meta" style="font-size:12px;color:var(--muted);margin-top:2px;"></div>
-              <div id="psa-preview-specid" style="font-size:11px;color:var(--accent);font-weight:700;margin-top:4px;"></div>
-            </div>
-            <label>PSA 10 Pop Count *</label>
-            <input id="psa-pop-input" type="number" placeholder="Copy the pop count from the PSA page" min="1" style="margin-bottom:.65rem;"/>
-            <label>Sport</label>
-            <select id="psa-sport-input" style="margin-bottom:.75rem;">
-              <option value="basketball">🏀 Basketball</option>
-              <option value="football">🏈 Football</option>
-              <option value="baseball">⚾ Baseball</option>
-              <option value="hockey">🏒 Hockey</option>
-              <option value="soccer">⚽ Soccer</option>
-              <option value="pokemon">⚡ Pokémon</option>
-            </select>
-            <button class="btn btn-green btn-full" onclick="importPsaCard()">＋ Add to game</button>
+          <a id="cv-bookmarklet" href="#" onclick="toast('Drag me to your bookmarks bar, don\'t click here','error');return false;" style="display:inline-block;background:var(--accent);color:#fff;font-weight:800;font-size:13px;padding:.5rem .9rem;border-radius:10px;text-decoration:none;margin-bottom:.75rem;">⚡ CV Import</a>
+          <div class="subtitle mb-3" style="font-size:12px;line-height:1.7;">
+            Then open any card's <b>cert page</b> (psacard.com/cert/#) or a full set's <b>pop report page</b> on psacard.com and click the bookmark — the card (or the whole set's PSA 10 pops) lands back here automatically, photo and all.
+          </div>
+          <label>Jump to PSA</label>
+          <div style="display:flex;gap:8px;margin-top:.35rem;">
+            <input id="psa-cert-jump" placeholder="Cert # from any slab or eBay photo" style="flex:1;"/>
+            <button class="btn btn-secondary btn-sm" onclick="openPsaPage()">Open ↗</button>
           </div>
         </div>
+        <div id="psa-import-review" style="display:none;"></div>
       </div>
 
       <!-- CARD LIST (always visible) -->
@@ -2196,6 +2184,7 @@ function addCard() {
       }
     }
     CARDS = saved;
+    if(sb){ sb.from('pr_cards').insert({player:player, year:year||null, set_name:set||null, grade:'PSA 10', pop:pop, sport:sport||'basketball', img:imgToStore, status:'active', source:'manual'}).then(function(r){ if(r.error) console.log('Cloud save failed:', r.error.message); }); }
     toast(player + ' added! (' + saved.length + ' cards)', 'success');
     renderAdminList();
 
@@ -2534,70 +2523,210 @@ function importPickerCards() {
   toast(msg, 'success');
 }
 
-// ── PSA URL IMPORT ──
-let psaParsed = null;
+// ── PSA IMPORT (bookmarklet-powered) ──
+// This function is stringified into a bookmarklet and runs ON psacard.com pages.
+function _cvHarvest(B){
+  var send=function(d){location.href=B+'#psaimport='+btoa(unescape(encodeURIComponent(JSON.stringify(d))))};
+  var p=location.pathname;
+  if(p.indexOf('/cert/')===0){
+    var h=document.documentElement.outerHTML.replace(/\\+"/g,'"');
+    var g=function(re){var m=h.match(re);return m?m[1]:null};
+    var pop=g(/"children":"PSA Population"[\s\S]{0,600}?"children":"([\d,]+)"/);
+    var hi=g(/"children":"PSA Pop Higher"[\s\S]{0,300}?"children":"([\d,]+)"/);
+    var t=document.body.innerText;
+    var f=function(l){var m=t.match(new RegExp(l+'\\s*\\n\\s*([^\\n]+)'));return m?m[1].trim():null};
+    var imgs=[];
+    h.replace(/https:\/\/[a-z0-9]+\.cloudfront\.net\/cert\/[^"\s\\]+/g,function(u){if(imgs.indexOf(u)<0)imgs.push(u);return u});
+    var sp=h.match(/\/spec\/psa\/(\d+)/);
+    send({kind:'cert',cert:p.split('/')[2],grade:f('Item Grade'),year:f('Year'),brand:f('Brand/Title'),subject:f('Subject'),cardNumber:f('Card Number'),category:f('Category'),variety:f('Variety/Pedigree'),pop:pop?+pop.replace(/,/g,''):null,popHigher:hi?+hi.replace(/,/g,''):null,specId:sp?+sp[1]:null,imgs:imgs.slice(0,2)});
+  } else if(p.indexOf('/pop/')===0){
+    var tbl=document.querySelector('table');
+    if(!tbl){alert('No pop table found — open a specific set page');return;}
+    var ths=[].map.call(tbl.querySelectorAll('thead th'),function(x){return x.innerText.trim()});
+    var i10=ths.lastIndexOf('10'); if(i10<0) i10=ths.length-1;
+    var rows=[].map.call(tbl.querySelectorAll('tbody tr'),function(r){
+      var c=r.cells; if(!c||c.length<5) return null;
+      var name=(c[2]?c[2].innerText:'').split('\n')[0].replace(/\s+/g,' ').trim();
+      var no=(c[1]?c[1].innerText:'').trim();
+      if(!name||/TOTAL POPULATION/i.test(name+' '+no)) return null;
+      var v=(c[i10]?c[i10].innerText:'').split('\n')[0].replace(/,/g,'');
+      var pop=parseInt(v);
+      return {no:no,name:name,pop10:isNaN(pop)?0:pop};
+    }).filter(Boolean);
+    send({kind:'pop',title:document.title,url:location.href,rows:rows});
+  } else alert('Open a PSA cert page (psacard.com/cert/...) or a pop report set page first');
+}
 
-function parsePsaUrl(url) {
-  const errEl = document.getElementById('psa-parse-error');
-  const preview = document.getElementById('psa-parsed-preview');
-  errEl.style.display = 'none';
-  preview.style.display = 'none';
-  psaParsed = null;
-  if(!url || url.length < 10) return;
-  // Expected: https://www.psacard.com/pop/[sport-slug]/[year]/[set-slug]/[specId]
-  // OR:       https://www.psacard.com/pop/[sport-slug]/[set-slug]/[specId]  (no year)
+function buildBookmarklet(){
+  const a=document.getElementById('cv-bookmarklet');
+  if(!a) return;
+  const target=(location.origin && location.origin!=='null')? location.origin+location.pathname : 'https://cardverseminigames.com/play';
+  const code='('+_cvHarvest.toString()+')('+JSON.stringify(target)+')';
+  a.setAttribute('href','javascript:'+encodeURIComponent(code));
+}
+
+function openPsaPage(){
+  const v=(document.getElementById('psa-cert-jump').value||'').trim();
+  const url=v? (/^\d+$/.test(v)? 'https://www.psacard.com/cert/'+v+'/psa' : v) : 'https://www.psacard.com/pop';
+  window.open(url,'_blank');
+}
+
+function psaSportFromText(t){
+  t=(t||'').toLowerCase();
+  if(t.indexOf('tcg')>=0||t.indexOf('pokemon')>=0) return 'pokemon';
+  if(t.indexOf('basketball')>=0) return 'basketball';
+  if(t.indexOf('football')>=0) return 'football';
+  if(t.indexOf('baseball')>=0) return 'baseball';
+  if(t.indexOf('hockey')>=0) return 'hockey';
+  if(t.indexOf('soccer')>=0) return 'soccer';
+  return 'basketball';
+}
+
+let psaPendingImport=null;
+
+function checkPsaHash(){
+  if(!location.hash || location.hash.indexOf('#psaimport=')!==0) return;
   try {
-    const u = new URL(url.trim());
-    if(!u.hostname.includes('psacard.com')) { showPsaError('URL must be from psacard.com'); return; }
-    const parts = u.pathname.replace(/\/+$/,'').split('/').filter(Boolean);
-    // parts[0] = 'pop', parts[1] = sport-slug, remaining = year?, set-slug, specId
-    if(parts[0] !== 'pop' || parts.length < 4) { showPsaError('Paste the full URL from the PSA pop report page — should end with a number'); return; }
-    const specId = parseInt(parts[parts.length-1]);
-    if(isNaN(specId)) { showPsaError('Could not find a spec ID (number) at the end of the URL'); return; }
-    // Try to extract year (4-digit number in parts)
-    let year = null, setSlug = '', sportSlug = parts[1];
-    for(let i=2; i<parts.length-1; i++) {
-      if(/^\d{4}$/.test(parts[i])) { year = parseInt(parts[i]); }
-      else { setSlug += (setSlug ? ' ' : '') + parts[i].replace(/-/g,' '); }
-    }
-    // Capitalize set slug
-    const setName = setSlug.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
-    // Sport guess from slug
-    const sportMap = {'basketball-cards':'basketball','football-cards':'football','baseball-cards':'baseball','hockey-cards':'hockey','soccer-cards':'soccer','tcg-cards':'pokemon','trading-card-game':'pokemon'};
-    const sportGuess = sportMap[sportSlug] || 'basketball';
-    psaParsed = {specId, year, setName, sportGuess};
-    document.getElementById('psa-preview-name').textContent = setName || 'Unknown card';
-    document.getElementById('psa-preview-meta').textContent = (year ? year + ' · ' : '') + 'Spec ID: ' + specId;
-    document.getElementById('psa-preview-specid').textContent = 'PSA Spec ID #' + specId + ' · Sync-ready';
-    // Pre-select sport
-    const sel = document.getElementById('psa-sport-input');
-    if(sel) { for(let i=0; i<sel.options.length; i++) { if(sel.options[i].value===sportGuess) { sel.selectedIndex=i; break; } } }
-    preview.style.display = 'block';
-  } catch(e) { showPsaError('Invalid URL — paste the full address bar URL from psacard.com'); }
+    const raw=location.hash.slice('#psaimport='.length);
+    psaPendingImport=JSON.parse(decodeURIComponent(escape(atob(raw))));
+    history.replaceState(null,'',location.pathname+location.search);
+    showScreen('admin');
+    const psaTabBtn=document.getElementById('atab-psa');
+    if(psaTabBtn) adminTab('psa',psaTabBtn);
+    renderPsaImportReview();
+    if(!adminUnlocked) toast('Unlock admin to finish the PSA import');
+  } catch(e){ console.log('PSA import parse failed:',e.message); }
 }
 
-function showPsaError(msg) {
-  const el = document.getElementById('psa-parse-error');
-  if(el) { el.textContent = msg; el.style.display = 'block'; }
+function renderPsaImportReview(){
+  const box=document.getElementById('psa-import-review');
+  if(!box) return;
+  if(!psaPendingImport){ box.style.display='none'; box.innerHTML=''; return; }
+  const d=psaPendingImport;
+  box.style.display='block';
+  if(d.kind==='cert'){
+    const meta=[d.year,d.brand,d.variety,d.cardNumber?('#'+d.cardNumber):''].filter(Boolean).join(' ');
+    box.innerHTML='<div class="card mb-3">'
+      +'<div class="label mb-2">Ready to import</div>'
+      +((d.imgs&&d.imgs.length)?('<img src="'+d.imgs[0]+'" style="width:90px;border-radius:8px;margin-bottom:.5rem;" onerror="this.style.display=\'none\'"/>'):'')
+      +'<div style="font-size:14px;font-weight:800;">'+(d.subject||d.brand||'Card')+'</div>'
+      +'<div style="font-size:12px;color:var(--muted);margin-top:2px;">'+meta+'</div>'
+      +'<div style="font-size:12px;color:var(--accent);font-weight:700;margin-top:4px;">'+(d.grade||'')+' · Pop '+(d.pop!=null?d.pop.toLocaleString():'?')+(d.popHigher!=null?(' · '+d.popHigher+' higher'):'')+' · Cert #'+d.cert+'</div>'
+      +'<button class="btn btn-green btn-full mt-3" onclick="confirmPsaImport()">＋ Add to game</button>'
+      +'<button class="btn btn-secondary btn-full mt-2" onclick="cancelPsaImport()">Cancel</button>'
+      +'</div>';
+  } else if(d.kind==='pop'){
+    const rows=d.rows||[];
+    const setLabel=(d.title||'').replace(/\s*\|\s*PSA Population.*$/,'');
+    box.innerHTML='<div class="card mb-3">'
+      +'<div class="label mb-2">Set import — '+rows.length+' cards found</div>'
+      +'<div style="font-size:12px;color:var(--muted);margin-bottom:.5rem;">'+setLabel+'</div>'
+      +'<div style="max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:.5rem;margin-bottom:.75rem;">'
+      +rows.map(function(r,i){return '<label style="display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 2px;cursor:pointer;">'
+        +'<input type="checkbox" class="psa-row-cb" data-i="'+i+'" '+(r.pop10>0?'checked':'')+'/>'
+        +'<span style="flex:1;">#'+r.no+' '+r.name+'</span><b>'+r.pop10.toLocaleString()+'</b></label>';}).join('')
+      +'</div>'
+      +'<button class="btn btn-green btn-full" onclick="confirmPsaImport()">＋ Import checked (PSA 10 pops)</button>'
+      +'<button class="btn btn-secondary btn-full mt-2" onclick="cancelPsaImport()">Cancel</button>'
+      +'</div>';
+  }
 }
 
-function importPsaCard() {
-  if(!psaParsed) { toast('Paste a PSA URL first','error'); return; }
-  const pop = parseInt(document.getElementById('psa-pop-input').value);
-  if(!pop || pop < 1) { toast('Enter the pop count from the PSA page','error'); return; }
-  const sport = document.getElementById('psa-sport-input').value;
-  const setName = psaParsed.setName || 'PSA Card';
-  let saved = [];
-  try { saved = JSON.parse(localStorage.getItem('pr_cards')||'[]'); } catch(e) { saved = []; }
-  saved.push({id:'c'+Date.now(), player:setName, year:psaParsed.year||0, set:'PSA Spec #'+psaParsed.specId, grade:'PSA 10', pop:pop, sport:sport, img:null, rotation:0, psaSpecId:psaParsed.specId});
-  try { localStorage.setItem('pr_cards', JSON.stringify(saved)); } catch(e) { toast('Storage full','error'); return; }
-  CARDS = saved;
+function cancelPsaImport(){ psaPendingImport=null; renderPsaImportReview(); }
+
+function parsePopTitle(t){
+  t=(t||'').replace(/\s*\|\s*PSA Population.*$/,'');
+  const ym=t.match(/^(\d{4})\s+/);
+  const year=ym?parseInt(ym[1]):0;
+  const sport=psaSportFromText(t);
+  const set=t.replace(/^(\d{4})\s+/,'').replace(/\s*(TCG|Basketball|Football|Baseball|Hockey|Soccer) Cards\s*$/i,'').trim();
+  return {year:year,set:set,sport:sport};
+}
+
+async function confirmPsaImport(){
+  const d=psaPendingImport;
+  if(!d) return;
+  const cards=[];
+  if(d.kind==='cert'){
+    const gnum=(d.grade||'').match(/([\d.]+)\s*$/);
+    cards.push({
+      import_key:'cert:'+d.cert,
+      player:(d.subject||d.brand||'Card').trim(),
+      year:parseInt(d.year)||0,
+      set:[d.brand,d.variety].filter(Boolean).join(' ').trim(),
+      grade:gnum?('PSA '+gnum[1]):'PSA 10',
+      pop:d.pop||0,
+      popHigher:(d.popHigher!=null?d.popHigher:null),
+      sport:psaSportFromText(d.category||''),
+      img:(d.imgs&&d.imgs[0])? d.imgs[0].replace('/small/','/medium/') : null,
+      cert:d.cert, specId:d.specId||null, cardNumber:d.cardNumber||null
+    });
+  } else if(d.kind==='pop'){
+    const meta=parsePopTitle(d.title);
+    const spec=(((d.url||'').match(/\/(\d+)(?:$|[?#])/))||[])[1]||'x';
+    document.querySelectorAll('.psa-row-cb').forEach(function(cb){
+      if(!cb.checked) return;
+      const r=d.rows[+cb.dataset.i];
+      if(!r) return;
+      cards.push({
+        import_key:'spec:'+spec+':'+r.no,
+        player:r.name, year:meta.year, set:meta.set, grade:'PSA 10', pop:r.pop10,
+        popHigher:null, sport:meta.sport, img:null, cert:null, specId:+spec||null, cardNumber:r.no
+      });
+    });
+  }
+  if(!cards.length){ toast('Nothing selected','error'); return; }
+  await savePsaCards(cards);
+  psaPendingImport=null;
+  renderPsaImportReview();
+}
+
+async function savePsaCards(cards){
+  // Local save (works offline / guest)
+  let saved=[];
+  try{ saved=JSON.parse(localStorage.getItem('pr_cards')||'[]'); }catch(e){ saved=[]; }
+  let added=0;
+  cards.forEach(function(c){
+    if(c.import_key && saved.some(function(s){return s.import_key===c.import_key;})) return;
+    saved.push({id:'c'+Date.now()+Math.random().toString(36).slice(2,6), player:c.player, year:c.year, set:c.set, grade:c.grade, pop:c.pop, sport:c.sport, img:c.img, rotation:0, import_key:c.import_key, cert:c.cert||null});
+    added++;
+  });
+  try{ localStorage.setItem('pr_cards', JSON.stringify(saved)); }catch(e){}
+  CARDS=saved;
   renderAdminList();
-  toast(setName + ' added!', 'success');
-  document.getElementById('psa-url-input').value = '';
-  document.getElementById('psa-pop-input').value = '';
-  document.getElementById('psa-parsed-preview').style.display = 'none';
-  psaParsed = null;
+  // Cloud save so every player gets the cards
+  let cloudMsg='';
+  if(sb){
+    try{
+      const rows=cards.map(function(c){return {player:c.player, year:c.year||null, set_name:c.set||null, grade:c.grade, pop:c.pop, sport:c.sport, img:c.img||null, status:'active', cert:c.cert||null, spec_id:c.specId||null, card_number:c.cardNumber||null, pop_higher:c.popHigher, source:'psa_import', import_key:c.import_key||null};});
+      const res=await sb.from('pr_cards').upsert(rows,{onConflict:'import_key',ignoreDuplicates:true});
+      cloudMsg=res.error? ' (cloud sync failed: '+res.error.message+')' : ' · synced to cloud';
+    }catch(e){ cloudMsg=' (cloud sync failed)'; }
+  }
+  toast(added+' card'+(added===1?'':'s')+' imported'+cloudMsg,'success');
+}
+
+// Pull the shared card pool from Supabase so players see admin-imported cards
+async function loadCloudCards(){
+  if(!sb) return;
+  try{
+    const res=await sb.from('pr_cards').select('*').in('status',['active','featured']).limit(1000);
+    if(res.error||!res.data||!res.data.length) return;
+    let saved=[];
+    try{ saved=JSON.parse(localStorage.getItem('pr_cards')||'[]'); }catch(e){ saved=[]; }
+    const keys=new Set(saved.map(function(s){return s.import_key||s.id;}));
+    let merged=false;
+    res.data.forEach(function(c){
+      const k=c.import_key||c.id;
+      if(keys.has(k)) return;
+      saved.push({id:c.id, player:c.player, year:c.year||0, set:c.set_name||'', grade:c.grade||'PSA 10', pop:c.pop||0, sport:c.sport||'basketball', img:c.img||null, rotation:0, import_key:c.import_key||null, cert:c.cert||null});
+      merged=true;
+    });
+    if(merged){
+      try{ localStorage.setItem('pr_cards', JSON.stringify(saved)); }catch(e){}
+      CARDS=saved;
+    }
+  }catch(e){ console.log('Cloud cards load failed:',e.message); }
 }
 
 // ============ INIT ============
@@ -2650,7 +2779,10 @@ window.addEventListener('DOMContentLoaded', function() {
   } catch(e) {
     console.log('Auth skipped:', e.message);
   }
+  await loadCloudCards();
+  buildBookmarklet();
   startGame();
+  checkPsaHash();
 })();
 });
 </script>
