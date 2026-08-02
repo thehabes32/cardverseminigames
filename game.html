@@ -2762,12 +2762,19 @@ async function confirmPsaImport(){
 }
 
 async function savePsaCards(cards){
-  // Local save (works offline / guest)
+  // Local save (works offline / guest) — updates existing cards in place on re-import
   let saved=[];
   try{ saved=JSON.parse(localStorage.getItem('pr_cards')||'[]'); }catch(e){ saved=[]; }
-  let added=0;
+  let added=0, updated=0;
   cards.forEach(function(c){
-    if(c.import_key && saved.some(function(s){return s.import_key===c.import_key;})) return;
+    const existing=c.import_key? saved.find(function(s){return s.import_key===c.import_key;}) : null;
+    if(existing){
+      existing.pop=c.pop; existing.grade=c.grade;
+      if(c.img) existing.img=c.img;
+      if(c.lastPrice!=null) existing.lastPrice=c.lastPrice;
+      updated++;
+      return;
+    }
     saved.push({id:'c'+Date.now()+Math.random().toString(36).slice(2,6), player:c.player, year:c.year, set:c.set, grade:c.grade, pop:c.pop, sport:c.sport, img:c.img, rotation:0, import_key:c.import_key, cert:c.cert||null});
     added++;
   });
@@ -2779,11 +2786,11 @@ async function savePsaCards(cards){
   if(sb){
     try{
       const rows=cards.map(function(c){return {player:c.player, year:c.year||null, set_name:c.set||null, grade:c.grade, pop:c.pop, sport:c.sport, img:c.img||null, status:'active', cert:c.cert||null, spec_id:c.specId||null, card_number:c.cardNumber||null, pop_higher:c.popHigher, source:'psa_import', import_key:c.import_key||null, last_price:c.lastPrice||null, last_sale_date:c.lastSaleDate||null};});
-      const res=await sb.from('pr_cards').upsert(rows,{onConflict:'import_key',ignoreDuplicates:true});
+      const res=await sb.from('pr_cards').upsert(rows,{onConflict:'import_key'});
       cloudMsg=res.error? ' (cloud sync failed: '+res.error.message+')' : ' · synced to cloud';
     }catch(e){ cloudMsg=' (cloud sync failed)'; }
   }
-  toast(added+' card'+(added===1?'':'s')+' imported'+cloudMsg,'success');
+  toast(added+' new, '+updated+' refreshed'+cloudMsg,'success');
 }
 
 // Pull the shared card pool from Supabase so players see admin-imported cards
@@ -2794,18 +2801,17 @@ async function loadCloudCards(){
     if(res.error||!res.data||!res.data.length) return;
     let saved=[];
     try{ saved=JSON.parse(localStorage.getItem('pr_cards')||'[]'); }catch(e){ saved=[]; }
-    const keys=new Set(saved.map(function(s){return s.import_key||s.id;}));
-    let merged=false;
+    // Cloud is the source of truth: refresh existing entries, add new ones, keep local-only extras
+    const byKey={};
+    saved.forEach(function(s){ byKey[s.import_key||s.id]=s; });
     res.data.forEach(function(c){
       const k=c.import_key||c.id;
-      if(keys.has(k)) return;
-      saved.push({id:c.id, player:c.player, year:c.year||0, set:c.set_name||'', grade:c.grade||'PSA 10', pop:c.pop||0, sport:c.sport||'basketball', img:c.img||null, rotation:0, import_key:c.import_key||null, cert:c.cert||null});
-      merged=true;
+      const fresh={id:c.id, player:c.player, year:c.year||0, set:c.set_name||'', grade:c.grade||'PSA 10', pop:c.pop||0, sport:c.sport||'basketball', img:c.img||null, rotation:(byKey[k]&&byKey[k].rotation)||0, import_key:c.import_key||null, cert:c.cert||null, lastPrice:(c.last_price!=null?+c.last_price:null)};
+      if(byKey[k]){ Object.assign(byKey[k], fresh); }
+      else { saved.push(fresh); byKey[k]=fresh; }
     });
-    if(merged){
-      try{ localStorage.setItem('pr_cards', JSON.stringify(saved)); }catch(e){}
-      CARDS=saved;
-    }
+    try{ localStorage.setItem('pr_cards', JSON.stringify(saved)); }catch(e){}
+    CARDS=saved;
   }catch(e){ console.log('Cloud cards load failed:',e.message); }
 }
 
