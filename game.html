@@ -1317,15 +1317,45 @@ function pickTwo() {
   let all = getAllCards();
   if(activeSport !== 'all') all = all.filter(c=>c.sport===activeSport);
   if(all.length < 2) { toast(activeSport==='all'?'Add more cards in Admin!':'Not enough '+activeSport+' cards — add more!','error'); return false; }
-  // Keep trying until we get two cards with different pop counts (no ties)
-  let attempts = 0;
-  do {
-    const shuffled = [...all].sort(()=>Math.random()-.5);
-    leftCard = shuffled[0];
-    rightCard = shuffled.find(c=>c.pop !== leftCard.pop && c.id !== leftCard.id);
-    attempts++;
-  } while((!rightCard || rightCard.pop === leftCard.pop) && attempts < 20);
-  if(!rightCard) { toast('Not enough cards with different pop counts!','error'); return false; }
+
+  // Difficulty ramp: early streaks get obvious gaps, deep streaks get near-ties.
+  // Band = allowed ratio between the two pop counts (bigger ratio = easier call).
+  let band;
+  if(streak < 3)       band = [3.0, Infinity];   // warmup: 3x+ gaps, obvious
+  else if(streak < 6)  band = [2.0, 5.0];        // still comfortable
+  else if(streak < 10) band = [1.4, 2.5];        // have to think
+  else if(streak < 15) band = [1.15, 1.7];       // heat check territory
+  else                 band = [1.001, 1.3];      // razor thin — real decisions
+
+  let pair = null;
+  // Try to find a pair inside the band; widen it gradually if the pool can't supply one
+  for(let widen=0; widen<3 && !pair; widen++){
+    const lo = widen? Math.max(1.001, band[0] - widen*0.2) : band[0];
+    const hi = band[1]===Infinity? Infinity : band[1] + widen*1.5;
+    for(let tries=0; tries<40 && !pair; tries++){
+      const a = all[Math.floor(Math.random()*all.length)];
+      const cands = all.filter(function(c){
+        if(c.id===a.id || c.pop===a.pop || !c.pop || !a.pop) return false;
+        const r = Math.max(c.pop,a.pop)/Math.min(c.pop,a.pop);
+        return r>=lo && r<=hi;
+      });
+      if(cands.length) pair = [a, cands[Math.floor(Math.random()*cands.length)]];
+    }
+  }
+  // Last resort: any two cards with different pops
+  if(!pair){
+    let attempts = 0;
+    do {
+      const shuffled = [...all].sort(()=>Math.random()-.5);
+      const a = shuffled[0];
+      const b = shuffled.find(c=>c.pop !== a.pop && c.id !== a.id);
+      if(b) pair = [a,b];
+      attempts++;
+    } while(!pair && attempts < 20);
+  }
+  if(!pair) { toast('Not enough cards with different pop counts!','error'); return false; }
+  if(Math.random()<0.5) pair.reverse();
+  leftCard = pair[0]; rightCard = pair[1];
   return true;
 }
 
