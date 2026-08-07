@@ -1316,6 +1316,9 @@ function pickTwo() {
   }
   let all = getAllCards();
   if(activeSport !== 'all') all = all.filter(c=>c.sport===activeSport);
+  // Prefer cards with photos when the pool is deep enough
+  const withImg = all.filter(c=>c.img);
+  if(withImg.length >= 30) all = withImg;
   if(all.length < 2) { toast(activeSport==='all'?'Add more cards in Admin!':'Not enough '+activeSport+' cards — add more!','error'); return false; }
 
   // Difficulty ramp: early streaks get obvious gaps, deep streaks get near-ties.
