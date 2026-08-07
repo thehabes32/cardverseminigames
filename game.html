@@ -2830,7 +2830,7 @@ async function savePsaCards(cards){
 async function loadCloudCards(){
   if(!sb) return;
   try{
-    const res=await sb.from('pr_cards').select('*').in('status',['active','featured']).limit(1000);
+    const res=await sb.from('pr_cards').select('*').in('status',['active','featured']).order('img',{ascending:false,nullsFirst:false}).limit(4000);
     if(res.error||!res.data||!res.data.length) return;
     let saved=[];
     try{ saved=JSON.parse(localStorage.getItem('pr_cards')||'[]'); }catch(e){ saved=[]; }
