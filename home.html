@@ -7,52 +7,76 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
 <style>
-:root{--bg:#0f0e17;--s:#1a1928;--s2:#232235;--b:rgba(255,255,255,.09);--t:#f2f0ff;--m:rgba(242,240,255,.5);--a:#7c6cfc;--g:#3ecf8e;--r:#fc6c6c;--gold:#fcd96c;}
+:root{--bg:#0f0e17;--s:#1a1928;--s2:#232235;--b:rgba(255,255,255,.09);--t:#f2f0ff;--m:rgba(242,240,255,.5);--a:#7c6cfc;--a2:#fc6c8f;--g:#3ecf8e;--r:#fc6c6c;--gold:#fcd96c;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-height:100vh;}
+body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-height:100vh;overflow-x:hidden;}
 .stars{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
 .star{position:absolute;background:#fff;border-radius:50%;animation:twinkle linear infinite;}
 @keyframes twinkle{0%,100%{opacity:.06}50%{opacity:.7}}
-.wrap{max-width:480px;margin:0 auto;padding:1.75rem 1rem 4rem;position:relative;z-index:1;}
+.glow{position:fixed;top:-180px;left:50%;transform:translateX(-50%);width:520px;height:420px;background:radial-gradient(closest-side,rgba(124,108,252,.22),transparent);pointer-events:none;z-index:0;}
+.wrap{max-width:520px;margin:0 auto;padding:1.6rem 1rem 4rem;position:relative;z-index:1;}
+@media(min-width:700px){.wrap{max-width:620px;}}
 
 /* header */
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;}
-.logo{font-size:21px;font-weight:900;letter-spacing:-.3px;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.9rem;}
+.logo{font-size:22px;font-weight:900;letter-spacing:-.3px;}
 .logo span{color:var(--a);}
 .user-pill{display:flex;align-items:center;gap:6px;background:var(--s);border:1px solid var(--b);border-radius:99px;padding:.35rem .85rem;font-size:12px;font-weight:800;color:var(--m);cursor:pointer;}
 .user-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--g);flex-shrink:0;}
 
+/* hero */
+.hero{text-align:center;margin-bottom:1.9rem;}
+.hero h1{font-size:34px;font-weight:900;letter-spacing:-.5px;line-height:1.1;}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--a),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero p{font-size:13.5px;color:var(--m);font-weight:700;margin-top:.5rem;}
+
 /* stats */
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.75rem;}
 .stat-box{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:.85rem .5rem;text-align:center;}
-.stat-val{font-size:24px;font-weight:900;}
+.stat-val{font-size:23px;font-weight:900;}
 .stat-lbl{font-size:10px;color:var(--m);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
 
-/* section label */
-.sec-lbl{font-size:11px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem;}
+.sec-lbl{font-size:11px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.8rem;}
 
-/* game cards */
-.game-card{background:var(--s);border:1.5px solid var(--b);border-radius:20px;padding:1.35rem 1.25rem;margin-bottom:.85rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:1.1rem;text-decoration:none;color:var(--t);}
-.game-card:hover,.game-card:active{border-color:var(--a);transform:translateY(-2px);box-shadow:0 8px 28px rgba(124,108,252,.2);}
-.game-icon{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
-.icon-purple{background:linear-gradient(135deg,#7c6cfc,#4338ca);}
-.icon-orange{background:linear-gradient(135deg,#ff6b35,#f7931e);}
-.game-info{flex:1;}
-.game-title{font-size:17px;font-weight:900;margin-bottom:3px;}
-.game-desc{font-size:12px;color:var(--m);line-height:1.5;}
-.game-tag{font-size:10px;font-weight:800;padding:2px 9px;border-radius:99px;margin-top:.5rem;display:inline-block;}
+/* game tiles */
+.game-tile{display:block;background:var(--s);border:1.5px solid var(--b);border-radius:22px;margin-bottom:1rem;text-decoration:none;color:var(--t);overflow:hidden;transition:all .2s;position:relative;}
+.game-tile:hover{border-color:var(--a);transform:translateY(-3px);box-shadow:0 12px 36px rgba(124,108,252,.22);}
+.tile-banner{height:120px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.banner-pop{background:linear-gradient(135deg,#241f4d 0%,#3b2a7a 55%,#241f4d 100%);}
+.banner-sig{background:linear-gradient(135deg,#4d1f30 0%,#7a2a4e 55%,#4d1f30 100%);}
+.banner-price{background:linear-gradient(135deg,#1f4d38 0%,#2a7a58 55%,#1f4d38 100%);}
+.fan{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.fan img{width:74px;border-radius:7px;box-shadow:0 6px 22px rgba(0,0,0,.55);position:absolute;top:16px;background:#111;transition:transform .25s;}
+.fan img:nth-child(1){transform:rotate(-14deg) translateX(-74px);}
+.fan img:nth-child(2){transform:rotate(0deg) translateY(-4px);z-index:2;}
+.fan img:nth-child(3){transform:rotate(14deg) translateX(74px);}
+.game-tile:hover .fan img:nth-child(1){transform:rotate(-17deg) translateX(-80px) translateY(-3px);}
+.game-tile:hover .fan img:nth-child(2){transform:translateY(-9px);z-index:2;}
+.game-tile:hover .fan img:nth-child(3){transform:rotate(17deg) translateX(80px) translateY(-3px);}
+.sig-mark{font-size:54px;transform:rotate(-8deg);filter:drop-shadow(0 4px 14px rgba(0,0,0,.5));}
+.price-mark{font-size:46px;letter-spacing:6px;font-weight:900;filter:drop-shadow(0 4px 14px rgba(0,0,0,.5));}
+.banner-fade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,var(--s) 100%);}
+.tile-body{padding:1rem 1.25rem 1.25rem;display:flex;align-items:center;gap:1rem;}
+.tile-info{flex:1;}
+.tile-title{font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px;}
+.tile-desc{font-size:12.5px;color:var(--m);line-height:1.55;margin-top:4px;}
+.tile-tag{font-size:10px;font-weight:800;padding:2.5px 10px;border-radius:99px;}
 .tag-live{background:rgba(62,207,142,.15);color:var(--g);}
 .tag-new{background:rgba(252,217,108,.15);color:var(--gold);}
-.arrow{color:rgba(242,240,255,.25);font-size:20px;flex-shrink:0;}
+.tag-soon{background:rgba(242,240,255,.08);color:var(--m);}
+.arrow{color:rgba(242,240,255,.25);font-size:22px;flex-shrink:0;}
+.tile-locked{opacity:.55;cursor:default;}
+.tile-locked:hover{border-color:var(--b);transform:none;box-shadow:none;}
 
-/* signout */
-.signout-wrap{text-align:center;margin-top:1.75rem;}
+.signout-wrap{text-align:center;margin-top:1.9rem;}
 .signout-btn{background:none;border:1px solid var(--b);border-radius:99px;color:var(--m);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;padding:.4rem 1.25rem;cursor:pointer;transition:all .15s;}
 .signout-btn:hover{color:var(--r);border-color:rgba(252,108,108,.4);}
+.foot{text-align:center;font-size:10.5px;color:rgba(242,240,255,.25);font-weight:700;margin-top:1rem;}
 </style>
 </head>
 <body>
 <div class="stars" id="stars"></div>
+<div class="glow"></div>
 <div class="wrap">
   <div class="header">
     <div class="logo">Cardverse <span>Mini Games</span></div>
@@ -62,38 +86,69 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
     </div>
   </div>
 
-  <div class="sec-lbl">Your stats</div>
+  <div class="hero">
+    <h1>Daily games for<br/><em>card collectors</em></h1>
+    <p>Real cards · real pop counts · new challenges every day</p>
+  </div>
+
   <div class="stats-row">
     <div class="stat-box"><div class="stat-val" id="stat-streak">—</div><div class="stat-lbl">Best Streak</div></div>
     <div class="stat-box"><div class="stat-val" id="stat-pts">—</div><div class="stat-lbl">Total Pts</div></div>
-    <div class="stat-box"><div class="stat-val" id="stat-games">—</div><div class="stat-lbl">Games Played</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-pool">—</div><div class="stat-lbl">Cards in Play</div></div>
   </div>
 
-  <div class="sec-lbl">Choose a game</div>
+  <div class="sec-lbl">Choose your game</div>
 
-  <a class="game-card" href="game.html">
-    <div class="game-icon icon-purple">🃏</div>
-    <div class="game-info">
-      <div class="game-title">Pop Report</div>
-      <div class="game-desc">Which card has the lower PSA pop count? Test your slab knowledge and build a streak.</div>
-      <span class="game-tag tag-live">● Live now</span>
+  <a class="game-tile" href="game.html">
+    <div class="tile-banner banner-pop">
+      <div class="fan">
+        <img src="https://i.ebayimg.com/images/g/1H0AAeSwlelqRosB/s-l500.webp" alt="" loading="lazy" onerror="this.style.display='none'"/>
+        <img src="https://firebasestorage.googleapis.com/v0/b/cardladder-71d53.appspot.com/o/sales%2Ffanatics-premier-21655?alt=media" alt="" loading="lazy" onerror="this.style.display='none'"/>
+        <img src="https://i.ebayimg.com/images/g/EPoAAeSwJSBqKAM0/s-l500.webp" alt="" loading="lazy" onerror="this.style.display='none'"/>
+      </div>
+      <div class="banner-fade"></div>
     </div>
-    <div class="arrow">›</div>
+    <div class="tile-body">
+      <div class="tile-info">
+        <div class="tile-title">Pop Report <span class="tile-tag tag-live">● Live</span></div>
+        <div class="tile-desc">Two graded cards. Which one is rarer? Pick the lower PSA pop, build a streak, survive the heat check.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
   </a>
 
-  <a class="game-card" href="signtvre.html">
-    <div class="game-icon icon-orange">✍️</div>
-    <div class="game-info">
-      <div class="game-title">SIGNTVRE</div>
-      <div class="game-desc">Guess the mystery autograph in 10 tries. Wordle meets the hobby — Poeltl style hints.</div>
-      <span class="game-tag tag-new">★ New</span>
+  <a class="game-tile" href="signtvre.html">
+    <div class="tile-banner banner-sig">
+      <div class="sig-mark">✍️</div>
+      <div class="banner-fade"></div>
     </div>
-    <div class="arrow">›</div>
+    <div class="tile-body">
+      <div class="tile-info">
+        <div class="tile-title">SIGNTVRE <span class="tile-tag tag-new">★ Daily</span></div>
+        <div class="tile-desc">One mystery autograph a day. Guess the athlete in 6 tries with Poeltl-style hints. Can you read the scribble?</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
   </a>
+
+  <div class="game-tile tile-locked">
+    <div class="tile-banner banner-price">
+      <div class="price-mark">$?$</div>
+      <div class="banner-fade"></div>
+    </div>
+    <div class="tile-body">
+      <div class="tile-info">
+        <div class="tile-title">Price Count <span class="tile-tag tag-soon">Coming soon</span></div>
+        <div class="tile-desc">A PSA 10 Charizard vs. a Rolex vs. SGA's game check. Guess what real cards sold for — and what beats what.</div>
+      </div>
+      <div class="arrow">›</div>
+    </div>
+  </div>
 
   <div class="signout-wrap">
     <button class="signout-btn" onclick="signOut()">Sign out</button>
   </div>
+  <div class="foot">CARDVERSE MINI GAMES</div>
 </div>
 
 <script>
@@ -103,7 +158,7 @@ const sb = supabase.createClient(SB_URL, SB_ANON);
 
 // Stars
 const starsEl = document.getElementById('stars');
-for(let i=0;i<60;i++){
+for(let i=0;i<70;i++){
   const s=document.createElement('div'); s.className='star';
   const sz=Math.random()*2+.5;
   s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*3}s;`;
@@ -111,14 +166,16 @@ for(let i=0;i<60;i++){
 }
 
 async function init(){
+  // Live pool count — works for guests too
+  sb.from('pr_cards').select('id',{count:'exact',head:true}).in('status',['active','featured'])
+    .then(({count})=>{ if(count) document.getElementById('stat-pool').textContent=count.toLocaleString(); });
+
   const {data:{session}} = await sb.auth.getSession();
   if(!session){
-    // Allow guest access
     const isGuest = sessionStorage.getItem('cv_guest') === '1';
     if(!isGuest){ window.location.href='login.html'; return; }
-    // Guest mode - show placeholder stats
     document.getElementById('user-name').textContent = 'Guest';
-    ['stat-streak','stat-pts','stat-games'].forEach(id=>document.getElementById(id).textContent='—');
+    ['stat-streak','stat-pts'].forEach(id=>document.getElementById(id).textContent='—');
     return;
   }
 
@@ -131,8 +188,6 @@ async function init(){
     document.getElementById('user-name').textContent = session.user.email?.split('@')[0] || 'Player';
     ['stat-streak','stat-pts'].forEach(id=>document.getElementById(id).textContent='0');
   }
-  const {count} = await sb.from('scores').select('id',{count:'exact',head:true}).eq('user_id',session.user.id);
-  document.getElementById('stat-games').textContent = count||0;
 }
 
 async function signOut(){
