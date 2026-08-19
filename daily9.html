@@ -12,200 +12,279 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .stars{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
 .star{position:absolute;background:#fff;border-radius:50%;animation:twinkle linear infinite;}
 @keyframes twinkle{0%,100%{opacity:.06}50%{opacity:.7}}
+.glow{position:fixed;top:-160px;left:50%;transform:translateX(-50%);width:560px;height:400px;background:radial-gradient(closest-side,rgba(124,108,252,.2),transparent);pointer-events:none;z-index:0;}
 .wrap{max-width:520px;margin:0 auto;padding:1.4rem 1rem 4rem;position:relative;z-index:1;}
 
-.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;}
-.logo{font-size:18px;font-weight:900;}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;}
+.logo{font-size:17px;font-weight:900;}
 .logo span{color:var(--a);}
-.back{font-size:12px;font-weight:800;color:var(--m);text-decoration:none;border:1px solid var(--b);border-radius:99px;padding:.3rem .9rem;}
+.streak-pill{display:flex;align-items:center;gap:5px;background:var(--s);border:1px solid var(--b);border-radius:99px;padding:.32rem .85rem;font-size:12px;font-weight:900;color:var(--gold);}
 
-.title{text-align:center;margin-bottom:.35rem;font-size:30px;font-weight:900;letter-spacing:-.4px;}
+.title{text-align:center;font-size:34px;font-weight:900;letter-spacing:-.5px;line-height:1;}
 .title em{font-style:normal;background:linear-gradient(90deg,var(--a),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent;}
-.sub{text-align:center;font-size:12.5px;color:var(--m);font-weight:700;margin-bottom:1.2rem;}
+.sub{text-align:center;font-size:12px;color:var(--m);font-weight:800;margin:.5rem 0 1.3rem;text-transform:uppercase;letter-spacing:.09em;}
 
-/* breaker battle strip */
-.battle{background:var(--s);border:1.5px solid var(--b);border-radius:18px;padding:.9rem 1rem;margin-bottom:1.2rem;}
-.battle-lbl{font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;text-align:center;margin-bottom:.6rem;}
-.battle-row{display:flex;align-items:center;gap:8px;}
-.team{flex:1;border:1.5px solid var(--b);border-radius:14px;padding:.6rem .5rem;text-align:center;cursor:pointer;transition:all .15s;background:var(--s2);}
-.team:hover{border-color:var(--a);}
-.team.picked{border-color:var(--g);background:rgba(62,207,142,.1);}
-.team-name{font-size:13px;font-weight:900;}
-.team-score{font-size:11px;color:var(--m);font-weight:800;margin-top:2px;}
-.vs{font-size:11px;font-weight:900;color:var(--m);}
-.battle-note{font-size:10.5px;color:var(--m);text-align:center;margin-top:.55rem;font-weight:700;}
+/* progress */
+.prog-wrap{margin-bottom:1.2rem;}
+.prog-track{height:9px;background:var(--s);border:1px solid var(--b);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:99px;transition:width .5s cubic-bezier(.2,.9,.3,1.2);}
+.prog-lbls{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--m);margin-top:6px;}
+.prog-lbls b{color:var(--t);}
 
-/* the grid */
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:1rem;}
-.sq{aspect-ratio:1/1;background:var(--s);border:1.5px solid var(--b);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all .15s;position:relative;}
-.sq:hover{border-color:var(--a);transform:translateY(-2px);}
-.sq .ico{font-size:26px;}
-.sq .nm{font-size:10.5px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.03em;text-align:center;padding:0 4px;}
-.sq.right{border-color:rgba(62,207,142,.6);background:rgba(62,207,142,.12);}
-.sq.wrong{border-color:rgba(252,108,108,.6);background:rgba(252,108,108,.1);}
-.sq.done{cursor:default;transform:none;}
-.sq .mark{position:absolute;top:7px;right:9px;font-size:13px;}
-
-.scorebar{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:1.1rem;}
-.score-pill{background:var(--s);border:1px solid var(--b);border-radius:99px;padding:.4rem 1.1rem;font-size:13px;font-weight:900;}
-.score-pill span{color:var(--g);}
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.1rem;perspective:900px;}
+.sq{aspect-ratio:1/1;background:var(--s);border:1.5px solid var(--b);border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;position:relative;overflow:hidden;}
+.sq::before{content:'';position:absolute;inset:0;background:var(--tint,transparent);opacity:.14;}
+.sq:hover{border-color:var(--tint,var(--a));transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.35);}
+.sq .chip{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:23px;background:var(--tint,var(--s2));box-shadow:0 4px 14px rgba(0,0,0,.3);position:relative;z-index:1;}
+.sq .nm{font-size:10.5px;font-weight:900;color:var(--t);text-transform:uppercase;letter-spacing:.04em;text-align:center;padding:0 4px;position:relative;z-index:1;}
+.sq.done{cursor:default;}
+.sq.done:hover{transform:none;box-shadow:none;}
+.sq.right{border-color:rgba(62,207,142,.65);animation:flipIn .45s;}
+.sq.right::before{background:var(--g);opacity:.16;}
+.sq.wrong{border-color:rgba(252,108,108,.6);animation:flipIn .45s;}
+.sq.wrong::before{background:var(--r);opacity:.13;}
+@keyframes flipIn{0%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+.sq .mark{position:absolute;top:8px;right:10px;font-size:14px;z-index:1;}
 
 /* question modal */
-.modal{position:fixed;inset:0;background:rgba(10,9,16,.82);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem;}
+.modal{position:fixed;inset:0;background:rgba(10,9,16,.86);backdrop-filter:blur(7px);display:none;align-items:flex-end;justify-content:center;z-index:50;}
+@media(min-width:600px){.modal{align-items:center;}}
 .modal.show{display:flex;}
-.q-card{background:var(--s);border:1.5px solid var(--b);border-radius:22px;padding:1.5rem 1.35rem;max-width:440px;width:100%;animation:pop .25s;}
-@keyframes pop{0%{transform:scale(.93);opacity:0}100%{transform:scale(1);opacity:1}}
-.q-cat{font-size:11px;font-weight:800;color:var(--a);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.6rem;}
-.q-text{font-size:17px;font-weight:800;line-height:1.45;margin-bottom:1.1rem;}
-.opt{display:block;width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:13px;padding:.8rem 1rem;margin-bottom:.55rem;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:var(--t);cursor:pointer;text-align:left;transition:all .13s;}
+.q-card{background:var(--s);border:1.5px solid var(--b);border-radius:26px 26px 0 0;padding:1.6rem 1.35rem 2rem;max-width:480px;width:100%;animation:rise .3s cubic-bezier(.2,.9,.3,1.05);}
+@media(min-width:600px){.q-card{border-radius:26px;padding-bottom:1.6rem;}}
+@keyframes rise{0%{transform:translateY(40px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.q-head{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
+.q-chip{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--tint,var(--s2));}
+.q-cat{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--m);}
+.q-count{margin-left:auto;font-size:11px;font-weight:800;color:var(--m);}
+.q-text{font-size:18px;font-weight:800;line-height:1.45;margin-bottom:1.15rem;}
+.opt{display:flex;align-items:center;gap:11px;width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:14px;padding:.8rem .9rem;margin-bottom:.55rem;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:var(--t);cursor:pointer;text-align:left;transition:border-color .13s,background .13s;}
+.opt .ltr{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:var(--m);flex-shrink:0;}
 .opt:hover{border-color:var(--a);}
-.opt.correct{border-color:var(--g);background:rgba(62,207,142,.15);}
-.opt.incorrect{border-color:var(--r);background:rgba(252,108,108,.12);}
-.q-after{display:none;margin-top:.5rem;}
-.q-after.show{display:block;}
-.q-fact{font-size:12.5px;color:var(--m);line-height:1.55;font-weight:700;margin-bottom:.85rem;}
-.btn{display:block;width:100%;border:none;border-radius:13px;padding:.85rem;font-family:'Nunito',sans-serif;font-size:14px;font-weight:900;cursor:pointer;}
-.btn-a{background:var(--a);color:#fff;}
-.btn-gold{background:linear-gradient(90deg,#3a2f0b,#5a4a12);color:var(--gold);border:1px solid rgba(252,217,108,.35);margin-top:.5rem;font-size:12.5px;}
+.opt.correct{border-color:var(--g);background:rgba(62,207,142,.14);}
+.opt.correct .ltr{background:var(--g);color:#0b2418;}
+.opt.incorrect{border-color:var(--r);background:rgba(252,108,108,.11);}
+.opt.incorrect .ltr{background:var(--r);color:#2c0d0d;}
+.q-after{display:none;margin-top:.7rem;}
+.q-after.show{display:block;animation:fadeUp .3s;}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+.q-fact{font-size:13px;color:var(--m);line-height:1.6;font-weight:700;background:var(--s2);border:1px solid var(--b);border-radius:13px;padding:.8rem .95rem;margin-bottom:.85rem;}
+.q-fact b{color:var(--gold);}
+.btn{display:block;width:100%;border:none;border-radius:14px;padding:.9rem;font-family:'Nunito',sans-serif;font-size:14px;font-weight:900;cursor:pointer;transition:opacity .15s;}
+.btn:hover{opacity:.9;}
+.btn-a{background:linear-gradient(90deg,var(--a),#5b4bd4);color:#fff;}
 
 /* results */
-.result{display:none;background:var(--s);border:1.5px solid var(--b);border-radius:22px;padding:1.4rem;text-align:center;margin-bottom:1rem;}
+.result{display:none;background:var(--s);border:1.5px solid var(--b);border-radius:24px;padding:1.6rem 1.4rem;text-align:center;margin-bottom:1rem;animation:fadeUp .4s;}
 .result.show{display:block;}
-.res-big{font-size:44px;font-weight:900;}
-.res-big span{color:var(--m);font-size:22px;}
-.res-msg{font-size:13px;color:var(--m);font-weight:800;margin:.3rem 0 .9rem;}
-.res-grid{font-size:20px;letter-spacing:3px;line-height:1.5;margin-bottom:1rem;}
-.res-team{font-size:12.5px;font-weight:800;color:var(--g);margin-bottom:.9rem;}
+.res-lbl{font-size:11px;font-weight:900;color:var(--m);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem;}
+.res-big{font-size:52px;font-weight:900;line-height:1;}
+.res-big span{color:var(--m);font-size:24px;}
+.res-msg{font-size:13.5px;color:var(--m);font-weight:800;margin:.5rem 0 1rem;}
+.res-grid{font-size:22px;letter-spacing:4px;line-height:1.5;margin-bottom:1.1rem;white-space:pre;}
+.res-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.1rem;}
+.res-stat{background:var(--s2);border:1px solid var(--b);border-radius:13px;padding:.6rem .3rem;}
+.res-stat .v{font-size:18px;font-weight:900;}
+.res-stat .l{font-size:9.5px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.05em;margin-top:1px;}
+.next-in{font-size:11.5px;color:var(--m);font-weight:800;margin-top:.9rem;}
+.next-in b{color:var(--t);}
+.home-link{display:block;text-align:center;margin-top:1.4rem;font-size:12px;font-weight:800;color:var(--m);text-decoration:none;}
+.home-link:hover{color:var(--a);}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);background:var(--s2);border:1px solid var(--a);color:var(--t);border-radius:99px;padding:.6rem 1.3rem;font-size:13px;font-weight:800;transition:transform .25s;z-index:99;}
+.toast.show{transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
 <div class="stars" id="stars"></div>
+<div class="glow"></div>
 <div class="wrap">
   <div class="top">
     <div class="logo">Cardverse <span>Mini Games</span></div>
-    <a class="back" href="home.html">‹ Home</a>
+    <div class="streak-pill">🔥 <span id="streak-n">0</span></div>
   </div>
 
   <div class="title">The <em>Daily 9</em></div>
-  <div class="sub">9 categories · 1 question each · same board for everyone · resets daily</div>
+  <div class="sub" id="board-sub">Board #1 · 9 categories · everyone gets the same board</div>
 
-  <div class="battle">
-    <div class="battle-lbl">⚔️ This week's Breaker Battle — pick your side</div>
-    <div class="battle-row">
-      <div class="team" id="team-a" onclick="pickTeam('a')">
-        <div class="team-name">🏕️ Backyard Breaks</div>
-        <div class="team-score" id="team-a-score">avg 6.1 · 1,204 playing</div>
-      </div>
-      <div class="vs">VS</div>
-      <div class="team" id="team-b" onclick="pickTeam('b')">
-        <div class="team-name">🎪 WTH Breaks</div>
-        <div class="team-score" id="team-b-score">avg 5.8 · 987 playing</div>
-      </div>
-    </div>
-    <div class="battle-note" id="battle-note">Your score banks for your team. Losing breaker owes a spot in Sunday's break.</div>
-  </div>
-
-  <div class="scorebar">
-    <div class="score-pill">Score <span id="score">0</span>/9</div>
-    <div class="score-pill">Answered <span id="answered">0</span>/9</div>
+  <div class="prog-wrap">
+    <div class="prog-track"><div class="prog-fill" id="prog"></div></div>
+    <div class="prog-lbls"><div><b id="score">0</b> correct</div><div><b id="answered">0</b>/9 answered</div></div>
   </div>
 
   <div class="grid" id="grid"></div>
 
   <div class="result" id="result">
+    <div class="res-lbl">Today's board</div>
     <div class="res-big" id="res-num">0<span>/9</span></div>
     <div class="res-msg" id="res-msg"></div>
-    <div class="res-team" id="res-team"></div>
     <div class="res-grid" id="res-grid"></div>
+    <div class="res-stats">
+      <div class="res-stat"><div class="v" id="rs-streak">0</div><div class="l">Day streak</div></div>
+      <div class="res-stat"><div class="v" id="rs-played">0</div><div class="l">Boards played</div></div>
+      <div class="res-stat"><div class="v" id="rs-best">0</div><div class="l">Best score</div></div>
+    </div>
     <button class="btn btn-a" onclick="copyShare()">Share my board</button>
-    <button class="btn btn-gold">🔓 Unlock category deep-dives — 5 more Qs each</button>
+    <div class="next-in">Next board in <b id="countdown">—</b></div>
   </div>
+
+  <a class="home-link" href="home.html">‹ Back to Cardverse</a>
 </div>
 
 <!-- question modal -->
 <div class="modal" id="modal">
-  <div class="q-card">
-    <div class="q-cat" id="q-cat"></div>
+  <div class="q-card" id="q-card">
+    <div class="q-head">
+      <div class="q-chip" id="q-chip"></div>
+      <div class="q-cat" id="q-cat"></div>
+      <div class="q-count" id="q-count"></div>
+    </div>
     <div class="q-text" id="q-text"></div>
     <div id="q-opts"></div>
     <div class="q-after" id="q-after">
       <div class="q-fact" id="q-fact"></div>
       <button class="btn btn-a" onclick="closeModal()">Back to board</button>
-      <button class="btn btn-gold" onclick="alert('Premium: 5 more questions from this category, category streaks, and per-category leaderboards. Coming soon.')">🔓 5 more from this category</button>
     </div>
   </div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
-// ── THE BOARD (cards edition) ──
+// ── CATEGORY BANKS — one question per category per day, rotated by date ──
 const CATS = [
-  {id:'hoops',   ico:'🏀', nm:'Hoops',
-    q:'Which product is Luka Dončić\'s flagship rookie card from?',
-    opts:['2018 Topps Chrome','2018 Panini Prizm','2018 Upper Deck','2019 Panini Mosaic'], ans:1,
-    fact:'Luka\'s 2018-19 Panini Prizm base RC #280 is the modern hoops benchmark — PSA 10 pop is deep in the five figures.'},
-  {id:'gridiron',ico:'🏈', nm:'Gridiron',
-    q:'What year is Patrick Mahomes\' true rookie card?',
-    opts:['2015','2016','2017','2018'], ans:2,
-    fact:'Mahomes was drafted 10th overall in 2017 — his Prizm RC #269 anchors the modern football market.'},
-  {id:'diamond', ico:'⚾', nm:'Diamond',
-    q:'Whose 2011 Topps Update rookie is considered the modern baseball grail?',
-    opts:['Bryce Harper','Mike Trout','Clayton Kershaw','Buster Posey'], ans:1,
-    fact:'The 2011 Topps Update Trout US175 — a PSA 10 has sold for over $100K; the superfractor went for $3.9M.'},
-  {id:'tcg',     ico:'⚡', nm:'TCG',
-    q:'What is the card number of the 1999 Base Set Charizard?',
-    opts:['1/102','4/102','6/102','58/102'], ans:1,
-    fact:'Charizard 4/102 — the shadowless 1st edition PSA 10 has cleared $300K+ at auction.'},
-  {id:'vintage', ico:'🎩', nm:'Vintage',
-    q:'The T206 Honus Wagner was originally distributed inside packs of what?',
-    opts:['Chewing gum','Cigarettes','Caramel candy','Cereal'], ans:1,
-    fact:'American Tobacco Company, 1909-11. Wagner reportedly pulled his card, which is why so few exist — one sold for $7.25M.'},
-  {id:'grading', ico:'💎', nm:'Grading',
-    q:'Which grading company awards the famous "Black Label" perfect 10?',
-    opts:['PSA','SGC','Beckett (BGS)','CGC'], ans:2,
-    fact:'A BGS Black Label means all four subgrades are perfect 10s — rarer than a PSA 10 on most cards.'},
-  {id:'market',  ico:'📈', nm:'The Market',
-    q:'A PSA 10 1986 Fleer Jordan RC last sold closest to which price?',
-    opts:['$84,000','$180,000','$384,000','$1.2M'], ans:2,
-    fact:'Pulled straight from our Pop Report data: pop 334, last sale $384K in July 2026.'},
-  {id:'popquiz', ico:'🔢', nm:'Pop Quiz',
-    q:'Which of these has the LOWEST PSA 10 population?',
-    opts:['2018 Prizm Luka RC','1986 Fleer Jordan RC','1999 Base Set Charizard','2011 Update Trout'], ans:1,
-    fact:'Jordan sits at ~334 PSA 10s — tiny next to Luka\'s five-figure pop. Play Pop Report to master this.'},
-  {id:'slang',   ico:'🗣️', nm:'Hobby Slang',
-    q:'In breaker culture, what is a "razz"?',
-    opts:['A damaged card','A raffle for a spot or card','A fake patch','A bulk lot'], ans:1,
-    fact:'A razz is a mini-raffle — buy spots for a chance at a card or break spot. Now you speak breaker.'},
+ {id:'hoops', ico:'🏀', nm:'Hoops', tint:'#7c6cfc', bank:[
+  {q:'Which product is Luka Dončić\'s flagship rookie card from?', opts:['2018 Topps Chrome','2018 Panini Prizm','2018 Upper Deck','2019 Panini Mosaic'], ans:1, fact:'Luka\'s <b>2018-19 Panini Prizm #280</b> is the modern hoops benchmark.'},
+  {q:'What year is Michael Jordan\'s Fleer rookie card?', opts:['1984','1985','1986','1987'], ans:2, fact:'The <b>1986 Fleer #57</b> — PSA 10 pop sits around 334, and one just sold for $384K.'},
+  {q:'The Kaboom! insert first appeared in which Panini product?', opts:['Panini Innovation','Panini Excalibur','Panini Crown Royale','Panini Select'], ans:0, fact:'<b>2013-14 Panini Innovation</b> introduced Kaboom! — now the most chased case hit in the hobby.'},
+  {q:'What year is Victor Wembanyama\'s rookie card?', opts:['2021','2022','2023','2024'], ans:2, fact:'Wemby\'s <b>2023-24 Prizm RC</b> — the most graded modern rookie of its class.'},
+  {q:'Zion Williamson and Ja Morant share which rookie year?', opts:['2018','2019','2020','2021'], ans:1, fact:'<b>2019-20</b> — one of the deepest modern rookie classes in basketball.'},
+ ]},
+ {id:'gridiron', ico:'🏈', nm:'Gridiron', tint:'#b0682e', bank:[
+  {q:'What year is Patrick Mahomes\' true rookie card?', opts:['2015','2016','2017','2018'], ans:2, fact:'Drafted 10th overall in <b>2017</b> — his Prizm RC #269 anchors the football market.'},
+  {q:'Tom Brady\'s most valuable rookie card comes from which 2000 product?', opts:['Bowman Chrome','Playoff Contenders','SP Authentic','Fleer Autographics'], ans:1, fact:'The <b>2000 Playoff Contenders Championship Ticket</b> /100 — a football grail.'},
+  {q:'The Downtown insert belongs to which brand family?', opts:['Prizm','Select','Donruss Optic','Absolute'], ans:2, fact:'<b>Donruss / Donruss Optic</b> — Downtowns are the case hit everyone rips for.'},
+  {q:'Which insert is the famous case hit in Panini Absolute football?', opts:['Color Blast','Kaboom!','Downtown','Stained Glass'], ans:1, fact:'<b>Kaboom!</b> crossed over from basketball and became Absolute\'s signature chase.'},
+  {q:'What year is C.J. Stroud\'s rookie card?', opts:['2021','2022','2023','2024'], ans:2, fact:'<b>2023</b> — Stroud\'s Prizm RCs led football grading submissions that year.'},
+ ]},
+ {id:'diamond', ico:'⚾', nm:'Diamond', tint:'#3e8fcf', bank:[
+  {q:'Whose 2011 Topps Update rookie is the modern baseball grail?', opts:['Bryce Harper','Mike Trout','Clayton Kershaw','Buster Posey'], ans:1, fact:'The <b>Trout US175</b> — its superfractor sold for $3.9M.'},
+  {q:'Which card is the most expensive sports card ever sold?', opts:['T206 Honus Wagner','1952 Topps Mantle','1986 Fleer Jordan','2009 Bowman Trout Auto'], ans:1, fact:'A <b>1952 Topps Mantle SGC 9.5</b> sold for $12.6M in 2022.'},
+  {q:'What year is Shohei Ohtani\'s Topps rookie card?', opts:['2016','2017','2018','2019'], ans:2, fact:'<b>2018</b> — Ohtani\'s Topps Chrome RCs keep climbing with every MVP.'},
+  {q:'Who owns Topps today?', opts:['Upper Deck','Panini','Fanatics','Hasbro'], ans:2, fact:'<b>Fanatics</b> bought Topps in 2022 and took over the exclusive MLB license.'},
+  {q:'Which player is card #1 in 1989 Upper Deck?', opts:['Barry Bonds','Ken Griffey Jr.','Frank Thomas','Randy Johnson'], ans:1, fact:'<b>Griffey #1</b> — the card that launched Upper Deck and modern collecting.'},
+ ]},
+ {id:'tcg', ico:'⚡', nm:'TCG', tint:'#e0b422', bank:[
+  {q:'What is the card number of the 1999 Base Set Charizard?', opts:['1/102','4/102','6/102','58/102'], ans:1, fact:'<b>Charizard 4/102</b> — shadowless 1st Edition PSA 10s have cleared $300K.'},
+  {q:'"Moonbreon" is collector slang for which card?', opts:['Espeon GX','Umbreon VMAX Alt Art','Lunala V','Darkrai VSTAR'], ans:1, fact:'The <b>Evolving Skies Umbreon VMAX alt art</b> — the biggest modern Pokémon chase.'},
+  {q:'Which card did Logan Paul buy for $5.275M?', opts:['1st Ed. Charizard','Pikachu Illustrator','Shining Charizard','Trophy Kangaskhan'], ans:1, fact:'The <b>Pikachu Illustrator</b> — he wore it at WrestleMania in a case around his neck.'},
+  {q:'Champion\'s Path is famous for which chase card?', opts:['Shiny Charizard VMAX','Rainbow Pikachu','Gold Mewtwo','Alt Art Eevee'], ans:0, fact:'The <b>Shiny Charizard VMAX</b> sent Champion\'s Path boxes flying off shelves.'},
+  {q:'Which era printed the first Pokémon Rainbow Rares?', opts:['XY','Sun & Moon','Sword & Shield','Scarlet & Violet'], ans:1, fact:'<b>Sun & Moon (2017)</b> introduced the Rainbow Rare treatment.'},
+ ]},
+ {id:'vintage', ico:'🎩', nm:'Vintage', tint:'#8a6dcf', bank:[
+  {q:'The T206 Honus Wagner came in packs of what?', opts:['Chewing gum','Cigarettes','Caramel candy','Cereal'], ans:1, fact:'American Tobacco Co., 1909-11. Wagner pulled his own card — that\'s why one sold for <b>$7.25M</b>.'},
+  {q:'Unsold 1952 Topps high numbers were famously…', opts:['Burned in a warehouse','Dumped in the ocean','Given to soldiers','Recalled and reprinted'], ans:1, fact:'Sy Berger loaded them on a barge and <b>dumped them in the Atlantic</b> — including Mantles.'},
+  {q:'Which legend appears on FOUR cards in 1933 Goudey?', opts:['Lou Gehrig','Babe Ruth','Jimmie Foxx','Ty Cobb'], ans:1, fact:'<b>Babe Ruth</b> — #53, #144, #149 and #181. All grails.'},
+  {q:'Wayne Gretzky\'s 1979 rookie card is most valuable from which brand?', opts:['Topps','O-Pee-Chee','Parkhurst','Upper Deck'], ans:1, fact:'The <b>1979 O-Pee-Chee Gretzky</b> — a PSA 10 sold for $3.75M.'},
+  {q:'Topps bought out which rival card maker in 1956?', opts:['Fleer','Bowman','Leaf','Goudey'], ans:1, fact:'<b>Bowman</b> — Topps shelved the brand, then revived it decades later for prospects.'},
+ ]},
+ {id:'grading', ico:'💎', nm:'Grading', tint:'#4ecfc0', bank:[
+  {q:'Which grading company awards the famous "Black Label" 10?', opts:['PSA','SGC','Beckett (BGS)','CGC'], ans:2, fact:'A <b>BGS Black Label</b> = all four subgrades perfect 10s. Rarer than a PSA 10 on most cards.'},
+  {q:'What does the PSA qualifier "OC" mean?', opts:['Original condition','Off-center','Obvious crease','Over-cut'], ans:1, fact:'<b>Off-center</b> — qualifiers usually tank the value vs a clean grade.'},
+  {q:'Which grader\'s black "tuxedo" label is a vintage favorite?', opts:['SGC','PSA','CGC','HGA'], ans:0, fact:'<b>SGC</b> — collectors love the tuxedo look on pre-war cards.'},
+  {q:'CGC made its name grading what first?', opts:['Coins','Comics','Cards','Stamps'], ans:1, fact:'<b>Comics</b> — CGC expanded into cards during the 2020 boom.'},
+  {q:'"Top pop" means a card is…', opts:['The most graded ever','The highest grade with none higher','Worth the most money','First of its print run'], ans:1, fact:'<b>Highest existing grade</b> — nothing sits above it in the pop report.'},
+ ]},
+ {id:'market', ico:'📈', nm:'The Market', tint:'#3ecf8e', bank:[
+  {q:'A PSA 10 1986 Fleer Jordan RC last sold closest to…', opts:['$84,000','$180,000','$384,000','$1.2M'], ans:2, fact:'Straight from our Pop Report data: pop 334, last sale <b>$384K</b> in July 2026.'},
+  {q:'"Comps" is hobby short for…', opts:['Competitions','Comparable sales','Complete sets','Compensations'], ans:1, fact:'<b>Comparable sales</b> — recent sold prices that set a card\'s real value.'},
+  {q:'eBay\'s Authenticity Guarantee kicks in for cards sold over…', opts:['$100','$250','$500','$1,000'], ans:1, fact:'Cards over <b>$250</b> get routed through authentication before delivery.'},
+  {q:'Finish the hobby saying: "Buy the card, not the ___"', opts:['Hype','Grade','Seller','Slab'], ans:1, fact:'<b>"Not the grade."</b> Eye appeal beats the number on the flip.'},
+  {q:'What usually happens to raw card prices right after a player\'s big game?', opts:['Nothing','They spike, then cool','They drop','They freeze'], ans:1, fact:'<b>Spike and cool</b> — chasing Monday-morning hype is how collectors overpay.'},
+ ]},
+ {id:'popquiz', ico:'🔢', nm:'Pop Quiz', tint:'#fc6c8f', bank:[
+  {q:'Which has the LOWEST PSA 10 population?', opts:['2018 Prizm Luka RC','1986 Fleer Jordan RC','1999 Base Charizard','2011 Update Trout'], ans:1, fact:'<b>Jordan: ~334</b> PSA 10s. Tiny next to Luka\'s five-figure pop. Play Pop Report to master this.'},
+  {q:'A pop report tracks…', opts:['Card prices over time','How many copies got each grade','Print run sizes','Pack odds'], ans:1, fact:'Every graded copy, by grade. <b>It\'s the hobby\'s census</b> — and our whole game.'},
+  {q:'A "pop 1" card means…', opts:['Only one was printed','Only one exists at that grade','It\'s the first one graded','It has one owner'], ans:1, fact:'<b>One graded example at that level</b> — pop 1 top-pops drive auction wars.'},
+  {q:'All else equal, a higher pop count generally means…', opts:['Higher value','Lower value','No effect','Faster sales'], ans:1, fact:'<b>Scarcity is the engine.</b> More gems = less premium.'},
+  {q:'Which typically has a higher PSA 10 pop?', opts:['Modern Prizm base RCs','1980s vintage RCs'], ans:0, fact:'<b>Modern cards gem far more often</b> — cleaner printing, better handling, heavier grading volume.'},
+ ]},
+ {id:'slang', ico:'🗣️', nm:'Hobby Slang', tint:'#cf9b3e', bank:[
+  {q:'In breaker culture, what is a "razz"?', opts:['A damaged card','A raffle for a spot or card','A fake patch','A bulk lot'], ans:1, fact:'A <b>mini-raffle</b> — buy spots for a shot at a card or break spot.'},
+  {q:'"Mojo" in a break means…', opts:['A big hit / hot streak','A fake card','A refund','A trade offer'], ans:0, fact:'When the <b>mojo</b> is flowing, the hits keep coming. Allegedly.'},
+  {q:'A "case hit" is a card that shows up about…', opts:['Once per pack','Once per box','Once per case','Once per print run'], ans:2, fact:'<b>~1 per case</b> — Kabooms and Downtowns are the archetypes.'},
+  {q:'"PC" stands for…', opts:['Price check','Personal collection','Pack cost','Premium card'], ans:1, fact:'<b>Personal collection</b> — the cards you\'d never sell. In theory.'},
+  {q:'A "whale" in the hobby is…', opts:['An oversized card','A huge spender','A card doctor','A group breaker'], ans:1, fact:'The <b>big spender</b> every auction house and breaker wants in the room.'},
+ ]},
 ];
 
-let score=0, answered=0, team=null;
-const results=[];
+// ── DAILY SEED ──
+const LAUNCH = new Date('2026-08-17T00:00:00');
+const now = new Date();
+const dayNum = Math.max(1, Math.floor((now - LAUNCH) / 86400000) + 1);
+const dateKey = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+document.getElementById('board-sub').textContent = 'Board #'+dayNum+' · 9 categories · everyone gets the same board';
+const todayQ = CATS.map((c,i)=> c.bank[(dayNum + i*3) % c.bank.length]);
+
+// ── STATE (persists per day) ──
+let state = null;
+try{ state = JSON.parse(localStorage.getItem('d9_'+dateKey)); }catch(e){}
+if(!state) state = {results:Array(9).fill(null), score:0, answered:0};
+let meta = null;
+try{ meta = JSON.parse(localStorage.getItem('d9_meta')); }catch(e){}
+if(!meta) meta = {streak:0, played:0, best:0, lastDone:null};
+document.getElementById('streak-n').textContent = meta.streak;
+
+function saveState(){ localStorage.setItem('d9_'+dateKey, JSON.stringify(state)); }
+function saveMeta(){ localStorage.setItem('d9_meta', JSON.stringify(meta)); }
 
 // stars
 const starsEl=document.getElementById('stars');
 for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+.5;s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*3}s;`;starsEl.appendChild(s);}
 
-// grid
+// ── GRID ──
 const grid=document.getElementById('grid');
 CATS.forEach((c,i)=>{
   const d=document.createElement('div');
   d.className='sq'; d.id='sq-'+i;
-  d.innerHTML=`<div class="ico">${c.ico}</div><div class="nm">${c.nm}</div>`;
+  d.style.setProperty('--tint', c.tint);
+  d.innerHTML=`<div class="chip">${c.ico}</div><div class="nm">${c.nm}</div>`;
   d.onclick=()=>openQ(i);
   grid.appendChild(d);
 });
 
+// restore progress
+state.results.forEach((r,i)=>{ if(r!==null) markSquare(i, r); });
+updateBar();
+if(state.answered===9) showResult(false);
+
+function markSquare(i, right){
+  const sq=document.getElementById('sq-'+i);
+  sq.classList.add('done', right?'right':'wrong');
+  if(!sq.querySelector('.mark')) sq.insertAdjacentHTML('beforeend', `<div class="mark">${right?'✅':'❌'}</div>`);
+}
+
+function updateBar(){
+  document.getElementById('score').textContent=state.score;
+  document.getElementById('answered').textContent=state.answered;
+  document.getElementById('prog').style.width=(state.answered/9*100)+'%';
+}
+
 let current=null;
 function openQ(i){
-  const sq=document.getElementById('sq-'+i);
-  if(sq.classList.contains('done')) return;
+  if(state.results[i]!==null) return;
   current=i;
-  const c=CATS[i];
-  document.getElementById('q-cat').textContent=c.ico+' '+c.nm;
-  document.getElementById('q-text').textContent=c.q;
+  const c=CATS[i], q=todayQ[i];
+  document.getElementById('q-chip').textContent=c.ico;
+  document.getElementById('q-chip').style.setProperty('--tint', c.tint);
+  document.getElementById('q-cat').textContent=c.nm;
+  document.getElementById('q-count').textContent=(state.answered+1)+' of 9';
+  document.getElementById('q-text').textContent=q.q;
   const box=document.getElementById('q-opts'); box.innerHTML='';
-  c.opts.forEach((o,j)=>{
+  const letters=['A','B','C','D'];
+  q.opts.forEach((o,j)=>{
     const b=document.createElement('button');
-    b.className='opt'; b.textContent=o;
+    b.className='opt';
+    b.innerHTML=`<span class="ltr">${letters[j]}</span>${o}`;
     b.onclick=()=>answer(j,b);
     box.appendChild(b);
   });
@@ -214,49 +293,73 @@ function openQ(i){
 }
 
 function answer(j,btn){
-  const c=CATS[current];
+  const q=todayQ[current];
   const opts=document.querySelectorAll('#q-opts .opt');
   opts.forEach(o=>o.onclick=null);
-  const right=j===c.ans;
-  opts[c.ans].classList.add('correct');
+  const right = j===q.ans;
+  opts[q.ans].classList.add('correct');
   if(!right) btn.classList.add('incorrect');
-  if(right) score++;
-  answered++;
-  results[current]=right;
-  const sq=document.getElementById('sq-'+current);
-  sq.classList.add('done', right?'right':'wrong');
-  sq.insertAdjacentHTML('beforeend', `<div class="mark">${right?'✅':'❌'}</div>`);
-  document.getElementById('score').textContent=score;
-  document.getElementById('answered').textContent=answered;
-  document.getElementById('q-fact').textContent=c.fact;
+  if(right) state.score++;
+  state.answered++;
+  state.results[current]=right;
+  saveState();
+  markSquare(current, right);
+  updateBar();
+  document.getElementById('q-fact').innerHTML=q.fact;
   document.getElementById('q-after').classList.add('show');
-  if(answered===9) setTimeout(showResult,400);
+  if(state.answered===9){
+    // bank the day into meta once
+    if(meta.lastDone!==dateKey){
+      const y=new Date(now-86400000);
+      const yKey=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+      meta.streak = (meta.lastDone===yKey) ? meta.streak+1 : 1;
+      meta.played++;
+      meta.best=Math.max(meta.best, state.score);
+      meta.lastDone=dateKey;
+      saveMeta();
+      document.getElementById('streak-n').textContent=meta.streak;
+    }
+  }
 }
 
-function closeModal(){ document.getElementById('modal').classList.remove('show'); }
-
-function pickTeam(t){
-  team=t;
-  document.getElementById('team-a').classList.toggle('picked',t==='a');
-  document.getElementById('team-b').classList.toggle('picked',t==='b');
-  document.getElementById('battle-note').textContent='Locked in for '+(t==='a'?'Backyard Breaks':'WTH Breaks')+' — your score counts toward the team average.';
+function closeModal(){
+  document.getElementById('modal').classList.remove('show');
+  if(state.answered===9) showResult(true);
 }
 
-function showResult(){
-  closeModal();
-  document.getElementById('res-num').innerHTML=score+'<span>/9</span>';
-  const msgs=['Rough board. Run it back tomorrow.','The hobby is undefeated.','Not bad — the market humbles everyone.','Solid collector knowledge.','You know your cardboard.','Certified hobby sicko. 🔥'];
-  document.getElementById('res-msg').textContent= score<=2?msgs[0] : score<=4?msgs[1] : score<=5?msgs[2] : score<=6?msgs[3] : score<=8?msgs[4] : msgs[5];
-  document.getElementById('res-team').textContent= team? ('+'+score+' banked for '+(team==='a'?'🏕️ Backyard Breaks':'🎪 WTH Breaks')) : 'Pick a side next time — scores bank for your breaker.';
-  document.getElementById('res-grid').textContent= results.map(r=>r?'🟩':'🟥').reduce((s,x,i)=> s + x + ((i+1)%3===0?'\n':''), '');
-  document.getElementById('result').classList.add('show');
-  document.getElementById('result').scrollIntoView({behavior:'smooth'});
+function gridEmoji(){
+  return state.results.map(r=>r?'🟩':'🟥').reduce((s,x,i)=> s + x + ((i+1)%3===0 && i<8 ?'\n':''), '');
+}
+
+function showResult(scroll){
+  document.getElementById('res-num').innerHTML=state.score+'<span>/9</span>';
+  const msgs=['Rough board. Run it back tomorrow.','The hobby is undefeated.','The market humbles everyone.','Solid collector knowledge.','You know your cardboard.','Certified hobby sicko. 🔥'];
+  document.getElementById('res-msg').textContent= state.score<=2?msgs[0] : state.score<=4?msgs[1] : state.score<=5?msgs[2] : state.score<=6?msgs[3] : state.score<=8?msgs[4] : msgs[5];
+  document.getElementById('res-grid').textContent=gridEmoji();
+  document.getElementById('rs-streak').textContent=meta.streak;
+  document.getElementById('rs-played').textContent=meta.played;
+  document.getElementById('rs-best').textContent=meta.best+'/9';
+  const el=document.getElementById('result');
+  el.classList.add('show');
+  if(scroll) el.scrollIntoView({behavior:'smooth'});
+  tickCountdown(); setInterval(tickCountdown,1000);
+}
+
+function tickCountdown(){
+  const mid=new Date(now); mid.setHours(24,0,0,0);
+  let s=Math.max(0,Math.floor((mid-new Date())/1000));
+  const h=Math.floor(s/3600), m=Math.floor(s%3600/60), sec=s%60;
+  document.getElementById('countdown').textContent=h+'h '+m+'m '+String(sec).padStart(2,'0')+'s';
 }
 
 function copyShare(){
-  const gridTxt=results.map(r=>r?'🟩':'🟥').reduce((s,x,i)=> s + x + ((i+1)%3===0?'\n':''), '');
-  const txt='Cardverse Daily 9 — '+score+'/9\n'+gridTxt+(team?('⚔️ '+(team==='a'?'Backyard Breaks':'WTH Breaks')):'');
-  navigator.clipboard.writeText(txt).then(()=>alert('Copied! Paste it in the group chat.'));
+  const txt='Cardverse Daily 9 — Board #'+dayNum+'\n'+state.score+'/9\n'+gridEmoji();
+  navigator.clipboard.writeText(txt).then(()=>{
+    const t=document.getElementById('toast');
+    t.textContent='Copied — paste it in the group chat 📋';
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2200);
+  });
 }
 </script>
 </body>
