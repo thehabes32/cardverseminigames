@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>The Daily 9 — Cardverse</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0f0e17;--s:#1a1928;--s2:#232235;--b:rgba(255,255,255,.09);--t:#f2f0ff;--m:rgba(242,240,255,.5);--a:#7c6cfc;--a2:#fc6c8f;--g:#3ecf8e;--r:#fc6c6c;--gold:#fcd96c;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-height:100vh;overflow-x:hidden;}
+.stars{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle linear infinite;}
+@keyframes twinkle{0%,100%{opacity:.06}50%{opacity:.7}}
+.wrap{max-width:520px;margin:0 auto;padding:1.4rem 1rem 4rem;position:relative;z-index:1;}
+
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;}
+.logo{font-size:18px;font-weight:900;}
+.logo span{color:var(--a);}
+.back{font-size:12px;font-weight:800;color:var(--m);text-decoration:none;border:1px solid var(--b);border-radius:99px;padding:.3rem .9rem;}
+
+.title{text-align:center;margin-bottom:.35rem;font-size:30px;font-weight:900;letter-spacing:-.4px;}
+.title em{font-style:normal;background:linear-gradient(90deg,var(--a),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.sub{text-align:center;font-size:12.5px;color:var(--m);font-weight:700;margin-bottom:1.2rem;}
+
+/* breaker battle strip */
+.battle{background:var(--s);border:1.5px solid var(--b);border-radius:18px;padding:.9rem 1rem;margin-bottom:1.2rem;}
+.battle-lbl{font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;text-align:center;margin-bottom:.6rem;}
+.battle-row{display:flex;align-items:center;gap:8px;}
+.team{flex:1;border:1.5px solid var(--b);border-radius:14px;padding:.6rem .5rem;text-align:center;cursor:pointer;transition:all .15s;background:var(--s2);}
+.team:hover{border-color:var(--a);}
+.team.picked{border-color:var(--g);background:rgba(62,207,142,.1);}
+.team-name{font-size:13px;font-weight:900;}
+.team-score{font-size:11px;color:var(--m);font-weight:800;margin-top:2px;}
+.vs{font-size:11px;font-weight:900;color:var(--m);}
+.battle-note{font-size:10.5px;color:var(--m);text-align:center;margin-top:.55rem;font-weight:700;}
+
+/* the grid */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:1rem;}
+.sq{aspect-ratio:1/1;background:var(--s);border:1.5px solid var(--b);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all .15s;position:relative;}
+.sq:hover{border-color:var(--a);transform:translateY(-2px);}
+.sq .ico{font-size:26px;}
+.sq .nm{font-size:10.5px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.03em;text-align:center;padding:0 4px;}
+.sq.right{border-color:rgba(62,207,142,.6);background:rgba(62,207,142,.12);}
+.sq.wrong{border-color:rgba(252,108,108,.6);background:rgba(252,108,108,.1);}
+.sq.done{cursor:default;transform:none;}
+.sq .mark{position:absolute;top:7px;right:9px;font-size:13px;}
+
+.scorebar{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:1.1rem;}
+.score-pill{background:var(--s);border:1px solid var(--b);border-radius:99px;padding:.4rem 1.1rem;font-size:13px;font-weight:900;}
+.score-pill span{color:var(--g);}
+
+/* question modal */
+.modal{position:fixed;inset:0;background:rgba(10,9,16,.82);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:50;padding:1rem;}
+.modal.show{display:flex;}
+.q-card{background:var(--s);border:1.5px solid var(--b);border-radius:22px;padding:1.5rem 1.35rem;max-width:440px;width:100%;animation:pop .25s;}
+@keyframes pop{0%{transform:scale(.93);opacity:0}100%{transform:scale(1);opacity:1}}
+.q-cat{font-size:11px;font-weight:800;color:var(--a);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.6rem;}
+.q-text{font-size:17px;font-weight:800;line-height:1.45;margin-bottom:1.1rem;}
+.opt{display:block;width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:13px;padding:.8rem 1rem;margin-bottom:.55rem;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:var(--t);cursor:pointer;text-align:left;transition:all .13s;}
+.opt:hover{border-color:var(--a);}
+.opt.correct{border-color:var(--g);background:rgba(62,207,142,.15);}
+.opt.incorrect{border-color:var(--r);background:rgba(252,108,108,.12);}
+.q-after{display:none;margin-top:.5rem;}
+.q-after.show{display:block;}
+.q-fact{font-size:12.5px;color:var(--m);line-height:1.55;font-weight:700;margin-bottom:.85rem;}
+.btn{display:block;width:100%;border:none;border-radius:13px;padding:.85rem;font-family:'Nunito',sans-serif;font-size:14px;font-weight:900;cursor:pointer;}
+.btn-a{background:var(--a);color:#fff;}
+.btn-gold{background:linear-gradient(90deg,#3a2f0b,#5a4a12);color:var(--gold);border:1px solid rgba(252,217,108,.35);margin-top:.5rem;font-size:12.5px;}
+
+/* results */
+.result{display:none;background:var(--s);border:1.5px solid var(--b);border-radius:22px;padding:1.4rem;text-align:center;margin-bottom:1rem;}
+.result.show{display:block;}
+.res-big{font-size:44px;font-weight:900;}
+.res-big span{color:var(--m);font-size:22px;}
+.res-msg{font-size:13px;color:var(--m);font-weight:800;margin:.3rem 0 .9rem;}
+.res-grid{font-size:20px;letter-spacing:3px;line-height:1.5;margin-bottom:1rem;}
+.res-team{font-size:12.5px;font-weight:800;color:var(--g);margin-bottom:.9rem;}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+  <div class="top">
+    <div class="logo">Cardverse <span>Mini Games</span></div>
+    <a class="back" href="home.html">‹ Home</a>
+  </div>
+
+  <div class="title">The <em>Daily 9</em></div>
+  <div class="sub">9 categories · 1 question each · same board for everyone · resets daily</div>
+
+  <div class="battle">
+    <div class="battle-lbl">⚔️ This week's Breaker Battle — pick your side</div>
+    <div class="battle-row">
+      <div class="team" id="team-a" onclick="pickTeam('a')">
+        <div class="team-name">🏕️ Backyard Breaks</div>
+        <div class="team-score" id="team-a-score">avg 6.1 · 1,204 playing</div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="team" id="team-b" onclick="pickTeam('b')">
+        <div class="team-name">🎪 WTH Breaks</div>
+        <div class="team-score" id="team-b-score">avg 5.8 · 987 playing</div>
+      </div>
+    </div>
+    <div class="battle-note" id="battle-note">Your score banks for your team. Losing breaker owes a spot in Sunday's break.</div>
+  </div>
+
+  <div class="scorebar">
+    <div class="score-pill">Score <span id="score">0</span>/9</div>
+    <div class="score-pill">Answered <span id="answered">0</span>/9</div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="result" id="result">
+    <div class="res-big" id="res-num">0<span>/9</span></div>
+    <div class="res-msg" id="res-msg"></div>
+    <div class="res-team" id="res-team"></div>
+    <div class="res-grid" id="res-grid"></div>
+    <button class="btn btn-a" onclick="copyShare()">Share my board</button>
+    <button class="btn btn-gold">🔓 Unlock category deep-dives — 5 more Qs each</button>
+  </div>
+</div>
+
+<!-- question modal -->
+<div class="modal" id="modal">
+  <div class="q-card">
+    <div class="q-cat" id="q-cat"></div>
+    <div class="q-text" id="q-text"></div>
+    <div id="q-opts"></div>
+    <div class="q-after" id="q-after">
+      <div class="q-fact" id="q-fact"></div>
+      <button class="btn btn-a" onclick="closeModal()">Back to board</button>
+      <button class="btn btn-gold" onclick="alert('Premium: 5 more questions from this category, category streaks, and per-category leaderboards. Coming soon.')">🔓 5 more from this category</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── THE BOARD (cards edition) ──
+const CATS = [
+  {id:'hoops',   ico:'🏀', nm:'Hoops',
+    q:'Which product is Luka Dončić\'s flagship rookie card from?',
+    opts:['2018 Topps Chrome','2018 Panini Prizm','2018 Upper Deck','2019 Panini Mosaic'], ans:1,
+    fact:'Luka\'s 2018-19 Panini Prizm base RC #280 is the modern hoops benchmark — PSA 10 pop is deep in the five figures.'},
+  {id:'gridiron',ico:'🏈', nm:'Gridiron',
+    q:'What year is Patrick Mahomes\' true rookie card?',
+    opts:['2015','2016','2017','2018'], ans:2,
+    fact:'Mahomes was drafted 10th overall in 2017 — his Prizm RC #269 anchors the modern football market.'},
+  {id:'diamond', ico:'⚾', nm:'Diamond',
+    q:'Whose 2011 Topps Update rookie is considered the modern baseball grail?',
+    opts:['Bryce Harper','Mike Trout','Clayton Kershaw','Buster Posey'], ans:1,
+    fact:'The 2011 Topps Update Trout US175 — a PSA 10 has sold for over $100K; the superfractor went for $3.9M.'},
+  {id:'tcg',     ico:'⚡', nm:'TCG',
+    q:'What is the card number of the 1999 Base Set Charizard?',
+    opts:['1/102','4/102','6/102','58/102'], ans:1,
+    fact:'Charizard 4/102 — the shadowless 1st edition PSA 10 has cleared $300K+ at auction.'},
+  {id:'vintage', ico:'🎩', nm:'Vintage',
+    q:'The T206 Honus Wagner was originally distributed inside packs of what?',
+    opts:['Chewing gum','Cigarettes','Caramel candy','Cereal'], ans:1,
+    fact:'American Tobacco Company, 1909-11. Wagner reportedly pulled his card, which is why so few exist — one sold for $7.25M.'},
+  {id:'grading', ico:'💎', nm:'Grading',
+    q:'Which grading company awards the famous "Black Label" perfect 10?',
+    opts:['PSA','SGC','Beckett (BGS)','CGC'], ans:2,
+    fact:'A BGS Black Label means all four subgrades are perfect 10s — rarer than a PSA 10 on most cards.'},
+  {id:'market',  ico:'📈', nm:'The Market',
+    q:'A PSA 10 1986 Fleer Jordan RC last sold closest to which price?',
+    opts:['$84,000','$180,000','$384,000','$1.2M'], ans:2,
+    fact:'Pulled straight from our Pop Report data: pop 334, last sale $384K in July 2026.'},
+  {id:'popquiz', ico:'🔢', nm:'Pop Quiz',
+    q:'Which of these has the LOWEST PSA 10 population?',
+    opts:['2018 Prizm Luka RC','1986 Fleer Jordan RC','1999 Base Set Charizard','2011 Update Trout'], ans:1,
+    fact:'Jordan sits at ~334 PSA 10s — tiny next to Luka\'s five-figure pop. Play Pop Report to master this.'},
+  {id:'slang',   ico:'🗣️', nm:'Hobby Slang',
+    q:'In breaker culture, what is a "razz"?',
+    opts:['A damaged card','A raffle for a spot or card','A fake patch','A bulk lot'], ans:1,
+    fact:'A razz is a mini-raffle — buy spots for a chance at a card or break spot. Now you speak breaker.'},
+];
+
+let score=0, answered=0, team=null;
+const results=[];
+
+// stars
+const starsEl=document.getElementById('stars');
+for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+.5;s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*3}s;`;starsEl.appendChild(s);}
+
+// grid
+const grid=document.getElementById('grid');
+CATS.forEach((c,i)=>{
+  const d=document.createElement('div');
+  d.className='sq'; d.id='sq-'+i;
+  d.innerHTML=`<div class="ico">${c.ico}</div><div class="nm">${c.nm}</div>`;
+  d.onclick=()=>openQ(i);
+  grid.appendChild(d);
+});
+
+let current=null;
+function openQ(i){
+  const sq=document.getElementById('sq-'+i);
+  if(sq.classList.contains('done')) return;
+  current=i;
+  const c=CATS[i];
+  document.getElementById('q-cat').textContent=c.ico+' '+c.nm;
+  document.getElementById('q-text').textContent=c.q;
+  const box=document.getElementById('q-opts'); box.innerHTML='';
+  c.opts.forEach((o,j)=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.textContent=o;
+    b.onclick=()=>answer(j,b);
+    box.appendChild(b);
+  });
+  document.getElementById('q-after').classList.remove('show');
+  document.getElementById('modal').classList.add('show');
+}
+
+function answer(j,btn){
+  const c=CATS[current];
+  const opts=document.querySelectorAll('#q-opts .opt');
+  opts.forEach(o=>o.onclick=null);
+  const right=j===c.ans;
+  opts[c.ans].classList.add('correct');
+  if(!right) btn.classList.add('incorrect');
+  if(right) score++;
+  answered++;
+  results[current]=right;
+  const sq=document.getElementById('sq-'+current);
+  sq.classList.add('done', right?'right':'wrong');
+  sq.insertAdjacentHTML('beforeend', `<div class="mark">${right?'✅':'❌'}</div>`);
+  document.getElementById('score').textContent=score;
+  document.getElementById('answered').textContent=answered;
+  document.getElementById('q-fact').textContent=c.fact;
+  document.getElementById('q-after').classList.add('show');
+  if(answered===9) setTimeout(showResult,400);
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+
+function pickTeam(t){
+  team=t;
+  document.getElementById('team-a').classList.toggle('picked',t==='a');
+  document.getElementById('team-b').classList.toggle('picked',t==='b');
+  document.getElementById('battle-note').textContent='Locked in for '+(t==='a'?'Backyard Breaks':'WTH Breaks')+' — your score counts toward the team average.';
+}
+
+function showResult(){
+  closeModal();
+  document.getElementById('res-num').innerHTML=score+'<span>/9</span>';
+  const msgs=['Rough board. Run it back tomorrow.','The hobby is undefeated.','Not bad — the market humbles everyone.','Solid collector knowledge.','You know your cardboard.','Certified hobby sicko. 🔥'];
+  document.getElementById('res-msg').textContent= score<=2?msgs[0] : score<=4?msgs[1] : score<=5?msgs[2] : score<=6?msgs[3] : score<=8?msgs[4] : msgs[5];
+  document.getElementById('res-team').textContent= team? ('+'+score+' banked for '+(team==='a'?'🏕️ Backyard Breaks':'🎪 WTH Breaks')) : 'Pick a side next time — scores bank for your breaker.';
+  document.getElementById('res-grid').textContent= results.map(r=>r?'🟩':'🟥').reduce((s,x,i)=> s + x + ((i+1)%3===0?'\n':''), '');
+  document.getElementById('result').classList.add('show');
+  document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+
+function copyShare(){
+  const gridTxt=results.map(r=>r?'🟩':'🟥').reduce((s,x,i)=> s + x + ((i+1)%3===0?'\n':''), '');
+  const txt='Cardverse Daily 9 — '+score+'/9\n'+gridTxt+(team?('⚔️ '+(team==='a'?'Backyard Breaks':'WTH Breaks')):'');
+  navigator.clipboard.writeText(txt).then(()=>alert('Copied! Paste it in the group chat.'));
+}
+</script>
+</body>
+</html>
