@@ -243,6 +243,7 @@ const CATS=[
 ];
 
 // ── STATE ──
+if(location.hash==='#reset'){ localStorage.removeItem('d9_'+dateKey); history.replaceState(null,'',location.pathname); }
 let state=null;
 try{ state=JSON.parse(localStorage.getItem('d9_'+dateKey)); }catch(e){}
 if(!state) state={results:Array(9).fill(null),score:0,answered:0};
