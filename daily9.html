@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>The Daily 9 — Cardverse</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 :root{--bg:#0f0e17;--s:#1a1928;--s2:#232235;--b:rgba(255,255,255,.09);--t:#f2f0ff;--m:rgba(242,240,255,.5);--a:#7c6cfc;--a2:#fc6c8f;--g:#3ecf8e;--r:#fc6c6c;--gold:#fcd96c;}
@@ -24,20 +25,19 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .title em{font-style:normal;background:linear-gradient(90deg,var(--a),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent;}
 .sub{text-align:center;font-size:12px;color:var(--m);font-weight:800;margin:.5rem 0 1.3rem;text-transform:uppercase;letter-spacing:.09em;}
 
-/* progress */
 .prog-wrap{margin-bottom:1.2rem;}
 .prog-track{height:9px;background:var(--s);border:1px solid var(--b);border-radius:99px;overflow:hidden;}
 .prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:99px;transition:width .5s cubic-bezier(.2,.9,.3,1.2);}
 .prog-lbls{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:var(--m);margin-top:6px;}
 .prog-lbls b{color:var(--t);}
 
-/* grid */
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.1rem;perspective:900px;}
 .sq{aspect-ratio:1/1;background:var(--s);border:1.5px solid var(--b);border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;position:relative;overflow:hidden;}
 .sq::before{content:'';position:absolute;inset:0;background:var(--tint,transparent);opacity:.14;}
 .sq:hover{border-color:var(--tint,var(--a));transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.35);}
 .sq .chip{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:23px;background:var(--tint,var(--s2));box-shadow:0 4px 14px rgba(0,0,0,.3);position:relative;z-index:1;}
-.sq .nm{font-size:10.5px;font-weight:900;color:var(--t);text-transform:uppercase;letter-spacing:.04em;text-align:center;padding:0 4px;position:relative;z-index:1;}
+.sq .nm{font-size:10px;font-weight:900;color:var(--t);text-transform:uppercase;letter-spacing:.03em;text-align:center;padding:0 4px;position:relative;z-index:1;}
+.sq .live-dot{position:absolute;top:8px;left:10px;font-size:8px;font-weight:900;color:var(--g);letter-spacing:.06em;z-index:1;}
 .sq.done{cursor:default;}
 .sq.done:hover{transform:none;box-shadow:none;}
 .sq.right{border-color:rgba(62,207,142,.65);animation:flipIn .45s;}
@@ -47,18 +47,19 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 @keyframes flipIn{0%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
 .sq .mark{position:absolute;top:8px;right:10px;font-size:14px;z-index:1;}
 
-/* question modal */
 .modal{position:fixed;inset:0;background:rgba(10,9,16,.86);backdrop-filter:blur(7px);display:none;align-items:flex-end;justify-content:center;z-index:50;}
 @media(min-width:600px){.modal{align-items:center;}}
 .modal.show{display:flex;}
-.q-card{background:var(--s);border:1.5px solid var(--b);border-radius:26px 26px 0 0;padding:1.6rem 1.35rem 2rem;max-width:480px;width:100%;animation:rise .3s cubic-bezier(.2,.9,.3,1.05);}
-@media(min-width:600px){.q-card{border-radius:26px;padding-bottom:1.6rem;}}
+.q-card{background:var(--s);border:1.5px solid var(--b);border-radius:26px 26px 0 0;padding:1.5rem 1.35rem 2rem;max-width:480px;width:100%;max-height:92vh;overflow-y:auto;animation:rise .3s cubic-bezier(.2,.9,.3,1.05);}
+@media(min-width:600px){.q-card{border-radius:26px;padding-bottom:1.5rem;}}
 @keyframes rise{0%{transform:translateY(40px);opacity:0}100%{transform:translateY(0);opacity:1}}
 .q-head{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
 .q-chip{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--tint,var(--s2));}
 .q-cat{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--m);}
 .q-count{margin-left:auto;font-size:11px;font-weight:800;color:var(--m);}
-.q-text{font-size:18px;font-weight:800;line-height:1.45;margin-bottom:1.15rem;}
+.q-text{font-size:17px;font-weight:800;line-height:1.45;margin-bottom:1rem;}
+.q-img-wrap{display:flex;justify-content:center;margin-bottom:1rem;}
+.q-img{max-width:100%;max-height:210px;border-radius:12px;box-shadow:0 8px 26px rgba(0,0,0,.45);background:#111;}
 .opt{display:flex;align-items:center;gap:11px;width:100%;background:var(--s2);border:1.5px solid var(--b);border-radius:14px;padding:.8rem .9rem;margin-bottom:.55rem;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:var(--t);cursor:pointer;text-align:left;transition:border-color .13s,background .13s;}
 .opt .ltr{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:var(--m);flex-shrink:0;}
 .opt:hover{border-color:var(--a);}
@@ -66,6 +67,19 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .opt.correct .ltr{background:var(--g);color:#0b2418;}
 .opt.incorrect{border-color:var(--r);background:rgba(252,108,108,.11);}
 .opt.incorrect .ltr{background:var(--r);color:#2c0d0d;}
+
+/* pop duel: two tappable cards */
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.4rem;}
+.duel-card{background:var(--s2);border:2px solid var(--b);border-radius:16px;padding:.7rem;cursor:pointer;text-align:center;transition:border-color .15s,transform .15s;}
+.duel-card:hover{border-color:var(--a);transform:translateY(-2px);}
+.duel-card img{width:100%;aspect-ratio:2/3;object-fit:contain;border-radius:9px;background:#111;margin-bottom:.5rem;}
+.duel-name{font-size:12px;font-weight:900;line-height:1.3;}
+.duel-meta{font-size:10.5px;color:var(--m);font-weight:800;margin-top:2px;}
+.duel-pop{font-size:13px;font-weight:900;color:var(--gold);margin-top:4px;visibility:hidden;}
+.duel-card.correct{border-color:var(--g);background:rgba(62,207,142,.1);}
+.duel-card.incorrect{border-color:var(--r);background:rgba(252,108,108,.08);}
+.duel-card.reveal .duel-pop{visibility:visible;}
+
 .q-after{display:none;margin-top:.7rem;}
 .q-after.show{display:block;animation:fadeUp .3s;}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
@@ -75,7 +89,6 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .btn:hover{opacity:.9;}
 .btn-a{background:linear-gradient(90deg,var(--a),#5b4bd4);color:#fff;}
 
-/* results */
 .result{display:none;background:var(--s);border:1.5px solid var(--b);border-radius:24px;padding:1.6rem 1.4rem;text-align:center;margin-bottom:1rem;animation:fadeUp .4s;}
 .result.show{display:block;}
 .res-lbl{font-size:11px;font-weight:900;color:var(--m);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem;}
@@ -93,6 +106,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .home-link:hover{color:var(--a);}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);background:var(--s2);border:1px solid var(--a);color:var(--t);border-radius:99px;padding:.6rem 1.3rem;font-size:13px;font-weight:800;transition:transform .25s;z-index:99;}
 .toast.show{transform:translateX(-50%) translateY(0);}
+.dealing{text-align:center;font-size:12px;color:var(--m);font-weight:800;padding:2rem 0;}
 </style>
 </head>
 <body>
@@ -105,14 +119,15 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
   </div>
 
   <div class="title">The <em>Daily 9</em></div>
-  <div class="sub" id="board-sub">Board #1 · 9 categories · everyone gets the same board</div>
+  <div class="sub" id="board-sub">Board #1 · trivia + real cards · same board for everyone</div>
 
   <div class="prog-wrap">
     <div class="prog-track"><div class="prog-fill" id="prog"></div></div>
     <div class="prog-lbls"><div><b id="score">0</b> correct</div><div><b id="answered">0</b>/9 answered</div></div>
   </div>
 
-  <div class="grid" id="grid"></div>
+  <div class="dealing" id="dealing">Dealing today's board…</div>
+  <div class="grid" id="grid" style="display:none;"></div>
 
   <div class="result" id="result">
     <div class="res-lbl">Today's board</div>
@@ -131,7 +146,6 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
   <a class="home-link" href="home.html">‹ Back to Cardverse</a>
 </div>
 
-<!-- question modal -->
 <div class="modal" id="modal">
   <div class="q-card" id="q-card">
     <div class="q-head">
@@ -140,7 +154,8 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
       <div class="q-count" id="q-count"></div>
     </div>
     <div class="q-text" id="q-text"></div>
-    <div id="q-opts"></div>
+    <div class="q-img-wrap" id="q-img-wrap" style="display:none;"><img class="q-img" id="q-img"/></div>
+    <div id="q-body"></div>
     <div class="q-after" id="q-after">
       <div class="q-fact" id="q-fact"></div>
       <button class="btn btn-a" onclick="closeModal()">Back to board</button>
@@ -150,119 +165,190 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CATEGORY BANKS — one question per category per day, rotated by date ──
-const CATS = [
- {id:'hoops', ico:'🏀', nm:'Hoops', tint:'#7c6cfc', bank:[
-  {q:'Which product is Luka Dončić\'s flagship rookie card from?', opts:['2018 Topps Chrome','2018 Panini Prizm','2018 Upper Deck','2019 Panini Mosaic'], ans:1, fact:'Luka\'s <b>2018-19 Panini Prizm #280</b> is the modern hoops benchmark.'},
-  {q:'What year is Michael Jordan\'s Fleer rookie card?', opts:['1984','1985','1986','1987'], ans:2, fact:'The <b>1986 Fleer #57</b> — PSA 10 pop sits around 334, and one just sold for $384K.'},
-  {q:'The Kaboom! insert first appeared in which Panini product?', opts:['Panini Innovation','Panini Excalibur','Panini Crown Royale','Panini Select'], ans:0, fact:'<b>2013-14 Panini Innovation</b> introduced Kaboom! — now the most chased case hit in the hobby.'},
-  {q:'What year is Victor Wembanyama\'s rookie card?', opts:['2021','2022','2023','2024'], ans:2, fact:'Wemby\'s <b>2023-24 Prizm RC</b> — the most graded modern rookie of its class.'},
-  {q:'Zion Williamson and Ja Morant share which rookie year?', opts:['2018','2019','2020','2021'], ans:1, fact:'<b>2019-20</b> — one of the deepest modern rookie classes in basketball.'},
- ]},
- {id:'gridiron', ico:'🏈', nm:'Gridiron', tint:'#b0682e', bank:[
-  {q:'What year is Patrick Mahomes\' true rookie card?', opts:['2015','2016','2017','2018'], ans:2, fact:'Drafted 10th overall in <b>2017</b> — his Prizm RC #269 anchors the football market.'},
-  {q:'Tom Brady\'s most valuable rookie card comes from which 2000 product?', opts:['Bowman Chrome','Playoff Contenders','SP Authentic','Fleer Autographics'], ans:1, fact:'The <b>2000 Playoff Contenders Championship Ticket</b> /100 — a football grail.'},
-  {q:'The Downtown insert belongs to which brand family?', opts:['Prizm','Select','Donruss Optic','Absolute'], ans:2, fact:'<b>Donruss / Donruss Optic</b> — Downtowns are the case hit everyone rips for.'},
-  {q:'Which insert is the famous case hit in Panini Absolute football?', opts:['Color Blast','Kaboom!','Downtown','Stained Glass'], ans:1, fact:'<b>Kaboom!</b> crossed over from basketball and became Absolute\'s signature chase.'},
-  {q:'What year is C.J. Stroud\'s rookie card?', opts:['2021','2022','2023','2024'], ans:2, fact:'<b>2023</b> — Stroud\'s Prizm RCs led football grading submissions that year.'},
- ]},
- {id:'diamond', ico:'⚾', nm:'Diamond', tint:'#3e8fcf', bank:[
-  {q:'Whose 2011 Topps Update rookie is the modern baseball grail?', opts:['Bryce Harper','Mike Trout','Clayton Kershaw','Buster Posey'], ans:1, fact:'The <b>Trout US175</b> — its superfractor sold for $3.9M.'},
-  {q:'Which card is the most expensive sports card ever sold?', opts:['T206 Honus Wagner','1952 Topps Mantle','1986 Fleer Jordan','2009 Bowman Trout Auto'], ans:1, fact:'A <b>1952 Topps Mantle SGC 9.5</b> sold for $12.6M in 2022.'},
-  {q:'What year is Shohei Ohtani\'s Topps rookie card?', opts:['2016','2017','2018','2019'], ans:2, fact:'<b>2018</b> — Ohtani\'s Topps Chrome RCs keep climbing with every MVP.'},
-  {q:'Who owns Topps today?', opts:['Upper Deck','Panini','Fanatics','Hasbro'], ans:2, fact:'<b>Fanatics</b> bought Topps in 2022 and took over the exclusive MLB license.'},
-  {q:'Which player is card #1 in 1989 Upper Deck?', opts:['Barry Bonds','Ken Griffey Jr.','Frank Thomas','Randy Johnson'], ans:1, fact:'<b>Griffey #1</b> — the card that launched Upper Deck and modern collecting.'},
- ]},
- {id:'tcg', ico:'⚡', nm:'TCG', tint:'#e0b422', bank:[
+const SB_URL='https://nwzsomfhidefbldsloxz.supabase.co';
+const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA';
+let sb=null; try{ sb=supabase.createClient(SB_URL,SB_ANON); }catch(e){}
+
+// ── seeded rng so everyone gets the same board ──
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const LAUNCH=new Date('2026-08-17T00:00:00');
+const now=new Date();
+const dayNum=Math.max(1,Math.floor((now-LAUNCH)/86400000)+1);
+const dateKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+const rng=mulberry32(dayNum*7919);
+document.getElementById('board-sub').textContent='Board #'+dayNum+' · trivia + real cards · same board for everyone';
+
+// ── TRIVIA BANKS ──
+const BANKS={
+ tcg:[
   {q:'What is the card number of the 1999 Base Set Charizard?', opts:['1/102','4/102','6/102','58/102'], ans:1, fact:'<b>Charizard 4/102</b> — shadowless 1st Edition PSA 10s have cleared $300K.'},
   {q:'"Moonbreon" is collector slang for which card?', opts:['Espeon GX','Umbreon VMAX Alt Art','Lunala V','Darkrai VSTAR'], ans:1, fact:'The <b>Evolving Skies Umbreon VMAX alt art</b> — the biggest modern Pokémon chase.'},
-  {q:'Which card did Logan Paul buy for $5.275M?', opts:['1st Ed. Charizard','Pikachu Illustrator','Shining Charizard','Trophy Kangaskhan'], ans:1, fact:'The <b>Pikachu Illustrator</b> — he wore it at WrestleMania in a case around his neck.'},
+  {q:'Which card did Logan Paul buy for $5.275M?', opts:['1st Ed. Charizard','Pikachu Illustrator','Shining Charizard','Trophy Kangaskhan'], ans:1, fact:'The <b>Pikachu Illustrator</b> — worn in a case around his neck at WrestleMania.'},
   {q:'Champion\'s Path is famous for which chase card?', opts:['Shiny Charizard VMAX','Rainbow Pikachu','Gold Mewtwo','Alt Art Eevee'], ans:0, fact:'The <b>Shiny Charizard VMAX</b> sent Champion\'s Path boxes flying off shelves.'},
   {q:'Which era printed the first Pokémon Rainbow Rares?', opts:['XY','Sun & Moon','Sword & Shield','Scarlet & Violet'], ans:1, fact:'<b>Sun & Moon (2017)</b> introduced the Rainbow Rare treatment.'},
- ]},
- {id:'vintage', ico:'🎩', nm:'Vintage', tint:'#8a6dcf', bank:[
-  {q:'The T206 Honus Wagner came in packs of what?', opts:['Chewing gum','Cigarettes','Caramel candy','Cereal'], ans:1, fact:'American Tobacco Co., 1909-11. Wagner pulled his own card — that\'s why one sold for <b>$7.25M</b>.'},
-  {q:'Unsold 1952 Topps high numbers were famously…', opts:['Burned in a warehouse','Dumped in the ocean','Given to soldiers','Recalled and reprinted'], ans:1, fact:'Sy Berger loaded them on a barge and <b>dumped them in the Atlantic</b> — including Mantles.'},
+ ],
+ hoops:[
+  {q:'Which product is Luka Dončić\'s flagship rookie card from?', opts:['2018 Topps Chrome','2018 Panini Prizm','2018 Upper Deck','2019 Panini Mosaic'], ans:1, fact:'Luka\'s <b>2018-19 Panini Prizm #280</b> is the modern hoops benchmark.'},
+  {q:'What year is Michael Jordan\'s Fleer rookie card?', opts:['1984','1985','1986','1987'], ans:2, fact:'The <b>1986 Fleer #57</b> — PSA 10 pop ~334, last sale $384K.'},
+  {q:'What year is Steph Curry\'s rookie card?', opts:['2007','2008','2009','2010'], ans:2, fact:'<b>2009-10</b> — his Topps Chrome RC is one of the last great Topps basketball cards.'},
+  {q:'What year is Victor Wembanyama\'s rookie card?', opts:['2021','2022','2023','2024'], ans:2, fact:'Wemby\'s <b>2023-24 Prizm RC</b> — the most graded modern rookie of its class.'},
+  {q:'Zion Williamson and Ja Morant share which rookie year?', opts:['2018','2019','2020','2021'], ans:1, fact:'<b>2019-20</b> — one of the deepest modern rookie classes in basketball.'},
+ ],
+ gridiron:[
+  {q:'What year is Patrick Mahomes\' true rookie card?', opts:['2015','2016','2017','2018'], ans:2, fact:'Drafted 10th overall in <b>2017</b> — his Prizm RC #269 anchors the football market.'},
+  {q:'Tom Brady\'s most valuable rookie card comes from which 2000 product?', opts:['Bowman Chrome','Playoff Contenders','SP Authentic','Fleer Autographics'], ans:1, fact:'The <b>2000 Playoff Contenders Championship Ticket</b> /100 — a football grail.'},
+  {q:'What year is Justin Jefferson\'s rookie card?', opts:['2018','2019','2020','2021'], ans:2, fact:'<b>2020</b> — the Griddy era begins.'},
+  {q:'Which insert is the famous case hit in Panini Absolute football?', opts:['Color Blast','Kaboom!','Downtown','Stained Glass'], ans:1, fact:'<b>Kaboom!</b> crossed over from basketball and became Absolute\'s signature chase.'},
+  {q:'What year is C.J. Stroud\'s rookie card?', opts:['2021','2022','2023','2024'], ans:2, fact:'<b>2023</b> — Stroud\'s Prizm RCs led football grading submissions that year.'},
+ ],
+ vintage:[
+  {q:'The T206 Honus Wagner came in packs of what?', opts:['Chewing gum','Cigarettes','Caramel candy','Cereal'], ans:1, fact:'American Tobacco Co., 1909-11. One Wagner sold for <b>$7.25M</b>.'},
+  {q:'Unsold 1952 Topps high numbers were famously…', opts:['Burned in a warehouse','Dumped in the ocean','Given to soldiers','Recalled and reprinted'], ans:1, fact:'Sy Berger <b>dumped them in the Atlantic</b> — including Mantles.'},
   {q:'Which legend appears on FOUR cards in 1933 Goudey?', opts:['Lou Gehrig','Babe Ruth','Jimmie Foxx','Ty Cobb'], ans:1, fact:'<b>Babe Ruth</b> — #53, #144, #149 and #181. All grails.'},
-  {q:'Wayne Gretzky\'s 1979 rookie card is most valuable from which brand?', opts:['Topps','O-Pee-Chee','Parkhurst','Upper Deck'], ans:1, fact:'The <b>1979 O-Pee-Chee Gretzky</b> — a PSA 10 sold for $3.75M.'},
-  {q:'Topps bought out which rival card maker in 1956?', opts:['Fleer','Bowman','Leaf','Goudey'], ans:1, fact:'<b>Bowman</b> — Topps shelved the brand, then revived it decades later for prospects.'},
- ]},
- {id:'grading', ico:'💎', nm:'Grading', tint:'#4ecfc0', bank:[
-  {q:'Which grading company awards the famous "Black Label" 10?', opts:['PSA','SGC','Beckett (BGS)','CGC'], ans:2, fact:'A <b>BGS Black Label</b> = all four subgrades perfect 10s. Rarer than a PSA 10 on most cards.'},
-  {q:'What does the PSA qualifier "OC" mean?', opts:['Original condition','Off-center','Obvious crease','Over-cut'], ans:1, fact:'<b>Off-center</b> — qualifiers usually tank the value vs a clean grade.'},
-  {q:'Which grader\'s black "tuxedo" label is a vintage favorite?', opts:['SGC','PSA','CGC','HGA'], ans:0, fact:'<b>SGC</b> — collectors love the tuxedo look on pre-war cards.'},
-  {q:'CGC made its name grading what first?', opts:['Coins','Comics','Cards','Stamps'], ans:1, fact:'<b>Comics</b> — CGC expanded into cards during the 2020 boom.'},
-  {q:'"Top pop" means a card is…', opts:['The most graded ever','The highest grade with none higher','Worth the most money','First of its print run'], ans:1, fact:'<b>Highest existing grade</b> — nothing sits above it in the pop report.'},
- ]},
- {id:'market', ico:'📈', nm:'The Market', tint:'#3ecf8e', bank:[
-  {q:'A PSA 10 1986 Fleer Jordan RC last sold closest to…', opts:['$84,000','$180,000','$384,000','$1.2M'], ans:2, fact:'Straight from our Pop Report data: pop 334, last sale <b>$384K</b> in July 2026.'},
-  {q:'"Comps" is hobby short for…', opts:['Competitions','Comparable sales','Complete sets','Compensations'], ans:1, fact:'<b>Comparable sales</b> — recent sold prices that set a card\'s real value.'},
-  {q:'eBay\'s Authenticity Guarantee kicks in for cards sold over…', opts:['$100','$250','$500','$1,000'], ans:1, fact:'Cards over <b>$250</b> get routed through authentication before delivery.'},
-  {q:'Finish the hobby saying: "Buy the card, not the ___"', opts:['Hype','Grade','Seller','Slab'], ans:1, fact:'<b>"Not the grade."</b> Eye appeal beats the number on the flip.'},
-  {q:'What usually happens to raw card prices right after a player\'s big game?', opts:['Nothing','They spike, then cool','They drop','They freeze'], ans:1, fact:'<b>Spike and cool</b> — chasing Monday-morning hype is how collectors overpay.'},
- ]},
- {id:'popquiz', ico:'🔢', nm:'Pop Quiz', tint:'#fc6c8f', bank:[
-  {q:'Which has the LOWEST PSA 10 population?', opts:['2018 Prizm Luka RC','1986 Fleer Jordan RC','1999 Base Charizard','2011 Update Trout'], ans:1, fact:'<b>Jordan: ~334</b> PSA 10s. Tiny next to Luka\'s five-figure pop. Play Pop Report to master this.'},
-  {q:'A pop report tracks…', opts:['Card prices over time','How many copies got each grade','Print run sizes','Pack odds'], ans:1, fact:'Every graded copy, by grade. <b>It\'s the hobby\'s census</b> — and our whole game.'},
-  {q:'A "pop 1" card means…', opts:['Only one was printed','Only one exists at that grade','It\'s the first one graded','It has one owner'], ans:1, fact:'<b>One graded example at that level</b> — pop 1 top-pops drive auction wars.'},
-  {q:'All else equal, a higher pop count generally means…', opts:['Higher value','Lower value','No effect','Faster sales'], ans:1, fact:'<b>Scarcity is the engine.</b> More gems = less premium.'},
-  {q:'Which typically has a higher PSA 10 pop?', opts:['Modern Prizm base RCs','1980s vintage RCs'], ans:0, fact:'<b>Modern cards gem far more often</b> — cleaner printing, better handling, heavier grading volume.'},
- ]},
- {id:'slang', ico:'🗣️', nm:'Hobby Slang', tint:'#cf9b3e', bank:[
+  {q:'Wayne Gretzky\'s 1979 rookie is most valuable from which brand?', opts:['Topps','O-Pee-Chee','Parkhurst','Upper Deck'], ans:1, fact:'The <b>1979 O-Pee-Chee Gretzky</b> — a PSA 10 sold for $3.75M.'},
+  {q:'Topps bought out which rival card maker in 1956?', opts:['Fleer','Bowman','Leaf','Goudey'], ans:1, fact:'<b>Bowman</b> — shelved for decades, then revived for prospects.'},
+ ],
+ casehits:[
+  {q:'The Kaboom! insert first appeared in which Panini product?', opts:['Panini Innovation','Panini Excalibur','Panini Crown Royale','Panini Select'], ans:0, fact:'<b>2013-14 Panini Innovation</b> — now the most chased case hit in the hobby.'},
+  {q:'Downtown inserts belong to which brand family?', opts:['Prizm','Select','Donruss Optic','Absolute'], ans:2, fact:'<b>Donruss / Donruss Optic</b> — the case hit everyone rips for.'},
+  {q:'The "Color Blast" chase insert debuted in which product line?', opts:['Panini Spectra','Panini Obsidian','Panini Flawless','Panini Noir'], ans:0, fact:'<b>Panini Spectra</b> — Color Blasts now headline multiple products.'},
+  {q:'Prizm "Manga" inserts depict players in what style?', opts:['Pixel art','Anime/comic art','Watercolor','Graffiti'], ans:1, fact:'<b>Anime-style art</b> — Mangas became instant case-hit royalty in football.'},
+  {q:'Roughly how often does a true case hit show up?', opts:['Every box','Every 3 boxes','About once per case','Once per print run'], ans:2, fact:'<b>~1 per case</b> — that scarcity is the whole chase.'},
+ ],
+ slang:[
   {q:'In breaker culture, what is a "razz"?', opts:['A damaged card','A raffle for a spot or card','A fake patch','A bulk lot'], ans:1, fact:'A <b>mini-raffle</b> — buy spots for a shot at a card or break spot.'},
   {q:'"Mojo" in a break means…', opts:['A big hit / hot streak','A fake card','A refund','A trade offer'], ans:0, fact:'When the <b>mojo</b> is flowing, the hits keep coming. Allegedly.'},
-  {q:'A "case hit" is a card that shows up about…', opts:['Once per pack','Once per box','Once per case','Once per print run'], ans:2, fact:'<b>~1 per case</b> — Kabooms and Downtowns are the archetypes.'},
+  {q:'A "slab" is…', opts:['A thick patch card','A graded card in its case','A sealed box','A display shelf'], ans:1, fact:'The <b>graded, encapsulated card</b> — slab life.'},
   {q:'"PC" stands for…', opts:['Price check','Personal collection','Pack cost','Premium card'], ans:1, fact:'<b>Personal collection</b> — the cards you\'d never sell. In theory.'},
   {q:'A "whale" in the hobby is…', opts:['An oversized card','A huge spender','A card doctor','A group breaker'], ans:1, fact:'The <b>big spender</b> every auction house and breaker wants in the room.'},
- ]},
+ ],
+ autofallback:[
+  {q:'Which company authenticates autographs with the sticker-on-card "auto" you pull from packs?', opts:['They\'re signed at the factory/by mail for the maker','PSA signs them','Stores sign them','They\'re printed'], ans:0, fact:'Pack-pulled autos are <b>signed for the manufacturer</b> — on-card or via sticker dropped onto the card.'},
+  {q:'An "on-card" auto is worth more than a sticker auto because…', opts:['It\'s bigger','The player signed the actual card','It\'s always numbered','Stickers fade'], ans:1, fact:'<b>Signed directly on the card</b> — collectors pay the premium for it every time.'},
+  {q:'What does "cut signature" mean?', opts:['A damaged auto','A signature cut from another item, embedded in a card','A short signature','A printed copy'], ans:1, fact:'A <b>cut auto</b> — how deceased legends like Ruth end up "signing" modern cards.'},
+ ],
+};
+
+// ── BOARD DEFINITION ──
+const CATS=[
+ {id:'auto',    ico:'✍️', nm:'Guess the Auto', tint:'#fc6c8f', live:true},
+ {id:'popduel', ico:'🔢', nm:'Guess the Pop',  tint:'#7c6cfc', live:true},
+ {id:'price',   ico:'💰', nm:'Price Check',    tint:'#3ecf8e', live:true},
+ {id:'tcg',     ico:'⚡', nm:'TCG',            tint:'#e0b422', bank:'tcg'},
+ {id:'hoops',   ico:'🏀', nm:'Hoops',          tint:'#b0682e', bank:'hoops'},
+ {id:'gridiron',ico:'🏈', nm:'Gridiron',       tint:'#8a6dcf', bank:'gridiron'},
+ {id:'vintage', ico:'🎩', nm:'Vintage',        tint:'#4ecfc0', bank:'vintage'},
+ {id:'casehits',ico:'🎆', nm:'Case Hits',      tint:'#cf9b3e', bank:'casehits'},
+ {id:'slang',   ico:'🗣️', nm:'Hobby Slang',    tint:'#3e8fcf', bank:'slang'},
 ];
 
-// ── DAILY SEED ──
-const LAUNCH = new Date('2026-08-17T00:00:00');
-const now = new Date();
-const dayNum = Math.max(1, Math.floor((now - LAUNCH) / 86400000) + 1);
-const dateKey = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-document.getElementById('board-sub').textContent = 'Board #'+dayNum+' · 9 categories · everyone gets the same board';
-const todayQ = CATS.map((c,i)=> c.bank[(dayNum + i*3) % c.bank.length]);
-
-// ── STATE (persists per day) ──
-let state = null;
-try{ state = JSON.parse(localStorage.getItem('d9_'+dateKey)); }catch(e){}
-if(!state) state = {results:Array(9).fill(null), score:0, answered:0};
-let meta = null;
-try{ meta = JSON.parse(localStorage.getItem('d9_meta')); }catch(e){}
-if(!meta) meta = {streak:0, played:0, best:0, lastDone:null};
-document.getElementById('streak-n').textContent = meta.streak;
-
-function saveState(){ localStorage.setItem('d9_'+dateKey, JSON.stringify(state)); }
-function saveMeta(){ localStorage.setItem('d9_meta', JSON.stringify(meta)); }
+// ── STATE ──
+let state=null;
+try{ state=JSON.parse(localStorage.getItem('d9_'+dateKey)); }catch(e){}
+if(!state) state={results:Array(9).fill(null),score:0,answered:0};
+let meta=null;
+try{ meta=JSON.parse(localStorage.getItem('d9_meta')); }catch(e){}
+if(!meta) meta={streak:0,played:0,best:0,lastDone:null};
+document.getElementById('streak-n').textContent=meta.streak;
+function saveState(){ localStorage.setItem('d9_'+dateKey,JSON.stringify(state)); }
+function saveMeta(){ localStorage.setItem('d9_meta',JSON.stringify(meta)); }
 
 // stars
 const starsEl=document.getElementById('stars');
 for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+.5;s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*3}s;`;starsEl.appendChild(s);}
 
-// ── GRID ──
-const grid=document.getElementById('grid');
-CATS.forEach((c,i)=>{
-  const d=document.createElement('div');
-  d.className='sq'; d.id='sq-'+i;
-  d.style.setProperty('--tint', c.tint);
-  d.innerHTML=`<div class="chip">${c.ico}</div><div class="nm">${c.nm}</div>`;
-  d.onclick=()=>openQ(i);
-  grid.appendChild(d);
-});
+// ── BUILD TODAY'S QUESTIONS ──
+const todayQ=Array(9).fill(null);
+function pickBank(bankName,offset){ const b=BANKS[bankName]; return Object.assign({type:'trivia'},b[(dayNum+offset*3)%b.length]); }
 
-// restore progress
-state.results.forEach((r,i)=>{ if(r!==null) markSquare(i, r); });
-updateBar();
-if(state.answered===9) showResult(false);
+function withTimeout(p,ms){ return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]); }
 
-function markSquare(i, right){
-  const sq=document.getElementById('sq-'+i);
-  sq.classList.add('done', right?'right':'wrong');
-  if(!sq.querySelector('.mark')) sq.insertAdjacentHTML('beforeend', `<div class="mark">${right?'✅':'❌'}</div>`);
+async function buildLive(){
+  // trivia squares first (always available)
+  CATS.forEach((c,i)=>{ if(c.bank) todayQ[i]=pickBank(c.bank,i); });
+
+  // fallbacks for live squares
+  todayQ[0]=Object.assign({type:'trivia'},BANKS.autofallback[dayNum%BANKS.autofallback.length]);
+  todayQ[1]=Object.assign({type:'trivia'},{q:'All else equal, a higher pop count means…',opts:['Higher value','Lower value','No effect','Faster grading'],ans:1,fact:'<b>Scarcity is the engine.</b> More gems = less premium.'});
+  todayQ[2]=Object.assign({type:'trivia'},{q:'"Comps" is hobby short for…',opts:['Competitions','Comparable sales','Complete sets','Compensations'],ans:1,fact:'<b>Comparable sales</b> — recent sold prices that set a card\'s real value.'});
+
+  if(!sb) return;
+  // GUESS THE AUTO — from SIGNTVRE puzzle bank
+  try{
+    const {data:autos}=await withTimeout(sb.from('autograph_puzzles').select('player_name,sport,autograph_img').eq('status','active').not('autograph_img','is',null).limit(400),4000);
+    if(autos&&autos.length>=4){
+      const pick=autos[Math.floor(rng()*autos.length)];
+      const others=autos.filter(a=>a.player_name!==pick.player_name);
+      const decoys=[];
+      const same=others.filter(a=>a.sport===pick.sport);
+      const pool=same.length>=3?same:others;
+      while(decoys.length<3&&pool.length){ const d=pool.splice(Math.floor(rng()*pool.length),1)[0]; if(!decoys.includes(d.player_name)) decoys.push(d.player_name); }
+      if(decoys.length===3){
+        const opts=[pick.player_name,...decoys];
+        // seeded shuffle
+        for(let i=opts.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [opts[i],opts[j]]=[opts[j],opts[i]]; }
+        todayQ[0]={type:'image',q:'Whose autograph is this?',img:pick.autograph_img,opts,ans:opts.indexOf(pick.player_name),fact:'That\'s <b>'+pick.player_name+'</b>. Play SIGNTVRE for a full mystery auto every day.'};
+      }
+    }
+  }catch(e){}
+
+  // GUESS THE POP + PRICE CHECK — from Pop Report pool
+  try{
+    const {data:cards}=await withTimeout(sb.from('pr_cards').select('player,year,set_name,pop,img,last_price').eq('status','active').not('img','is',null).gt('pop',0).order('spec_id',{ascending:true}).limit(1500),5000);
+    if(cards&&cards.length>=20){
+      // pop duel: two cards with pops within ~2.5x
+      let A=null,B=null;
+      for(let t=0;t<60&&!B;t++){
+        A=cards[Math.floor(rng()*cards.length)];
+        const cands=cards.filter(c=>c!==A&&c.pop!==A.pop&&Math.max(c.pop,A.pop)/Math.min(c.pop,A.pop)<=2.5);
+        if(cands.length) B=cands[Math.floor(rng()*cands.length)];
+      }
+      if(A&&B){
+        const pair=rng()<.5?[A,B]:[B,A];
+        todayQ[1]={type:'duel',q:'Which card has the LOWER PSA 10 pop?',cards:pair,ans:pair[0].pop<pair[1].pop?0:1,
+          fact:'<b>'+pair[0].player+'</b>: pop '+pair[0].pop.toLocaleString()+' · <b>'+pair[1].player+'</b>: pop '+pair[1].pop.toLocaleString()+'. Live PSA data — play Pop Report for the full streak game.'};
+      }
+      // price check
+      const priced=cards.filter(c=>c.last_price&&c.last_price>=25);
+      if(priced.length){
+        const P=priced[Math.floor(rng()*priced.length)];
+        const real=Math.round(P.last_price);
+        const fmt=v=>'$'+v.toLocaleString();
+        const decoys=[Math.round(real*0.4),Math.round(real*2.2),Math.round(real*5.1)];
+        const opts=[real,...decoys];
+        for(let i=opts.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [opts[i],opts[j]]=[opts[j],opts[i]]; }
+        todayQ[2]={type:'image',q:'What did this card last sell for? ('+(P.year||'')+' '+(P.set_name||'')+' '+P.player+', PSA 10)',img:P.img,opts:opts.map(fmt),ans:opts.indexOf(real),
+          fact:'Sold for <b>'+fmt(real)+'</b>. Real sale, real card — straight from our market data.'};
+      }
+    }
+  }catch(e){}
 }
 
+// ── GRID ──
+function renderGrid(){
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  CATS.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.className='sq'; d.id='sq-'+i;
+    d.style.setProperty('--tint',c.tint);
+    const liveTag=(c.live&&todayQ[i]&&todayQ[i].type!=='trivia')?'<div class="live-dot">● LIVE</div>':'';
+    d.innerHTML=liveTag+`<div class="chip">${c.ico}</div><div class="nm">${c.nm}</div>`;
+    d.onclick=()=>openQ(i);
+    grid.appendChild(d);
+  });
+  state.results.forEach((r,i)=>{ if(r!==null) markSquare(i,r); });
+  document.getElementById('dealing').style.display='none';
+  grid.style.display='grid';
+  updateBar();
+  if(state.answered===9) showResult(false);
+}
+
+function markSquare(i,right){
+  const sq=document.getElementById('sq-'+i);
+  sq.classList.add('done',right?'right':'wrong');
+  if(!sq.querySelector('.mark')) sq.insertAdjacentHTML('beforeend',`<div class="mark">${right?'✅':'❌'}</div>`);
+}
 function updateBar(){
   document.getElementById('score').textContent=state.score;
   document.getElementById('answered').textContent=state.answered;
@@ -271,55 +357,79 @@ function updateBar(){
 
 let current=null;
 function openQ(i){
-  if(state.results[i]!==null) return;
+  if(state.results[i]!==null||!todayQ[i]) return;
   current=i;
-  const c=CATS[i], q=todayQ[i];
+  const c=CATS[i],q=todayQ[i];
   document.getElementById('q-chip').textContent=c.ico;
-  document.getElementById('q-chip').style.setProperty('--tint', c.tint);
+  document.getElementById('q-chip').style.setProperty('--tint',c.tint);
   document.getElementById('q-cat').textContent=c.nm;
   document.getElementById('q-count').textContent=(state.answered+1)+' of 9';
   document.getElementById('q-text').textContent=q.q;
-  const box=document.getElementById('q-opts'); box.innerHTML='';
-  const letters=['A','B','C','D'];
-  q.opts.forEach((o,j)=>{
-    const b=document.createElement('button');
-    b.className='opt';
-    b.innerHTML=`<span class="ltr">${letters[j]}</span>${o}`;
-    b.onclick=()=>answer(j,b);
-    box.appendChild(b);
-  });
+  const imgWrap=document.getElementById('q-img-wrap');
+  if(q.type==='image'&&q.img){ document.getElementById('q-img').src=q.img; imgWrap.style.display='flex'; }
+  else imgWrap.style.display='none';
+  const body=document.getElementById('q-body'); body.innerHTML='';
+  if(q.type==='duel'){
+    const duel=document.createElement('div'); duel.className='duel';
+    q.cards.forEach((card,j)=>{
+      const d=document.createElement('div'); d.className='duel-card'; d.id='duel-'+j;
+      d.innerHTML=`<img src="${card.img}" onerror="this.style.display='none'"/><div class="duel-name">${card.player}</div><div class="duel-meta">${card.year||''} ${card.set_name||''}</div><div class="duel-pop">POP ${card.pop.toLocaleString()}</div>`;
+      d.onclick=()=>answerDuel(j);
+      duel.appendChild(d);
+    });
+    body.appendChild(duel);
+  } else {
+    const letters=['A','B','C','D'];
+    q.opts.forEach((o,j)=>{
+      const b=document.createElement('button');
+      b.className='opt';
+      b.innerHTML=`<span class="ltr">${letters[j]}</span>${o}`;
+      b.onclick=()=>answer(j,b);
+      body.appendChild(b);
+    });
+  }
   document.getElementById('q-after').classList.remove('show');
   document.getElementById('modal').classList.add('show');
 }
 
-function answer(j,btn){
-  const q=todayQ[current];
-  const opts=document.querySelectorAll('#q-opts .opt');
-  opts.forEach(o=>o.onclick=null);
-  const right = j===q.ans;
-  opts[q.ans].classList.add('correct');
-  if(!right) btn.classList.add('incorrect');
+function finishAnswer(right,fact){
   if(right) state.score++;
   state.answered++;
   state.results[current]=right;
   saveState();
-  markSquare(current, right);
+  markSquare(current,right);
   updateBar();
-  document.getElementById('q-fact').innerHTML=q.fact;
+  document.getElementById('q-fact').innerHTML=fact;
   document.getElementById('q-after').classList.add('show');
-  if(state.answered===9){
-    // bank the day into meta once
-    if(meta.lastDone!==dateKey){
-      const y=new Date(now-86400000);
-      const yKey=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
-      meta.streak = (meta.lastDone===yKey) ? meta.streak+1 : 1;
-      meta.played++;
-      meta.best=Math.max(meta.best, state.score);
-      meta.lastDone=dateKey;
-      saveMeta();
-      document.getElementById('streak-n').textContent=meta.streak;
-    }
+  if(state.answered===9&&meta.lastDone!==dateKey){
+    const y=new Date(now-86400000);
+    const yKey=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+    meta.streak=(meta.lastDone===yKey)?meta.streak+1:1;
+    meta.played++;
+    meta.best=Math.max(meta.best,state.score);
+    meta.lastDone=dateKey;
+    saveMeta();
+    document.getElementById('streak-n').textContent=meta.streak;
   }
+}
+
+function answer(j,btn){
+  const q=todayQ[current];
+  document.querySelectorAll('#q-body .opt').forEach(o=>o.onclick=null);
+  const opts=document.querySelectorAll('#q-body .opt');
+  opts[q.ans].classList.add('correct');
+  const right=j===q.ans;
+  if(!right) btn.classList.add('incorrect');
+  finishAnswer(right,q.fact);
+}
+
+function answerDuel(j){
+  const q=todayQ[current];
+  document.querySelectorAll('.duel-card').forEach(d=>{d.onclick=null;d.classList.add('reveal');});
+  document.getElementById('duel-'+q.ans).classList.add('correct');
+  const right=j===q.ans;
+  if(!right) document.getElementById('duel-'+j).classList.add('incorrect');
+  finishAnswer(right,q.fact);
 }
 
 function closeModal(){
@@ -328,13 +438,13 @@ function closeModal(){
 }
 
 function gridEmoji(){
-  return state.results.map(r=>r?'🟩':'🟥').reduce((s,x,i)=> s + x + ((i+1)%3===0 && i<8 ?'\n':''), '');
+  return state.results.map(r=>r?'🟩':'🟥').reduce((s,x,i)=>s+x+((i+1)%3===0&&i<8?'\n':''),'');
 }
 
 function showResult(scroll){
   document.getElementById('res-num').innerHTML=state.score+'<span>/9</span>';
   const msgs=['Rough board. Run it back tomorrow.','The hobby is undefeated.','The market humbles everyone.','Solid collector knowledge.','You know your cardboard.','Certified hobby sicko. 🔥'];
-  document.getElementById('res-msg').textContent= state.score<=2?msgs[0] : state.score<=4?msgs[1] : state.score<=5?msgs[2] : state.score<=6?msgs[3] : state.score<=8?msgs[4] : msgs[5];
+  document.getElementById('res-msg').textContent=state.score<=2?msgs[0]:state.score<=4?msgs[1]:state.score<=5?msgs[2]:state.score<=6?msgs[3]:state.score<=8?msgs[4]:msgs[5];
   document.getElementById('res-grid').textContent=gridEmoji();
   document.getElementById('rs-streak').textContent=meta.streak;
   document.getElementById('rs-played').textContent=meta.played;
@@ -348,8 +458,7 @@ function showResult(scroll){
 function tickCountdown(){
   const mid=new Date(now); mid.setHours(24,0,0,0);
   let s=Math.max(0,Math.floor((mid-new Date())/1000));
-  const h=Math.floor(s/3600), m=Math.floor(s%3600/60), sec=s%60;
-  document.getElementById('countdown').textContent=h+'h '+m+'m '+String(sec).padStart(2,'0')+'s';
+  document.getElementById('countdown').textContent=Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m '+String(s%60).padStart(2,'0')+'s';
 }
 
 function copyShare(){
@@ -361,6 +470,8 @@ function copyShare(){
     setTimeout(()=>t.classList.remove('show'),2200);
   });
 }
+
+buildLive().finally(renderGrid);
 </script>
 </body>
 </html>
