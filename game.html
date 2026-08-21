@@ -547,13 +547,13 @@
 
     <!-- SPORT FILTER -->
     <div class="sport-filter">
-      <button class="sf-btn active" onclick="setSport('all',this)">🃏 All</button>
-      <button class="sf-btn" onclick="setSport('basketball',this)">🏀 NBA</button>
-      <button class="sf-btn" onclick="setSport('football',this)">🏈 NFL</button>
-      <button class="sf-btn" onclick="setSport('baseball',this)">⚾ MLB</button>
-      <button class="sf-btn" onclick="setSport('hockey',this)">🏒 NHL</button>
-      <button class="sf-btn" onclick="setSport('pokemon',this)">⚡ Pokémon</button>
-      <button class="sf-btn" onclick="setSport('soccer',this)">⚽ Soccer</button>
+      <button class="sf-btn active" data-sport="all" onclick="setSport('all',this)">🃏 All</button>
+      <button class="sf-btn" data-sport="basketball" onclick="setSport('basketball',this)">🏀 NBA</button>
+      <button class="sf-btn" data-sport="football" onclick="setSport('football',this)">🏈 NFL</button>
+      <button class="sf-btn" data-sport="baseball" onclick="setSport('baseball',this)">⚾ MLB</button>
+      <button class="sf-btn" data-sport="hockey" onclick="setSport('hockey',this)">🏒 NHL</button>
+      <button class="sf-btn" data-sport="pokemon" onclick="setSport('pokemon',this)">⚡ Pokémon</button>
+      <button class="sf-btn" data-sport="soccer" onclick="setSport('soccer',this)">⚽ Soccer</button>
     </div>
 
     <div class="hearts-row" id="hearts-row">
@@ -812,30 +812,8 @@
 
       <!-- TABS -->
       <div class="admin-tabs">
-        <button class="atab active" id="atab-browse" onclick="adminTab('browse',this)">Browse Cards</button>
+        <button class="atab active" id="atab-psa" onclick="adminTab('psa',this)">PSA Import</button>
         <button class="atab" id="atab-manual" onclick="adminTab('manual',this)">Add Manually</button>
-        <button class="atab" id="atab-psa" onclick="adminTab('psa',this)">PSA Import</button>
-      </div>
-
-      <!-- ── TAB: BROWSE & IMPORT ── -->
-      <div id="admin-tab-browse">
-        <div class="admin-sport-filter">
-          <button class="asf active" onclick="adminFilterSport('all',this)">All</button>
-          <button class="asf" onclick="adminFilterSport('basketball',this)">🏀</button>
-          <button class="asf" onclick="adminFilterSport('football',this)">🏈</button>
-          <button class="asf" onclick="adminFilterSport('baseball',this)">⚾</button>
-          <button class="asf" onclick="adminFilterSport('pokemon',this)">⚡</button>
-          <button class="asf" onclick="adminFilterSport('hockey',this)">🏒</button>
-          <button class="asf" onclick="adminFilterSport('soccer',this)">⚽</button>
-        </div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:.75rem;line-height:1.5;">
-          Tap to select. Pop counts are estimates — verify at <a href="https://www.psacard.com/pop" target="_blank" style="color:var(--accent);">psacard.com/pop</a> before going live.
-        </div>
-        <div id="admin-picker-grid"></div>
-        <div id="admin-picker-bar" style="display:none;">
-          <div style="font-size:13px;font-weight:800;color:var(--text);" id="picker-sel-count">0 selected</div>
-          <button class="btn btn-green btn-sm" onclick="importPickerCards()">＋ Add to Game</button>
-        </div>
       </div>
 
       <!-- ── TAB: MANUAL ADD ── -->
@@ -887,7 +865,7 @@
       </div>
 
       <!-- ── TAB: PSA IMPORT ── -->
-      <div id="admin-tab-psa" style="display:none;">
+      <div id="admin-tab-psa">
         <div class="card mb-3">
           <div class="label mb-2">One-click PSA import</div>
           <div class="subtitle mb-2" style="font-size:12px;line-height:1.6;">
@@ -1191,7 +1169,7 @@ function showScreen(id) {
   document.getElementById('ni-'+id).classList.add('active');
   if(id==='jelly') { updateJellyPtsDisplay(); buildSkinShop(); document.getElementById('preview-canvas').src = getCurrentSkinImg(); }
   if(id==='lb') buildLeaderboard();
-  if(id==='admin') { renderAdminList(); renderAdminPicker(); }
+  if(id==='admin') { renderAdminList(); }
   if(id==='survival') {
     // Always make sure game area is visible and result is hidden
     document.getElementById('game-area').style.display='block';
@@ -2144,7 +2122,7 @@ function lbTab(btn, mode) {
 }
 
 // ============ ADMIN ============
-const ADMIN_PASSWORD='popreport2024';
+const ADMIN_PASSWORD='cardverse2024';
 let adminUnlocked=false;
 
 function checkAdminPw() {
@@ -2410,174 +2388,14 @@ function renderAdminList() {
 
 // ============ ADMIN CARD PICKER ============
 
-const ADMIN_CARD_LIBRARY = [
-  // ── NBA ──
-  {id:'a1',  sport:'basketball', player:'Michael Jordan RC',           year:1986, set:'Fleer',                grade:'PSA 10', pop:316,  why:'The holy grail. Tiny pop vs. demand — even collectors guess wrong.'},
-  {id:'a2',  sport:'basketball', player:'Kobe Bryant RC',              year:1996, set:'Topps Chrome',         grade:'PSA 10', pop:987,  why:'Chrome refractor debut. Pop 10s are rare relative to the hype.'},
-  {id:'a3',  sport:'basketball', player:'LeBron James RC',             year:2003, set:'Topps Chrome',         grade:'PSA 10', pop:1842, why:'Most submitted modern card. Pop is deceptive — still hard to 10.'},
-  {id:'a4',  sport:'basketball', player:'Stephen Curry RC',            year:2009, set:'Topps Chrome',         grade:'PSA 10', pop:2341, why:'Pop exploded post-rings. Great spread across grades.'},
-  {id:'a5',  sport:'basketball', player:'Giannis RC',                  year:2013, set:'Panini Prizm',         grade:'PSA 10', pop:4521, why:'Greek Freak Prizm RC — pop still low for a two-time MVP.'},
-  {id:'a6',  sport:'basketball', player:'Luka Doncic RC',              year:2018, set:'Panini Prizm',         grade:'PSA 10', pop:8932, why:'Most talked-about modern RC. Silver Prizm pop vs. base is a great matchup.'},
-  {id:'a7',  sport:'basketball', player:'Zion Williamson RC',          year:2019, set:'Panini Prizm',         grade:'PSA 10', pop:5000, why:'Most hyped prospect since LeBron. Massive early submission wave.'},
-  {id:'a8',  sport:'basketball', player:'Magic Johnson / Bird RC',     year:1980, set:'Topps',               grade:'PSA 9',  pop:200,  why:'Legendary dual RC. One card, two HOFers. Centering kills high grades.'},
-  {id:'a9',  sport:'basketball', player:'Wilt Chamberlain RC',         year:1961, set:'Fleer',               grade:'PSA 7',  pop:15,   why:'100-point game. Vintage rarity — anything above 5 is remarkable.'},
-  {id:'a10', sport:'basketball', player:'Shaquille O\'Neal RC',        year:1992, set:'Topps',               grade:'PSA 10', pop:800,  why:'Dominant center. Mass-produced era but 10s need a centering lottery.'},
-  {id:'a11', sport:'basketball', player:'Victor Wembanyama RC',        year:2023, set:'Panini Prizm',         grade:'PSA 10', pop:2000, why:'Most hyped modern prospect. Pop climbing fast as submitters flood in.'},
-  {id:'a12', sport:'basketball', player:'Jayson Tatum RC',             year:2017, set:'Panini Prizm',         grade:'PSA 10', pop:1500, why:'Finals MVP push drove submissions. Pop in an interesting zone.'},
-  // ── NFL ──
-  {id:'a13', sport:'football',   player:'Tom Brady RC',                year:2000, set:'Bowman Chrome',        grade:'PSA 10', pop:150,  why:'The GOAT\'s rookie chrome. Low-pop 10s vs. insane demand = perfect pop game.'},
-  {id:'a14', sport:'football',   player:'Patrick Mahomes RC',          year:2017, set:'Panini Prizm',         grade:'PSA 10', pop:3201, why:'Multi-Super Bowl QB. Pop shot up after Chiefs dynasty; still scarce in 10.'},
-  {id:'a15', sport:'football',   player:'Jerry Rice RC',               year:1986, set:'Topps',               grade:'PSA 10', pop:200,  why:'Greatest WR ever. Vintage Topps centering makes 10s incredibly rare.'},
-  {id:'a16', sport:'football',   player:'Barry Sanders RC',            year:1989, set:'Score',               grade:'PSA 10', pop:450,  why:'Best pure runner ever. Score RCs notoriously hard to grade 10.'},
-  {id:'a17', sport:'football',   player:'Dan Marino RC',               year:1984, set:'Topps',               grade:'PSA 10', pop:300,  why:'All-time passing record holder. 84 Topps stock is pristine-grading nightmare.'},
-  {id:'a18', sport:'football',   player:'Jim Brown RC',                year:1958, set:'Topps',               grade:'PSA 7',  pop:25,   why:'Some argue the greatest ever. 1958 Topps — anything above 5 is remarkable.'},
-  {id:'a19', sport:'football',   player:'Joe Namath RC',               year:1965, set:'Topps',               grade:'PSA 7',  pop:30,   why:'Broadway Joe guaranteed Super Bowl III. Vintage pop is tiny at all levels.'},
-  {id:'a20', sport:'football',   player:'Josh Allen RC',               year:2018, set:'Panini Prizm',         grade:'PSA 10', pop:2876, why:'Bills QB mania — pop surged with his breakout. Good matchup against Lamar.'},
-  {id:'a21', sport:'football',   player:'Lamar Jackson RC',            year:2018, set:'Panini Prizm',         grade:'PSA 10', pop:2100, why:'Two-time MVP. His RC pop vs. Mahomes is a legitimately close game question.'},
-  {id:'a22', sport:'football',   player:'Lawrence Taylor RC',          year:1982, set:'Topps',               grade:'PSA 10', pop:100,  why:'Redefined the LB position. 1982 Topps 10s nearly impossible — great rarity card.'},
-  // ── MLB ──
-  {id:'a23', sport:'baseball',   player:'Mickey Mantle',               year:1952, set:'Topps',               grade:'PSA 5',  pop:50,   why:'The 52 Mantle IS baseball. Pop in any grade tells a story.'},
-  {id:'a24', sport:'baseball',   player:'Ken Griffey Jr RC',           year:1989, set:'Upper Deck',           grade:'PSA 10', pop:5000, why:'Most famous RC of the junk wax era. Pop 10 shockingly low given print runs.'},
-  {id:'a25', sport:'baseball',   player:'Mike Trout RC',               year:2011, set:'Topps Update',         grade:'PSA 10', pop:3000, why:'Most valuable modern baseball card. Pop count drives collector obsession.'},
-  {id:'a26', sport:'baseball',   player:'Derek Jeter RC',              year:1993, set:'SP',                  grade:'PSA 10', pop:50,   why:'The Captain. 1993 SP is known for tough centering — 10s are extremely rare.'},
-  {id:'a27', sport:'baseball',   player:'Hank Aaron RC',               year:1954, set:'Topps',               grade:'PSA 7',  pop:30,   why:'Home run record holder. Vintage 54 Topps in any grade is meaningful.'},
-  {id:'a28', sport:'baseball',   player:'Pete Rose RC',                year:1963, set:'Topps',               grade:'PSA 8',  pop:80,   why:'All-time hits leader. Great collector drama = great game card.'},
-  {id:'a29', sport:'baseball',   player:'Reggie Jackson RC',           year:1969, set:'Topps',               grade:'PSA 8',  pop:100,  why:'Mr. October. 1969 Topps centering issues make high grades rare.'},
-  {id:'a30', sport:'baseball',   player:'Shohei Ohtani RC',            year:2018, set:'Topps',               grade:'PSA 10', pop:1654, why:'Two-way unicorn. Pop exploded post-WS but 10s still a grading challenge.'},
-  {id:'a31', sport:'baseball',   player:'Fernando Tatis Jr RC',        year:2019, set:'Topps Chrome',         grade:'PSA 10', pop:2000, why:'Most exciting young player — pop shot up fast during his breakout.'},
-  // ── POKEMON ──
-  {id:'a32', sport:'pokemon',    player:'Charizard Holo 1st Edition',  year:1999, set:'Base Set',            grade:'PSA 10', pop:300,  why:'The most famous card in existence. PSA 10 pop under 500 globally.'},
-  {id:'a33', sport:'pokemon',    player:'Blastoise Holo 1st Edition',  year:1999, set:'Base Set',            grade:'PSA 10', pop:500,  why:'The other 1st Ed holo. Pop higher than Charizard but still rare.'},
-  {id:'a34', sport:'pokemon',    player:'Venusaur Holo 1st Edition',   year:1999, set:'Base Set',            grade:'PSA 10', pop:300,  why:'Least loved starter but completionists make its pop fascinating.'},
-  {id:'a35', sport:'pokemon',    player:'Charizard Shadowless Holo',   year:1999, set:'Base Set',            grade:'PSA 10', pop:400,  why:'Shadowless vs. 1st Ed is a perfect pop knowledge gap question.'},
-  {id:'a36', sport:'pokemon',    player:'Pikachu 1st Edition',         year:1999, set:'Base Set',            grade:'PSA 10', pop:800,  why:'The mascot. 1st Ed Pikachu pop tells a very different story than Charizard.'},
-  {id:'a37', sport:'pokemon',    player:'Lugia Holo 1st Edition',      year:2000, set:'Neo Genesis',         grade:'PSA 10', pop:200,  why:'Neo Genesis Lugia — underrated outside core collectors. Low pop, high drama.'},
-  {id:'a38', sport:'pokemon',    player:'Umbreon Gold Star',           year:2005, set:'POP Series 5',        grade:'PSA 10', pop:100,  why:'Gold Stars are the rarest category. Umbreon is among the most coveted.'},
-  {id:'a39', sport:'pokemon',    player:'Espeon Gold Star',            year:2005, set:'POP Series 5',        grade:'PSA 10', pop:120,  why:'Espeon vs. Umbreon Gold Star pop is a genuinely contested comparison.'},
-  {id:'a40', sport:'pokemon',    player:'Charizard VMAX Rainbow Rare', year:2020, set:"Champion's Path",    grade:'PSA 10', pop:800,  why:'Modern chase card. Pop exploded but centering kills 10s — good difficulty card.'},
-  // ── HOCKEY ──
-  {id:'a41', sport:'hockey',     player:'Wayne Gretzky RC',            year:1979, set:'O-Pee-Chee',          grade:'PSA 9',  pop:50,   why:'The Great One. Hockey\'s #1 RC — low pop across all grades in high condition.'},
-  {id:'a42', sport:'hockey',     player:'Sidney Crosby RC',            year:2005, set:'Upper Deck Young Guns',grade:'PSA 10', pop:400,  why:'Young Guns Crosby is the crown jewel of modern hockey. Pop 10s scarce.'},
-  {id:'a43', sport:'hockey',     player:'Alexander Ovechkin RC',       year:2005, set:'Upper Deck Young Guns',grade:'PSA 10', pop:500,  why:'Ovi vs. Crosby same-year RC pop comparison is perfect for the game.'},
-  {id:'a44', sport:'hockey',     player:'Connor McDavid RC',           year:2015, set:'Upper Deck Young Guns',grade:'PSA 10', pop:200,  why:'Best player of his generation. Pop 10 is tiny — grading McDavid is brutal.'},
-  {id:'a45', sport:'hockey',     player:'Auston Matthews RC',          year:2016, set:'Upper Deck Young Guns',grade:'PSA 10', pop:250,  why:'Leafs star. Pop vs. McDavid is a fun collector debate.'},
-  {id:'a46', sport:'hockey',     player:'Mario Lemieux RC',            year:1985, set:'O-Pee-Chee',          grade:'PSA 9',  pop:100,  why:'The other GOAT argument. OPC centering makes high grades extremely rare.'},
-  // ── SOCCER ──
-  {id:'a47', sport:'soccer',     player:'Lionel Messi RC',             year:2004, set:'Panini',              grade:'PSA 9',  pop:20,   why:'Rarest modern soccer RC. Authentic Messi sticker cards have tiny pop.'},
-  {id:'a48', sport:'soccer',     player:'Kylian Mbappé RC',            year:2018, set:'Panini Prizm World Cup',grade:'PSA 10',pop:500, why:'Generational talent. Prizm World Cup is the blue-chip modern soccer format.'},
-  {id:'a49', sport:'soccer',     player:'Cristiano Ronaldo RC',        year:2003, set:'Panini',              grade:'PSA 9',  pop:25,   why:'CR7\'s first card — low pop across all grades. Benchmark comparison card.'},
-  {id:'a50', sport:'soccer',     player:'Erling Haaland RC',           year:2019, set:'Topps Chrome',         grade:'PSA 10', pop:300,  why:'Machine-like scorer. Chrome RC pop tells an interesting story.'},
-];
 
 const SPORT_ICONS = {basketball:'🏀',football:'🏈',baseball:'⚾',hockey:'🏒',soccer:'⚽',pokemon:'⚡'};
-let adminPickerFilter = 'all';
-let adminPickerSelected = {}; // id -> pop override
 
 function adminTab(tab, btn) {
   document.querySelectorAll('.atab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('admin-tab-browse').style.display = tab==='browse' ? '' : 'none';
   document.getElementById('admin-tab-manual').style.display = tab==='manual' ? '' : 'none';
   document.getElementById('admin-tab-psa').style.display    = tab==='psa'    ? '' : 'none';
-  if(tab==='browse') renderAdminPicker();
-}
-
-function adminFilterSport(sport, btn) {
-  adminPickerFilter = sport;
-  document.querySelectorAll('.asf').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderAdminPicker();
-}
-
-function renderAdminPicker() {
-  const grid = document.getElementById('admin-picker-grid');
-  if(!grid) return;
-  const existing = new Set(CARDS.map(c=>c.set+'|'+c.player));
-  const filtered = ADMIN_CARD_LIBRARY.filter(c => adminPickerFilter==='all' || c.sport===adminPickerFilter);
-  grid.innerHTML = '';
-  filtered.forEach(card => {
-    const isSelected = !!adminPickerSelected[card.id];
-    const alreadyAdded = existing.has(card.set+'|'+card.player);
-    const div = document.createElement('div');
-    div.className = 'apcard' + (isSelected ? ' selected' : '') + (alreadyAdded ? ' already' : '');
-    div.id = 'apcard-' + card.id;
-    div.innerHTML = `
-      <div class="apcard-check">${isSelected ? '✓' : ''}</div>
-      <div class="apcard-top">
-        <span class="apcard-sport">${SPORT_ICONS[card.sport]||'🃏'}</span>
-        <div>
-          <div class="apcard-name">${card.player}</div>
-          <div class="apcard-meta">${card.year} · ${card.set} · ${card.grade}</div>
-        </div>
-      </div>
-      <div class="apcard-why">${card.why}</div>
-      <div class="apcard-pop-row" onclick="event.stopPropagation()">
-        <span class="apcard-pop-label">Pop count:</span>
-        <input class="apcard-pop-input" type="number" id="pop-${card.id}" value="${adminPickerSelected[card.id] || card.pop}" min="1" placeholder="e.g. 316" onclick="event.stopPropagation()" oninput="updatePickerPop('${card.id}', this.value)"/>
-      </div>
-      ${alreadyAdded ? '<div style="font-size:10px;color:var(--green);font-weight:800;margin-top:4px;">✓ Already in game</div>' : ''}
-    `;
-    div.addEventListener('click', ()=>togglePickerCard(card.id, card.pop));
-    grid.appendChild(div);
-  });
-  updatePickerBar();
-}
-
-function togglePickerCard(id, defaultPop) {
-  if(adminPickerSelected[id] !== undefined) {
-    delete adminPickerSelected[id];
-  } else {
-    const input = document.getElementById('pop-'+id);
-    adminPickerSelected[id] = input ? (parseInt(input.value)||defaultPop) : defaultPop;
-  }
-  const div = document.getElementById('apcard-'+id);
-  if(div) {
-    div.classList.toggle('selected', !!adminPickerSelected[id]);
-    const check = div.querySelector('.apcard-check');
-    if(check) check.textContent = adminPickerSelected[id] ? '✓' : '';
-  }
-  updatePickerBar();
-}
-
-function updatePickerPop(id, val) {
-  if(adminPickerSelected[id] !== undefined) {
-    adminPickerSelected[id] = parseInt(val) || 0;
-  }
-}
-
-function updatePickerBar() {
-  const count = Object.keys(adminPickerSelected).length;
-  const bar = document.getElementById('admin-picker-bar');
-  const label = document.getElementById('picker-sel-count');
-  if(bar) bar.style.display = count > 0 ? 'flex' : 'none';
-  if(label) label.textContent = count + ' card' + (count===1?'':'s') + ' selected';
-}
-
-function importPickerCards() {
-  const toAdd = Object.keys(adminPickerSelected);
-  if(!toAdd.length) { toast('Select at least one card','error'); return; }
-  let saved = [];
-  try { saved = JSON.parse(localStorage.getItem('pr_cards')||'[]'); } catch(e) { saved = []; }
-  const existing = new Set(saved.map(c=>c.set+'|'+c.player));
-  let added = 0, skipped = 0;
-  toAdd.forEach(id => {
-    const card = ADMIN_CARD_LIBRARY.find(c=>c.id===id);
-    if(!card) return;
-    const key = card.set+'|'+card.player;
-    if(existing.has(key)) { skipped++; return; }
-    const pop = adminPickerSelected[id] || card.pop;
-    const input = document.getElementById('pop-'+id);
-    const finalPop = input ? (parseInt(input.value)||pop) : pop;
-    saved.push({id:'c'+Date.now()+Math.random(), player:card.player, year:card.year, set:card.set, grade:card.grade, pop:finalPop, sport:card.sport, img:null, rotation:0});
-    added++;
-  });
-  try { localStorage.setItem('pr_cards', JSON.stringify(saved)); } catch(e) { toast('Storage full — try clearing some cards','error'); return; }
-  CARDS = saved;
-  adminPickerSelected = {};
-  renderAdminList();
-  renderAdminPicker();
-  const msg = added + ' card' + (added===1?'':'s') + ' added' + (skipped ? ' (' + skipped + ' skipped — already in game)' : '');
-  toast(msg, 'success');
 }
 
 // ── PSA IMPORT (bookmarklet-powered) ──
@@ -2843,9 +2661,44 @@ async function loadCloudCards(){
       if(byKey[k]){ Object.assign(byKey[k], fresh); }
       else { saved.push(fresh); byKey[k]=fresh; }
     });
+    // Purge legacy demo/picker entries (estimated pops) once the real pool is live
+    if(res.data.length>=50){
+      saved=saved.filter(function(s){ return !(/^[ad]\d+$/.test(String(s.id)) && !s.import_key); });
+    }
     try{ localStorage.setItem('pr_cards', JSON.stringify(saved)); }catch(e){}
     CARDS=saved;
   }catch(e){ console.log('Cloud cards load failed:',e.message); }
+}
+
+// ── AUTO DAILY MATCHUP (used when no admin-picked pair exists) ──
+function _seededRng(seed){ let a=seed|0; return function(){a|=0;a=a+0x6D2B79F5|0;let t2=Math.imul(a^a>>>15,1|a);t2=t2+Math.imul(t2^t2>>>7,61|t2)^t2;return((t2^t2>>>14)>>>0)/4294967296;}; }
+function autoDailyPair(){
+  try{
+    const pool=getAllCards().filter(function(c){return c.img&&c.pop>0;});
+    if(pool.length<10) return null;
+    const day=Math.floor(Date.now()/86400000);
+    const rnd=_seededRng(day*2654435761 % 2147483647);
+    const sorted=pool.slice().sort(function(x,y){return String(x.id).localeCompare(String(y.id));});
+    for(let t=0;t<80;t++){
+      const a=sorted[Math.floor(rnd()*sorted.length)];
+      const cands=sorted.filter(function(c){return c.id!==a.id&&c.pop!==a.pop&&Math.max(c.pop,a.pop)/Math.min(c.pop,a.pop)<=1.8;});
+      if(cands.length){ const b=cands[Math.floor(rnd()*cands.length)]; return rnd()<.5?[a,b]:[b,a]; }
+    }
+  }catch(e){}
+  return null;
+}
+
+// Hide sport filters that don't have enough playable cards
+function updateSportFilters(){
+  try{
+    const pool=getAllCards().filter(function(c){return c.img&&c.pop>0;});
+    document.querySelectorAll('.sf-btn[data-sport]').forEach(function(b){
+      const s=b.getAttribute('data-sport');
+      if(s==='all') return;
+      const n=pool.filter(function(c){return c.sport===s;}).length;
+      b.style.display = n>=10 ? '' : 'none';
+    });
+  }catch(e){}
 }
 
 // ============ INIT ============
@@ -2899,6 +2752,9 @@ window.addEventListener('DOMContentLoaded', function() {
     console.log('Auth skipped:', e.message);
   }
   await loadCloudCards();
+  try{ window._dailyPair = await loadDailyGame(); }catch(e){ window._dailyPair = null; }
+  if(!window._dailyPair) window._dailyPair = autoDailyPair();
+  updateSportFilters();
   buildBookmarklet();
   startGame();
   checkPsaHash();
