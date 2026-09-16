@@ -599,7 +599,11 @@ function submitGuess(name) {
   if(!player) { setMsg('Player not in database', 'err'); return; }
   if(guesses.find(g => g.name.toLowerCase() === name.toLowerCase())) { setMsg('Already guessed!', 'err'); return; }
 
-  const answer = PLAYERS.find(p => p.name.toLowerCase() === currentPuzzle.playerName.toLowerCase());
+  const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+  const target = currentPuzzle.playerName;
+  let answer = PLAYERS.find(p => p.name.toLowerCase() === (target||'').toLowerCase())
+            || PLAYERS.find(p => norm(p.name) === norm(target));
+  if(!answer) console.warn('SIGNTVRE: puzzle answer "'+target+'" not found in player DB — hints will be grey. Fix the name spelling in Admin.');
 
   // Build hint row
   const hint = buildHint(player, answer);
