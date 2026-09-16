@@ -2823,14 +2823,16 @@ window.addEventListener('DOMContentLoaded', function() {
   } catch(e) {
     console.log('Auth skipped:', e.message);
   }
-  await loadCloudCards();
-  try{ window._dailyPair = await loadDailyGame(); }catch(e){ window._dailyPair = null; }
-  if(!window._dailyPair) window._dailyPair = autoDailyPair();
-  updateSportFilters();
-  buildBookmarklet();
-  buildRefreshBookmarklet();
+  // Never let a slow/asleep backend block the game from rendering
+  const _timeout=function(p,ms){return Promise.race([p,new Promise(function(r){setTimeout(function(){r('__timeout__')},ms)})]);};
+  try{ await _timeout(loadCloudCards(), 8000); }catch(e){}
+  try{ window._dailyPair = await _timeout(loadDailyGame(), 4000); if(window._dailyPair==='__timeout__') window._dailyPair=null; }catch(e){ window._dailyPair = null; }
+  if(!window._dailyPair) { try{ window._dailyPair = autoDailyPair(); }catch(e){ window._dailyPair=null; } }
+  try{ updateSportFilters(); }catch(e){}
+  try{ buildBookmarklet(); }catch(e){}
+  try{ buildRefreshBookmarklet(); }catch(e){}
   startGame();
-  checkPsaHash();
+  try{ checkPsaHash(); }catch(e){}
 })();
 });
 </script>
