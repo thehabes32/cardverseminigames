@@ -872,6 +872,7 @@
             <b>One-time setup:</b> drag this button to your bookmarks bar (don't click it here):
           </div>
           <a id="cv-bookmarklet" href="#" onclick="toast('Drag me to your bookmarks bar, don\'t click here','error');return false;" style="display:inline-block;background:var(--accent);color:#fff;font-weight:800;font-size:13px;padding:.5rem .9rem;border-radius:10px;text-decoration:none;margin-bottom:.75rem;">⚡ CV Import</a>
+          <a id="cv-refresh-bookmarklet" href="#" onclick="toast('Drag me to your bookmarks bar, then click it on psacard.com','error');return false;" style="display:inline-block;background:var(--green);color:#0b2418;font-weight:800;font-size:13px;padding:.5rem .9rem;border-radius:10px;text-decoration:none;margin:0 0 .75rem .5rem;">↻ CV Refresh All</a>
           <div class="subtitle mb-3" style="font-size:12px;line-height:1.7;">
             Then open any card's <b>cert page</b> (psacard.com/cert/#) or a full set's <b>pop report page</b> on psacard.com and click the bookmark — the card (or the whole set's PSA 10 pops) lands back here automatically, photo and all.
           </div>
@@ -2122,17 +2123,28 @@ function lbTab(btn, mode) {
 }
 
 // ============ ADMIN ============
-const ADMIN_PASSWORD='cardverse2024';
+let ADMIN_SECRET='';  // typed at login, in-memory only
+const CV_WRITE_URL = SUPABASE_URL + '/functions/v1/cv-write';
+async function cvWrite(op, table, extra){
+  const r = await fetch(CV_WRITE_URL,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_ANON,Authorization:'Bearer '+SUPABASE_ANON},body:JSON.stringify(Object.assign({secret:ADMIN_SECRET,op:op,table:table},extra||{}))});
+  let j={}; try{ j=await r.json(); }catch(e){}
+  if(!r.ok || j.ok===false) throw new Error(j.error||('write failed '+r.status));
+  return j;
+}
 let adminUnlocked=false;
 
-function checkAdminPw() {
+async function checkAdminPw() {
   const pw=document.getElementById('admin-pw-input').value;
-  if(pw===ADMIN_PASSWORD){
+  try {
+    ADMIN_SECRET=pw;
+    await cvWrite('ping','');
     adminUnlocked=true;
     document.getElementById('admin-lock-screen').style.display='none';
     document.getElementById('admin-main').style.display='block';
+    buildRefreshBookmarklet();  // embed the just-typed password into the refresh bookmarklet
     renderAdminList();
-  } else {
+  } catch(e) {
+    ADMIN_SECRET='';
     toast('Wrong password','error');
     document.getElementById('admin-pw-input').value='';
   }
@@ -2219,7 +2231,7 @@ function addCard() {
       }
     }
     CARDS = saved;
-    if(sb){ sb.from('pr_cards').insert({player:player, year:year||null, set_name:set||null, grade:'PSA 10', pop:pop, sport:sport||'basketball', img:imgToStore, status:'active', source:'manual'}).then(function(r){ if(r.error) console.log('Cloud save failed:', r.error.message); }); }
+    cvWrite('insert','pr_cards',{rows:[{player:player, year:year||null, set_name:set||null, grade:'PSA 10', pop:pop, sport:sport||'basketball', img:imgToStore, status:'active', source:'manual'}]}).catch(function(e){ console.log('Cloud save failed:', e.message); });
     toast(player + ' added! (' + saved.length + ' cards)', 'success');
     renderAdminList();
 
@@ -2489,6 +2501,66 @@ function buildBookmarklet(){
   a.setAttribute('href','javascript:'+encodeURIComponent(code));
 }
 
+// Weekly one-click refresh: re-pull pops + fresh images/prices for every tracked set.
+function _cvRefreshAll(SECRET,CVURL,ANON){
+ (async function(){
+  if(location.hostname.indexOf('psacard.com')<0){ alert('Open psacard.com first, then click CV Refresh All.'); return; }
+  var H={apikey:ANON,Authorization:'Bearer '+ANON,'Content-Type':'application/json'};
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;top:20px;right:20px;z-index:2147483647;background:#111;color:#fff;padding:14px 18px;border-radius:12px;font:700 14px sans-serif;box-shadow:0 4px 22px rgba(0,0,0,.55);max-width:300px';
+  ov.textContent='CardVerse Refresh: loading set list…';
+  document.body.appendChild(ov);
+  var sets=await fetch(CVURL+'/rest/v1/pr_sets?select=url,sport',{headers:H}).then(function(r){return r.json()}).catch(function(){return[]});
+  if(!sets||!sets.length){ ov.textContent='No tracked sets found.'; setTimeout(function(){ov.remove()},5000); return; }
+  var CAT={basketball:'20019',football:'20014',baseball:'20003',pokemon:'20017',hockey:'20020',soccer:'20016'};
+  var SPMAP={basketball:'basketball',football:'football',baseball:'baseball',pokemon:'pokemon',hockey:'hockey',soccer:'soccer'};
+  var salesApi=function(spec,grade){
+    var inp=btoa(JSON.stringify({json:{specId:String(spec),grade:String(grade),pageSize:5,timeRange:0,cursor:1,direction:'forward',gradingType:'SINGLE_GRADED',viewQualifiers:false}}));
+    return fetch('/api/psa/trpc/researchJourney.getSalesBySpecId?batch=1&input='+encodeURIComponent(JSON.stringify({0:inp})),{headers:{Accept:'application/json'}}).then(function(x){return x.json()}).then(function(j){try{return j[0].result.data.json.sales||[]}catch(e){return[]}}).catch(function(){return[]});
+  };
+  var flush=function(rows){ return fetch(CVURL+'/functions/v1/cv-write',{method:'POST',headers:H,body:JSON.stringify({secret:SECRET,op:'upsert',table:'pr_cards',rows:rows,onConflict:'import_key'})}).catch(function(){}); };
+  var done=0, batch=[], failed=0;
+  for(var si=0; si<sets.length; si++){
+    var s=sets[si];
+    var m=(s.url||'').match(/(\d+)\s*$/); if(!m) continue;
+    var headingID=m[1]; var cat=CAT[s.sport]||'20019';
+    var yr=((s.url||'').match(/\/(\d{4})\//)||[])[1]||null;
+    ov.textContent='Refreshing set '+(si+1)+' / '+sets.length+'…';
+    var data=[];
+    try{
+      var body='draw=1&start=0&length=4000&search=&headingID='+headingID+'&categoryID='+cat+'&isPSADNA=false';
+      var jr=await fetch('/Pop/GetSetItems',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8','X-Requested-With':'XMLHttpRequest'},body:body}).then(function(r){return r.json()});
+      data=(jr.data||jr.aaData||[]).filter(function(x){return x.SpecID>0 && (x.SubjectName||'').length && +x.Grade10>0 && !/TOTAL POPULATION/i.test(x.SubjectName||'');});
+    }catch(e){ failed++; continue; }
+    for(var i=0;i<data.length;i++){
+      var d=data[i]; var sp=d.SpecID;
+      var arr=await salesApi(sp,'10'); if(!arr.length) arr=await salesApi(sp,'9');
+      var img=null,k;
+      for(k=0;k<arr.length;k++){ if(arr[k].imageURL){img=arr[k].imageURL;break;} }
+      if(!img) for(k=0;k<arr.length;k++){ if(arr[k].thumbnailURL){img=arr[k].thumbnailURL;break;} }
+      var row={import_key:'spec:'+sp, player:((d.SubjectName||'')+(d.Variety?(' '+d.Variety):'')).trim(), year:yr?+yr:null, sport:SPMAP[s.sport]||'basketball', grade:'PSA 10', pop:+d.Grade10, card_number:String(d.CardNumber||''), spec_id:sp, status:'active', source:'psa_import'};
+      if(img) row.img=img;
+      if(arr[0]){ row.last_price=arr[0].salePrice||null; row.last_sale_date=(arr[0].saleDate||'').slice(0,10)||null; }
+      batch.push(row); done++;
+      if(batch.length>=100){ await flush(batch); batch=[]; }
+      ov.textContent='Refreshed '+done+' cards  ('+(si+1)+'/'+sets.length+' sets)';
+      await new Promise(function(r){setTimeout(r,110)});
+    }
+  }
+  if(batch.length) await flush(batch);
+  ov.textContent='✓ Done — '+done+' cards refreshed'+(failed?(' ('+failed+' sets skipped)'):'');
+  setTimeout(function(){ov.remove()},8000);
+ })();
+}
+
+function buildRefreshBookmarklet(){
+  const a=document.getElementById('cv-refresh-bookmarklet');
+  if(!a) return;
+  const secret = (typeof ADMIN_SECRET!=='undefined' && ADMIN_SECRET) ? ADMIN_SECRET : '__ENTER_ADMIN_FIRST__';
+  const code='('+_cvRefreshAll.toString()+')('+JSON.stringify(secret)+','+JSON.stringify(SUPABASE_URL)+','+JSON.stringify(SUPABASE_ANON)+')';
+  a.setAttribute('href','javascript:'+encodeURIComponent(code));
+}
+
 function openPsaPage(){
   const v=(document.getElementById('psa-cert-jump').value||'').trim();
   const url=v? (/^\d+$/.test(v)? 'https://www.psacard.com/cert/'+v+'/psa' : v) : 'https://www.psacard.com/pop';
@@ -2637,8 +2709,8 @@ async function savePsaCards(cards){
   if(sb){
     try{
       const rows=cards.map(function(c){return {player:c.player, year:c.year||null, set_name:c.set||null, grade:c.grade, pop:c.pop, sport:c.sport, img:c.img||null, status:'active', cert:c.cert||null, spec_id:c.specId||null, card_number:c.cardNumber||null, pop_higher:c.popHigher, source:'psa_import', import_key:c.import_key||null, last_price:c.lastPrice||null, last_sale_date:c.lastSaleDate||null};});
-      const res=await sb.from('pr_cards').upsert(rows,{onConflict:'import_key'});
-      cloudMsg=res.error? ' (cloud sync failed: '+res.error.message+')' : ' · synced to cloud';
+      await cvWrite('upsert','pr_cards',{rows:rows,onConflict:'import_key'});
+      cloudMsg=' · synced to cloud';
     }catch(e){ cloudMsg=' (cloud sync failed)'; }
   }
   toast(added+' new, '+updated+' refreshed'+cloudMsg,'success');
@@ -2756,6 +2828,7 @@ window.addEventListener('DOMContentLoaded', function() {
   if(!window._dailyPair) window._dailyPair = autoDailyPair();
   updateSportFilters();
   buildBookmarklet();
+  buildRefreshBookmarklet();
   startGame();
   checkPsaHash();
 })();

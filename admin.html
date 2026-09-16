@@ -365,19 +365,32 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 <script>
 const SB_URL  = 'https://nwzsomfhidefbldsloxz.supabase.co';
 const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA';
-const ADMIN_PW = 'cardverse2024';
+let ADMIN_SECRET = '';  // typed at login, held in memory only — never stored in source
+const CV_WRITE_URL = SB_URL + '/functions/v1/cv-write';
+async function cvWrite(op, table, extra){
+  const r = await fetch(CV_WRITE_URL,{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_ANON,Authorization:'Bearer '+SB_ANON},body:JSON.stringify(Object.assign({secret:ADMIN_SECRET,op,table},extra||{}))});
+  let j={}; try{ j=await r.json(); }catch(e){}
+  if(!r.ok || j.ok===false) throw new Error(j.error||('write failed '+r.status));
+  return j;
+}
 
 let sb = null;
 let allCards = [];
 
 // ── AUTH GATE ──
-function checkPass() {
-  if(document.getElementById('gate-pw').value === ADMIN_PW) {
+async function checkPass() {
+  const pw = document.getElementById('gate-pw').value;
+  const errEl = document.getElementById('gate-err');
+  errEl.style.display='none';
+  try {
+    ADMIN_SECRET = pw;
+    await cvWrite('ping','');            // server validates the password
     document.getElementById('login-gate').style.display = 'none';
     document.getElementById('main-layout').style.display = 'grid';
     initAdmin();
-  } else {
-    document.getElementById('gate-err').style.display = 'block';
+  } catch(e) {
+    ADMIN_SECRET='';
+    errEl.style.display = 'block';
     document.getElementById('gate-pw').value = '';
   }
 }
@@ -515,8 +528,7 @@ async function addCard() {
   };
 
   try {
-    const {error} = await sb.from('pr_cards').insert(card);
-    if(error) throw error;
+    await cvWrite('insert','pr_cards',{rows:[card]});
     toast(player+' saved to website!');
     clearCardForm();
     loadCards();
@@ -572,16 +584,14 @@ async function loadCards() {
 
 async function toggleCardStatus(id, current) {
   const newStatus = current==='draft'?'active':'draft';
-  const {error} = await sb.from('pr_cards').update({status:newStatus}).eq('id',id);
-  if(error){toast('Error','err');return;}
+  try{ await cvWrite('update','pr_cards',{values:{status:newStatus},match:{id}}); }catch(e){toast('Error','err');return;}
   toast('Card set to '+newStatus);
   loadCards();
 }
 
 async function deleteCard(id) {
   if(!confirm('Delete this card from the website?')) return;
-  const {error} = await sb.from('pr_cards').delete().eq('id',id);
-  if(error){toast('Error','err');return;}
+  try{ await cvWrite('delete','pr_cards',{match:{id}}); }catch(e){toast('Error','err');return;}
   toast('Card deleted');
   loadCards();
   populateDailySelects();
@@ -630,7 +640,7 @@ async function saveDailyGame() {
   if(cardA===cardB){toast('Pick two different cards','err');return;}
   setLoading('save-daily-btn',true,"📅 Save Today's Game Live");
   const today=new Date().toISOString().split('T')[0];
-  const {error}=await sb.from('daily_games').upsert({game_date:today,card_a_id:cardA,card_b_id:cardB},{onConflict:'game_date'});
+  let error=null; try{ await cvWrite('upsert','daily_games',{rows:[{game_date:today,card_a_id:cardA,card_b_id:cardB}],onConflict:'game_date'}); }catch(e){ error=e; }
   if(error){toast('Error: '+error.message,'err');}
   else{
     toast("Today's game is live on the website!");
@@ -673,7 +683,7 @@ async function addPuzzle() {
     card_img:cardEl.style.display!=='none'?cardEl.src:null,
     status:'active'
   };
-  const {error}=await sb.from('autograph_puzzles').insert(puzzle);
+  let error=null; try{ await cvWrite('insert','autograph_puzzles',{rows:[puzzle]}); }catch(e){ error=e; }
   if(error){toast('Error: '+error.message,'err');}
   else{
     toast(player+' puzzle saved to website!');
@@ -712,7 +722,7 @@ async function loadPuzzles() {
 
 async function deletePuzzle(id) {
   if(!confirm('Delete this puzzle from the website?')) return;
-  await sb.from('autograph_puzzles').delete().eq('id',id);
+  try{ await cvWrite('delete','autograph_puzzles',{match:{id}}); }catch(e){ toast('Error deleting','err'); return; }
   toast('Puzzle deleted');
   loadPuzzles();
   loadDashboard();
