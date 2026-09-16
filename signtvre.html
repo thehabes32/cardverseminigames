@@ -22,6 +22,10 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 .mode-tabs{display:flex;gap:4px;background:var(--s2);border-radius:99px;padding:3px;}
 .mode-tab{padding:5px 14px;border-radius:99px;font-size:11px;font-weight:800;cursor:pointer;color:var(--m);border:none;background:none;font-family:'Nunito',sans-serif;transition:all .15s;}
 .mode-tab.active{background:var(--a);color:#fff;}
+.sport-tabs{display:flex;gap:6px;padding:10px 16px 4px;justify-content:center;}
+.sport-tab{flex:1;max-width:120px;padding:7px 0;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;color:var(--m);border:1.5px solid var(--b,rgba(255,255,255,.12));background:var(--s2);font-family:'Nunito',sans-serif;transition:all .15s;}
+.sport-tab.active{background:var(--a);color:#fff;border-color:var(--a);}
+.sport-tab.solved{opacity:.6;}
 .back-btn{color:var(--m);text-decoration:none;font-size:12px;font-weight:800;}
 
 /* AUTOGRAPH IMAGE */
@@ -120,6 +124,13 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 </div>
 
 <div id="game-wrap">
+
+  <!-- SPORT TABS -->
+  <div class="sport-tabs" id="sport-tabs">
+    <button class="sport-tab active" data-sport="basketball" onclick="setSport('basketball')">🏀 NBA</button>
+    <button class="sport-tab" data-sport="baseball" onclick="setSport('baseball')">⚾ MLB</button>
+    <button class="sport-tab" data-sport="football" onclick="setSport('football')">🏈 NFL</button>
+  </div>
 
   <!-- AUTOGRAPH IMAGE -->
   <div class="auto-wrap" id="auto-wrap">
@@ -264,7 +275,7 @@ const PLAYERS = [
   {name:'Caleb Williams',              pos:'QB', team:'Bears',         conf:'NFC', jersey:18, age:23,height:73,sport:'football'},
   {name:'Jayden Daniels',              pos:'QB', team:'Commanders',    conf:'NFC', jersey:5,  age:24,height:76,sport:'football'},
   {name:'Justin Jefferson',            pos:'WR', team:'Vikings',       conf:'NFC', jersey:18, age:25,height:73,sport:'football'},
-  {name:'Ja'Marr Chase',              pos:'WR', team:'Bengals',       conf:'AFC', jersey:1,  age:24,height:72,sport:'football'},
+  {name:"Ja'Marr Chase",              pos:'WR', team:'Bengals',       conf:'AFC', jersey:1,  age:24,height:72,sport:'football'},
   {name:'CeeDee Lamb',                 pos:'WR', team:'Cowboys',       conf:'NFC', jersey:88, age:25,height:73,sport:'football'},
   {name:'Tyreek Hill',                 pos:'WR', team:'Dolphins',      conf:'AFC', jersey:10, age:30,height:70,sport:'football'},
   {name:'Davante Adams',               pos:'WR', team:'Raiders',       conf:'AFC', jersey:17, age:32,height:73,sport:'football'},
@@ -394,6 +405,8 @@ const PLAYERS = [
 
 // ── STATE ──
 let mode = 'daily';
+let sportFilter = 'basketball';
+let allAutos = null;
 let currentPuzzle = null;
 let guesses = [];
 let gameOver = false;
@@ -413,6 +426,13 @@ async function setMode(m) {
   await loadPuzzle();
 }
 
+async function setSport(s) {
+  sportFilter = s;
+  document.querySelectorAll('.sport-tab').forEach(b => b.classList.toggle('active', b.dataset.sport === s));
+  resetGame();
+  await loadPuzzle();
+}
+
 // ── PUZZLE LOADING ──
 async function loadPuzzle() {
   // Read from Supabase (live website data)
@@ -424,6 +444,7 @@ async function loadPuzzle() {
     if(window._sb) {
       const {data} = await window._sb.from('autograph_puzzles').select('*').eq('status','active');
       autos = data || [];
+      allAutos = autos;
       // Also map field names for compatibility
       autos = autos.map(a => ({...a, playerName: a.player_name, img: a.autograph_img}));
     }
@@ -437,15 +458,21 @@ async function loadPuzzle() {
 
   if(!autos.length) { showNoPuzzle(); return; }
 
+  // Filter to the selected sport
+  const pool = autos.filter(a => (a.sport || 'basketball') === sportFilter);
+  if(!pool.length) { showNoPuzzle(sportFilter); return; }
+
   if(mode === 'daily') {
     const today = new Date().toISOString().split('T')[0];
-    const daily = autos.find(a => a.game_date === today || a.date === today);
-    const dayIdx = Math.floor(Date.now() / 86400000) % autos.length;
-    currentPuzzle = daily || autos[dayIdx];
+    // Admin can hand-schedule a puzzle for today+sport; otherwise date-seed one from the pool
+    const scheduled = pool.find(a => a.game_date === today || a.date === today);
+    const dayNum = Math.floor(Date.now() / 86400000);
+    currentPuzzle = scheduled || pool[dayNum % pool.length];
   } else {
-    const played = JSON.parse(sessionStorage.getItem('sv_played') || '[]');
-    const remaining = autos.filter(a => !played.includes(a.id));
-    if(!remaining.length) { sessionStorage.removeItem('sv_played'); currentPuzzle = autos[Math.floor(Math.random()*autos.length)]; }
+    const key = 'sv_played_' + sportFilter;
+    const played = JSON.parse(sessionStorage.getItem(key) || '[]');
+    const remaining = pool.filter(a => !played.includes(a.id));
+    if(!remaining.length) { sessionStorage.removeItem(key); currentPuzzle = pool[Math.floor(Math.random()*pool.length)]; }
     else currentPuzzle = remaining[Math.floor(Math.random()*remaining.length)];
   }
 
@@ -476,16 +503,24 @@ async function loadPuzzle() {
     cardImgEl.style.display = 'none';
   }
   
+  document.getElementById('search-input').disabled = false;
   setMsg('Guess the mystery autograph in ' + MAX_GUESSES + ' tries!');
 }
 
-function showNoPuzzle() {
+function showNoPuzzle(sport) {
+  const label = sport ? ({basketball:'basketball 🏀',baseball:'baseball ⚾',football:'football 🏈'}[sport] || sport) : '';
   document.getElementById('auto-placeholder').innerHTML = `
     <div class="icon">✍️</div>
-    <div class="lbl" style="font-weight:800;">No puzzles added yet</div>
-    <div style="font-size:11px;color:var(--dim);text-align:center;margin-top:4px;padding:0 20px;">Add autograph photos in the <a href="admin.html" class="no-puzzle-link">Admin Dashboard</a></div>`;
+    <div class="lbl" style="font-weight:800;">${sport ? 'No '+label+' puzzle yet' : 'No puzzles added yet'}</div>
+    <div style="font-size:11px;color:var(--dim);text-align:center;margin-top:4px;padding:0 20px;">${sport ? 'Try another sport, or add one in the ' : 'Add autograph photos in the '}<a href="admin.html" class="no-puzzle-link">Admin Dashboard</a></div>`;
+  // reset the guessing UI so a stale puzzle image isn't left showing
+  document.getElementById('auto-img').style.display = 'none';
+  document.getElementById('card-img').style.display = 'none';
+  document.getElementById('auto-overlay').style.display = 'none';
+  document.getElementById('guesses-left').style.display = 'none';
+  document.getElementById('auto-placeholder').style.display = 'flex';
   document.getElementById('search-input').disabled = true;
-  setMsg('No puzzles available — add some in Admin', 'err');
+  setMsg(sport ? 'No '+label+' puzzle today — try another sport' : 'No puzzles available — add some in Admin', 'err');
 }
 
 // ── SEARCH ──
@@ -705,9 +740,10 @@ function copyShare() {
 
 function markPlayed() {
   if(!currentPuzzle) return;
-  const played = JSON.parse(sessionStorage.getItem('sv_played') || '[]');
+  const key = 'sv_played_' + sportFilter;
+  const played = JSON.parse(sessionStorage.getItem(key) || '[]');
   played.push(currentPuzzle.id);
-  sessionStorage.setItem('sv_played', JSON.stringify(played));
+  sessionStorage.setItem(key, JSON.stringify(played));
 }
 
 function newPuzzle() {
