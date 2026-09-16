@@ -209,7 +209,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 
 <script>
 // ── PLAYER DATABASE ──
-const PLAYERS = [
+let PLAYERS = [
   // ── NBA CURRENT ──
   {name:'LeBron James',                pos:'SF', team:'Lakers',        conf:'West',jersey:23, age:40,height:81,sport:'basketball'},
   {name:'Stephen Curry',               pos:'PG', team:'Warriors',      conf:'West',jersey:30, age:37,height:74,sport:'basketball'},
@@ -414,9 +414,32 @@ const MAX_GUESSES = 10;
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', async () => {
+  await loadPlayers();
   await loadPuzzle();
   buildEmptyRows();
 });
+
+// Full player database (Poeltl-style): loaded from Cardverse, cached locally, hardcoded list as fallback
+async function loadPlayers(){
+  const CACHE='cv_players_v2';
+  try{ const c=JSON.parse(localStorage.getItem(CACHE)||'null'); if(c&&c.length>200){ PLAYERS=c; } }catch(e){}
+  try{
+    if(typeof supabase!=='undefined' && !window._sb){
+      window._sb=supabase.createClient('https://nwzsomfhidefbldsloxz.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA');
+    }
+    if(window._sb){
+      let all=[], from=0;
+      for(let pg=0; pg<10; pg++){
+        const {data,error}=await window._sb.from('players').select('name,pos,team,conf,jersey,age,height,sport').eq('status','active').range(from,from+999);
+        if(error||!data||!data.length) break;
+        all=all.concat(data);
+        if(data.length<1000) break;
+        from+=1000;
+      }
+      if(all.length>200){ PLAYERS=all; try{ localStorage.setItem(CACHE,JSON.stringify(all)); }catch(e){} }
+    }
+  }catch(e){ console.log('Player DB load failed, using cache/fallback:', e.message); }
+}
 
 async function setMode(m) {
   mode = m;
