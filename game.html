@@ -553,6 +553,9 @@
       <button class="sf-btn" data-sport="baseball" onclick="setSport('baseball',this)">⚾ MLB</button>
       <button class="sf-btn" data-sport="hockey" onclick="setSport('hockey',this)">🏒 NHL</button>
       <button class="sf-btn" data-sport="pokemon" onclick="setSport('pokemon',this)">⚡ Pokémon</button>
+      <button class="sf-btn" data-sport="onepiece" onclick="setSport('onepiece',this)">☠️ One Piece</button>
+      <button class="sf-btn" data-sport="marvel" onclick="setSport('marvel',this)">🦸 Marvel</button>
+      <button class="sf-btn" data-sport="disney" onclick="setSport('disney',this)">🏰 Disney</button>
       <button class="sf-btn" data-sport="soccer" onclick="setSport('soccer',this)">⚽ Soccer</button>
     </div>
 
@@ -2569,12 +2572,16 @@ function openPsaPage(){
 
 function psaSportFromText(t){
   t=(t||'').toLowerCase();
-  if(t.indexOf('tcg')>=0||t.indexOf('pokemon')>=0) return 'pokemon';
+  if(t.indexOf('one piece')>=0) return 'onepiece';
+  if(t.indexOf('marvel')>=0) return 'marvel';
+  if(t.indexOf('disney')>=0||t.indexOf('lorcana')>=0) return 'disney';
+  if(t.indexOf('pokemon')>=0||t.indexOf('pokémon')>=0) return 'pokemon';
   if(t.indexOf('basketball')>=0) return 'basketball';
   if(t.indexOf('football')>=0) return 'football';
   if(t.indexOf('baseball')>=0) return 'baseball';
   if(t.indexOf('hockey')>=0) return 'hockey';
   if(t.indexOf('soccer')>=0) return 'soccer';
+  if(t.indexOf('tcg')>=0) return 'pokemon';
   return 'basketball';
 }
 
