@@ -110,7 +110,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
     <div style="font-size:36px;margin-bottom:12px;">🃏</div>
     <h2>Cardverse Admin</h2>
     <p>This updates the live website directly</p>
-    <input type="password" id="gate-pw" placeholder="Admin password"/>
+    <input type="password" id="gate-pw" placeholder="Admin password" onkeydown="if(event.key==='Enter')checkPass()"/>
     <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="checkPass()">Enter Admin</button>
     <div id="gate-err" style="font-size:12px;color:var(--r);margin-top:10px;display:none;">Wrong password</div>
   </div>
@@ -414,7 +414,7 @@ function nav(page, el) {
   const titles = {
     dashboard:['Overview','Live stats'],
     cards:['Pop Report Cards','Add and manage cards — saves directly to the website'],
-    daily:['Daily Game','Set today's matchup — goes live instantly'],
+    daily:['Daily Game',"Set today's matchup — goes live instantly"],
     signtvre:['SIGNTVRE Puzzles','Manage autograph puzzles — saves to the website'],
     users:['Users','Everyone who has signed up'],
     leaderboard:['Leaderboard','Top players by streak'],
@@ -628,16 +628,16 @@ async function saveDailyGame() {
   const cardB=document.getElementById('daily-b').value;
   if(!cardA||!cardB){toast('Select both cards','err');return;}
   if(cardA===cardB){toast('Pick two different cards','err');return;}
-  setLoading('save-daily-btn',true,'📅 Save Today's Game Live');
+  setLoading('save-daily-btn',true,"📅 Save Today's Game Live");
   const today=new Date().toISOString().split('T')[0];
   const {error}=await sb.from('daily_games').upsert({game_date:today,card_a_id:cardA,card_b_id:cardB},{onConflict:'game_date'});
   if(error){toast('Error: '+error.message,'err');}
   else{
-    toast('Today's game is live on the website!');
+    toast("Today's game is live on the website!");
     document.getElementById('daily-msg').innerHTML='<span style="color:var(--g);">✓ Live! Players see this matchup now.</span>';
     loadDashboard();
   }
-  setLoading('save-daily-btn',false,'📅 Save Today's Game Live');
+  setLoading('save-daily-btn',false,"📅 Save Today's Game Live");
 }
 
 function clearDaily() {
@@ -738,7 +738,7 @@ async function loadDashboard() {
   if(daily?.card_a&&daily?.card_b){
     todayEl.innerHTML=`<span style="color:var(--t);font-weight:800;">${daily.card_a.player}</span> <span style="color:var(--dim);">vs</span> <span style="color:var(--t);font-weight:800;">${daily.card_b.player}</span> <span style="color:var(--g);margin-left:8px;font-size:11px;font-weight:800;">● Live now</span>`;
   } else {
-    todayEl.innerHTML='<span style="color:var(--r);font-weight:800;">No daily game set.</span> <button class="btn btn-ghost btn-sm" onclick="nav('daily',document.querySelectorAll('.nav-item')[2])" style="margin-left:8px;">Set it now →</button>';
+    todayEl.innerHTML=`<span style="color:var(--r);font-weight:800;">No daily game set.</span> <button class="btn btn-ghost btn-sm" onclick="nav('daily',document.querySelectorAll('.nav-item')[2])" style="margin-left:8px;">Set it now →</button>`;
   }
 
   // Recent activity
