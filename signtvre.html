@@ -31,7 +31,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 
 /* AUTOGRAPH IMAGE */
 .auto-wrap{margin:14px 16px;position:relative;border-radius:16px;overflow:hidden;background:var(--s);border:1px solid var(--b);}
-.auto-img{width:100%;height:200px;object-fit:cover;display:block;transition:filter .4s ease;}
+.auto-img{width:100%;height:200px;object-fit:contain;background:#0d0c15;padding:8px;display:block;transition:filter .4s ease;}
 #card-img.revealed-card{width:auto !important;max-width:100% !important;height:auto !important;max-height:440px !important;object-fit:contain !important;margin:0 auto;background:#0d0c15;}
 
 .auto-placeholder{height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--m);}
@@ -145,7 +145,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
     <!-- Full card reveal - shown on win/loss -->
     <img id="card-img" class="auto-img" style="display:none;"/>
     <div class="auto-overlay" id="auto-overlay" style="display:none;">✍️ Guess the Autograph</div>
-    <div class="guesses-left" id="guesses-left" style="display:none;">10 guesses left</div>
+    <div class="guesses-left" id="guesses-left" style="display:none;">8 guesses left</div>
     <!-- Reveal badge shown when card is shown -->
     <div id="reveal-badge" style="display:none;position:absolute;top:10px;left:10px;background:rgba(62,207,142,.9);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:900;color:#fff;">✓ Revealed!</div>
   </div>
@@ -412,7 +412,7 @@ let allAutos = null;
 let currentPuzzle = null;
 let guesses = [];
 let gameOver = false;
-const MAX_GUESSES = 10;
+const MAX_GUESSES = 8;
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', async () => {
