@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Pop Report</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="share-card.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
   :root {
@@ -958,13 +959,13 @@
               <div class="hd-stat-lbl">Level</div>
             </div>
           </div>
-          <div class="hd-watermark">popreport.gg</div>
+          <div class="hd-watermark">cardverseminigames.com</div>
         </div>
       </div>
 
       <div style="display:flex;gap:8px;width:100%;">
-        <button class="btn btn-primary" style="flex:1;font-size:13px;" onclick="shareCard()">Share / Save</button>
-        <button class="btn btn-secondary" style="flex:1;font-size:13px;" onclick="copyShareText()">Copy score</button>
+        <button class="btn btn-primary" style="flex:1;font-size:13px;" onclick="copyShareText()">📋 Copy</button>
+        <button class="btn btn-secondary" style="flex:1;font-size:13px;" onclick="saveShareImage()">🖼️ Save image</button>
       </div>
       <div class="screenshot-tip" id="share-tip">Tap Share to send to friends</div>
     </div>
@@ -1650,11 +1651,29 @@ function closeShareModal() {
   document.getElementById('share-modal').classList.remove('open');
 }
 
+function popShareRows() {
+  // green square per correct pick in the run, red for the miss (wrapped 5 per row)
+  var n = streak, out = [], line = '';
+  for (var i=0;i<n;i++){ line += '🟩'; if(line.length/2>=5){ out.push(line); line=''; } }
+  line += '🟥'; out.push(line);
+  return out;
+}
 function copyShareText() {
-  const username = (document.getElementById('jelly-name')?.value || 'CardKing').trim();
-  const badge = getBadge(streak);
-  const text = '🃏 Cardverse Pop Report\n' + username.toUpperCase() + ' — Streak: ' + streak + '\nScore: ' + score + ' pts · Badge: ' + badge.name + '\n\nPlay now → https://cardverse.gg';
-  navigator.clipboard.writeText(text).then(() => toast('Copied! Send it to your crew 🃏','success'));
+  const rows = popShareRows();
+  const text = 'CardVerse Pop Report 🃏\nStreak: ' + streak + ' 🔥\n\n' + rows.join('\n') + '\n\ncardverseminigames.com';
+  navigator.clipboard.writeText(text).then(() => toast('Copied! Send it to your crew 🃏','success'))
+    .catch(()=>toast('Copy failed','error'));
+}
+function saveShareImage() {
+  if(typeof cvShareImage!=='function'){ toast('Image unavailable','error'); return; }
+  cvShareImage({
+    game:'🃏 Pop Report', gameColor:'#7c6cfc',
+    big:String(streak), small:'🔥',
+    sub:'Pop Report streak · '+score+' pts',
+    rows:popShareRows(), day:new Date().toLocaleDateString(),
+    filename:'cardverse-popreport'
+  });
+  toast('Saving image…','success');
 }
 
 function showResult() {

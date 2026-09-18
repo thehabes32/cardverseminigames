@@ -6,6 +6,7 @@
 <title>SIGNTVRE</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="share-card.js"></script>
 <style>
 :root{
   --bg:#0f0e17;--s:#1a1928;--s2:#232235;--s3:#2a293d;
@@ -203,7 +204,8 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
     <div class="result-answer" id="result-answer"></div>
     <div class="share-preview" id="share-grid"></div>
     <div class="result-btns">
-      <button class="rbtn rbtn-ghost" onclick="copyShare()">📋 Copy Result</button>
+      <button class="rbtn rbtn-primary" onclick="copyShare()">📋 Copy</button>
+      <button class="rbtn rbtn-ghost" onclick="saveShareImage()">🖼️ Save image</button>
       <button class="rbtn rbtn-primary" onclick="newPuzzle()" id="play-again-btn" style="display:none;">Play Again ▶</button>
     </div>
   </div>
@@ -750,11 +752,16 @@ function showResult(won) {
 
   document.getElementById('result-answer').textContent = currentPuzzle.playerName;
 
-  // Build share grid
+  // Build share grid (Wordle/Poeltl-style, spoiler-free)
   const emoji = {correct:'🟩', close:'🟨', wrong:'⬛'};
-  const grid = guesses.map(g => g.hint.map(h => emoji[h.status]).join('')).join('\n');
-  const shareText = `SIGNTVRE ${mode === 'daily' ? new Date().toLocaleDateString() : 'Unlimited'}\n${won ? guesses.length : 'X'}/${MAX_GUESSES}\n\n${grid}\n\ncardverseminigames.com`;
+  const rows = guesses.map(g => g.hint.map(h => emoji[h.status]).join(''));
+  const dayNum = Math.floor((Date.now()/86400000) - (new Date('2026-08-17').getTime()/86400000)) + 1;
+  const head = 'SIGNTVRE ' + (mode==='daily' ? ('#'+dayNum) : 'Unlimited') + ' ✍️';
+  const sportEmoji = {basketball:'🏀',football:'🏈',baseball:'⚾'}[sportFilter] || '';
+  const scoreLine = (won ? guesses.length : 'X') + '/' + MAX_GUESSES + ' ' + sportEmoji;
+  const shareText = head + '\n' + scoreLine + '\n\n' + rows.join('\n') + '\n\ncardverseminigames.com';
   document.getElementById('share-grid').textContent = shareText;
+  window._svShare = {won, guesses, rows, dayNum, scoreLine};
 
   if(mode === 'unlimited') {
     document.getElementById('play-again-btn').style.display = 'inline-block';
@@ -767,6 +774,17 @@ function copyShare() {
   const text = document.getElementById('share-grid').textContent;
   navigator.clipboard.writeText(text).then(() => setMsg('Copied to clipboard!', 'ok'))
     .catch(() => setMsg('Copy failed', 'err'));
+}
+
+function saveShareImage() {
+  const s = window._svShare; if(!s || typeof cvShareImage!=='function') { setMsg('Image unavailable', 'err'); return; }
+  cvShareImage({
+    game:'SIGNTVRE', gameColor:'#fc6c8f',
+    big:(s.won? s.guesses.length : 'X'), small:'/'+MAX_GUESSES,
+    sub:(s.won? 'Guessed the auto' : 'Missed it'),
+    rows:s.rows, day:'#'+s.dayNum, filename:'signtvre-'+s.dayNum
+  });
+  setMsg('Saving image…', 'ok');
 }
 
 function markPlayed() {
