@@ -416,8 +416,8 @@ const MAX_GUESSES = 8;
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', async () => {
-  await loadPlayers();
-  await loadPuzzle();
+  loadPlayers();          // background — dropdown fills when ready, never blocks the game
+  await loadPuzzle();     // render the puzzle immediately
   buildEmptyRows();
 });
 
@@ -467,7 +467,8 @@ async function loadPuzzle() {
       window._sb = supabase.createClient('https://nwzsomfhidefbldsloxz.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA');
     }
     if(window._sb) {
-      const {data} = await window._sb.from('autograph_puzzles').select('*').eq('status','active');
+      const q = window._sb.from('autograph_puzzles').select('*').eq('status','active');
+      const {data} = await Promise.race([q, new Promise(r=>setTimeout(()=>r({data:null}),6000))]);
       autos = data || [];
       allAutos = autos;
       // Also map field names for compatibility
