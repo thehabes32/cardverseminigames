@@ -169,12 +169,16 @@ async function doSignup(){
   const {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{username}}});
   if(error){showMsg(error.message,'err');setBtn('btn-up',false,'Create Account');}
   else{
-    // Create profile row immediately
-    if(data?.user){
-      await sb.from('profiles').upsert({id:data.user.id,username,total_pts:0,best_streak:0,skin:'base',owned_skins:['base','green']});
+    // Profile row is created automatically by the DB trigger — no client write needed.
+    if(data?.session){
+      // Email confirmation is OFF — user is signed in right away
+      showMsg('Account created! Entering CardVerse…','ok');
+      setTimeout(()=>{ window.location.href='home.html'; },900);
+    } else {
+      // Email confirmation is ON — must verify first
+      showMsg('Account created! Check your email to verify, then sign in.','ok');
+      setTimeout(()=>switchTab('in'),2500);
     }
-    showMsg('Account created! Check your email to verify, then sign in.','ok');
-    setTimeout(()=>switchTab('in'),2500);
     setBtn('btn-up',false,'Create Account');
   }
 }
