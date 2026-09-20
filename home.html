@@ -80,6 +80,10 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .signout-btn{background:none;border:1px solid var(--b);border-radius:99px;color:var(--m);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;padding:.4rem 1.25rem;cursor:pointer;transition:all .15s;}
 .signout-btn:hover{color:var(--r);border-color:rgba(252,108,108,.4);}
 .foot{text-align:center;font-size:10.5px;color:rgba(242,240,255,.25);font-weight:700;margin-top:1rem;}
+.streak-hero{display:none;align-items:center;justify-content:center;gap:10px;margin:0 auto 1.5rem;max-width:340px;background:linear-gradient(90deg,rgba(255,107,53,.16),rgba(252,217,108,.12));border:1px solid rgba(255,140,60,.4);border-radius:16px;padding:.7rem 1rem;box-shadow:0 0 22px rgba(255,120,40,.15);}
+.streak-hero .fire{font-size:26px;filter:drop-shadow(0 0 8px rgba(255,120,40,.7));}
+.streak-hero .sh-n{font-size:26px;font-weight:900;color:var(--gold);line-height:1;}
+.streak-hero .sh-l{font-size:11px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.06em;}
 </style>
 </head>
 <body>
@@ -97,6 +101,11 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
   <div class="hero">
     <h1>Daily games for<br/><em>card collectors</em></h1>
     <p>Real cards · real pop counts · new challenges every day</p>
+  </div>
+
+  <div class="streak-hero" id="streak-hero">
+    <span class="fire">🔥</span>
+    <div><div class="sh-n" id="sh-streak">0</div><div class="sh-l">best streak — keep it alive</div></div>
   </div>
 
   <div class="stats-row">
@@ -211,6 +220,10 @@ async function init(){
     document.getElementById('user-name').textContent = p.username || 'Player';
     document.getElementById('stat-streak').textContent = p.best_streak || 0;
     document.getElementById('stat-pts').textContent = (p.total_pts||0).toLocaleString();
+    if((p.best_streak||0) > 0){
+      document.getElementById('sh-streak').textContent = p.best_streak;
+      document.getElementById('streak-hero').style.display = 'flex';
+    }
   } else {
     document.getElementById('user-name').textContent = session.user.email?.split('@')[0] || 'Player';
     ['stat-streak','stat-pts'].forEach(id=>document.getElementById(id).textContent='0');
