@@ -5,93 +5,93 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>Cardverse Mini Games</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet"/>
 <style>
-:root{--bg:#0f0e17;--s:#1a1928;--s2:#232235;--b:rgba(255,255,255,.09);--t:#f2f0ff;--m:rgba(242,240,255,.5);--a:#7c6cfc;--a2:#fc6c8f;--g:#3ecf8e;--r:#fc6c6c;--gold:#fcd96c;}
+:root{--bg:#0a0813;--s:#161327;--s2:#1f1b38;--b:rgba(255,255,255,.10);--t:#f2f0ff;--m:rgba(242,240,255,.55);--a:#7c6cfc;--a2:#fc6c8f;--teal:#4ee0d6;--g:#3ecf8e;--r:#fc6c6c;--gold:#fcd96c;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-height:100vh;overflow-x:hidden;}
-.stars{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
-.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle linear infinite;}
-@keyframes twinkle{0%,100%{opacity:.06}50%{opacity:.7}}
-.glow{position:fixed;top:-180px;left:50%;transform:translateX(-50%);width:520px;height:420px;background:radial-gradient(closest-side,rgba(124,108,252,.22),transparent);pointer-events:none;z-index:0;}
-.wrap{max-width:520px;margin:0 auto;padding:1.6rem 1rem 4rem;position:relative;z-index:1;}
-@media(min-width:700px){.wrap{max-width:620px;}}
+/* deep space */
+.space{position:fixed;inset:0;z-index:0;overflow:hidden;background:
+ radial-gradient(120% 80% at 15% 0%,rgba(124,108,252,.28),transparent 55%),
+ radial-gradient(110% 70% at 90% 12%,rgba(252,108,143,.20),transparent 55%),
+ radial-gradient(120% 90% at 50% 112%,rgba(78,224,214,.13),transparent 55%),
+ radial-gradient(100% 100% at 50% 50%,#0d0a1c,#070510);}
+.stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle linear infinite alternate;}
+@keyframes twinkle{0%{opacity:.12}100%{opacity:.9}}
+.comet{position:fixed;width:120px;top:8%;left:58%;opacity:0;z-index:0;animation:comet 11s linear infinite;}
+@keyframes comet{0%{opacity:0;transform:translate(60px,-40px) scale(.7)}6%{opacity:.85}20%{opacity:.85}32%{opacity:0;transform:translate(-280px,300px) scale(1)}100%{opacity:0}}
 
-/* header */
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.9rem;}
-.logo{font-size:22px;font-weight:900;letter-spacing:-.3px;}
-.logo span{color:var(--a);}
-.user-pill{display:flex;align-items:center;gap:6px;background:var(--s);border:1px solid var(--b);border-radius:99px;padding:.35rem .85rem;font-size:12px;font-weight:800;color:var(--m);cursor:pointer;}
-.user-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--g);flex-shrink:0;}
+.wrap{max-width:640px;margin:0 auto;padding:1.6rem 1rem 4rem;position:relative;z-index:2;}
 
-/* hero */
-.hero{text-align:center;margin-bottom:1.9rem;}
-.hero h1{font-size:34px;font-weight:900;letter-spacing:-.5px;line-height:1.1;}
-.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--a),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent;}
-.hero p{font-size:13.5px;color:var(--m);font-weight:700;margin-top:.5rem;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;}
+.mark{display:flex;align-items:center;gap:9px;}
+.mark img{width:32px;filter:drop-shadow(0 0 10px rgba(124,108,252,.7));}
+.logo{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;letter-spacing:1px;}
+.logo span{color:var(--a);text-shadow:0 0 12px rgba(124,108,252,.8);}
+.user-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--b);border-radius:99px;padding:.35rem .85rem;font-size:12px;font-weight:800;color:var(--m);cursor:pointer;}
+.user-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 8px var(--g);flex-shrink:0;}
 
-/* stats */
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.75rem;}
-.stat-box{background:var(--s);border:1px solid var(--b);border-radius:14px;padding:.85rem .5rem;text-align:center;}
-.stat-val{font-size:23px;font-weight:900;}
-.stat-lbl{font-size:10px;color:var(--m);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+.hero{text-align:center;margin:2.4rem 0 1.6rem;}
+.hero .kicker{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:800;letter-spacing:.32em;color:var(--teal);text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 10px rgba(78,224,214,.6);}
+.hero h1{font-family:'Orbitron',sans-serif;font-size:38px;font-weight:900;line-height:1;letter-spacing:1px;text-shadow:0 0 30px rgba(124,108,252,.5);}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--a),var(--a2) 60%,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.hero p{font-size:12px;color:var(--m);font-weight:800;margin-top:12px;text-transform:uppercase;letter-spacing:.11em;}
 
-.sec-lbl{font-size:11px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.8rem;}
+.streak-hero{display:none;align-items:center;justify-content:center;gap:12px;margin:0 auto 1.5rem;max-width:360px;background:linear-gradient(90deg,rgba(255,107,53,.18),rgba(252,217,108,.12));border:1px solid rgba(255,140,60,.45);border-radius:16px;padding:.75rem 1rem;box-shadow:0 0 22px rgba(255,120,40,.18);}
+.streak-hero .fire{font-size:28px;filter:drop-shadow(0 0 8px rgba(255,120,40,.7));}
+.streak-hero .sh-n{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:var(--gold);line-height:1;}
+.streak-hero .sh-l{font-size:10.5px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
 
-/* game tiles */
-.game-tile{display:block;background:var(--s);border:1.5px solid var(--b);border-radius:22px;margin-bottom:1rem;text-decoration:none;color:var(--t);overflow:hidden;transition:all .2s;position:relative;}
-.game-tile:hover{border-color:var(--a);transform:translateY(-3px);box-shadow:0 12px 36px rgba(124,108,252,.22);}
-.tile-banner{height:120px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
-.banner-pop{background:linear-gradient(135deg,#241f4d 0%,#3b2a7a 55%,#241f4d 100%);}
-.banner-sig{background:linear-gradient(135deg,#4d1f30 0%,#7a2a4e 55%,#4d1f30 100%);}
-.banner-price{background:linear-gradient(135deg,#1f4d38 0%,#2a7a58 55%,#1f4d38 100%);}
-.fan{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
-.fan img{width:74px;border-radius:7px;box-shadow:0 6px 22px rgba(0,0,0,.55);position:absolute;top:16px;background:#111;transition:transform .25s;}
-.fan img:nth-child(1){transform:rotate(-14deg) translateX(-74px);}
-.fan img:nth-child(2){transform:rotate(0deg) translateY(-4px);z-index:2;}
-.fan img:nth-child(3){transform:rotate(14deg) translateX(74px);}
-.game-tile:hover .fan img:nth-child(1){transform:rotate(-17deg) translateX(-80px) translateY(-3px);}
-.game-tile:hover .fan img:nth-child(2){transform:translateY(-9px);z-index:2;}
-.game-tile:hover .fan img:nth-child(3){transform:rotate(17deg) translateX(80px) translateY(-3px);}
-.sig-mark{font-size:54px;transform:rotate(-8deg);filter:drop-shadow(0 4px 14px rgba(0,0,0,.5));}
-.price-mark{font-size:46px;letter-spacing:6px;font-weight:900;filter:drop-shadow(0 4px 14px rgba(0,0,0,.5));}
-.banner-fade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,var(--s) 100%);}
-.tile-body{padding:1rem 1.25rem 1.25rem;display:flex;align-items:center;gap:1rem;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.8rem;}
+.stat-box{background:rgba(255,255,255,.04);border:1px solid var(--b);border-radius:16px;padding:.9rem .4rem;text-align:center;}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;}
+.stat-lbl{font-size:9px;color:var(--m);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+
+.sec-lbl{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.18em;margin-bottom:.9rem;}
+
+.game-tile{display:block;position:relative;border-radius:20px;overflow:hidden;margin-bottom:1rem;border:1.5px solid var(--b);background:var(--s);text-decoration:none;color:var(--t);transition:transform .18s,box-shadow .18s,border-color .18s;}
+.game-tile:hover{transform:translateY(-4px);border-color:var(--a);box-shadow:0 16px 40px rgba(124,108,252,.3);}
+.tile-banner{height:104px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.tile-banner .glowmark{font-size:44px;filter:drop-shadow(0 4px 18px rgba(0,0,0,.5));z-index:1;}
+.tile-banner .rays{position:absolute;inset:0;background:radial-gradient(circle at 50% 120%,rgba(255,255,255,.16),transparent 60%);}
+.banner-pop{background:linear-gradient(135deg,#2a1f5c,#4632a0 60%,#241a52);}
+.banner-sig{background:linear-gradient(135deg,#5c1f3e,#a02e66 60%,#4d1f30);}
+.banner-price{background:linear-gradient(135deg,#1f5c48,#2ea075 60%,#1f4d38);}
+.tile-body{padding:.9rem 1.1rem 1.1rem;display:flex;align-items:center;gap:10px;}
 .tile-info{flex:1;}
-.tile-title{font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px;}
-.tile-desc{font-size:12.5px;color:var(--m);line-height:1.55;margin-top:4px;}
-.tile-tag{font-size:10px;font-weight:800;padding:2.5px 10px;border-radius:99px;}
-.tag-live{background:rgba(62,207,142,.15);color:var(--g);}
-.tag-new{background:rgba(252,217,108,.15);color:var(--gold);}
+.tile-title{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.tile-desc{font-size:12px;color:var(--m);font-weight:700;line-height:1.5;margin-top:4px;}
+.tile-tag{font-size:9px;font-weight:900;padding:3px 9px;border-radius:99px;}
+.tag-live{background:rgba(62,207,142,.18);color:var(--g);box-shadow:0 0 12px rgba(62,207,142,.25);}
+.tag-new{background:rgba(252,217,108,.18);color:var(--gold);}
 .tag-soon{background:rgba(242,240,255,.08);color:var(--m);}
-.arrow{color:rgba(242,240,255,.25);font-size:22px;flex-shrink:0;}
+.arrow{margin-left:auto;color:rgba(242,240,255,.3);font-size:22px;}
+/* coming soon construction tape */
 .tile-locked{cursor:default;position:relative;}
 .tile-locked .tile-banner,.tile-locked .tile-body{opacity:.5;}
-.tile-locked:hover{border-color:var(--b);transform:none;box-shadow:none;}
-/* construction / caution tape */
-.tape{position:absolute;top:50%;left:-8%;width:116%;padding:7px 0;z-index:3;
-  background:repeating-linear-gradient(45deg,#fcd96c 0 22px,#111 22px 44px);
-  transform:translateY(-50%) rotate(-8deg);box-shadow:0 4px 16px rgba(0,0,0,.5);
-  text-align:center;pointer-events:none;}
-.tape span{font-family:'Nunito',sans-serif;font-weight:900;font-size:14px;letter-spacing:.12em;color:#111;
-  background:#fcd96c;padding:2px 12px;border-radius:4px;text-transform:uppercase;}
+.tile-locked:hover{transform:none;border-color:var(--b);box-shadow:none;}
+.tape{position:absolute;top:50%;left:-8%;width:116%;padding:7px 0;z-index:3;background:repeating-linear-gradient(45deg,#fcd96c 0 22px,#111 22px 44px);transform:translateY(-50%) rotate(-8deg);box-shadow:0 4px 16px rgba(0,0,0,.5);text-align:center;pointer-events:none;}
+.tape span{font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;letter-spacing:.1em;color:#111;background:#fcd96c;padding:2px 12px;border-radius:4px;text-transform:uppercase;}
 
-.signout-wrap{text-align:center;margin-top:1.9rem;}
-.signout-btn{background:none;border:1px solid var(--b);border-radius:99px;color:var(--m);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;padding:.4rem 1.25rem;cursor:pointer;transition:all .15s;}
+.planetband{width:100%;max-width:560px;display:block;margin:1.6rem auto 0;opacity:.9;filter:drop-shadow(0 6px 18px rgba(0,0,0,.5));}
+.signout-wrap{text-align:center;margin-top:1.6rem;}
+.signout-btn{background:none;border:1px solid var(--b);border-radius:99px;color:var(--m);font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;padding:.4rem 1.25rem;cursor:pointer;}
 .signout-btn:hover{color:var(--r);border-color:rgba(252,108,108,.4);}
-.foot{text-align:center;font-size:10.5px;color:rgba(242,240,255,.25);font-weight:700;margin-top:1rem;}
-.streak-hero{display:none;align-items:center;justify-content:center;gap:10px;margin:0 auto 1.5rem;max-width:340px;background:linear-gradient(90deg,rgba(255,107,53,.16),rgba(252,217,108,.12));border:1px solid rgba(255,140,60,.4);border-radius:16px;padding:.7rem 1rem;box-shadow:0 0 22px rgba(255,120,40,.15);}
-.streak-hero .fire{font-size:26px;filter:drop-shadow(0 0 8px rgba(255,120,40,.7));}
-.streak-hero .sh-n{font-size:26px;font-weight:900;color:var(--gold);line-height:1;}
-.streak-hero .sh-l{font-size:11px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.06em;}
+.foot{text-align:center;font-family:'Orbitron',sans-serif;font-size:10px;color:rgba(242,240,255,.3);font-weight:700;letter-spacing:.3em;margin-top:1.2rem;}
 </style>
 </head>
 <body>
+<div class="space"></div>
 <div class="stars" id="stars"></div>
-<div class="glow"></div>
+<img class="comet" src="images/comet.png" onerror="this.style.display='none'"/>
+
 <div class="wrap">
   <div class="header">
-    <div class="logo">Cardverse <span>Mini Games</span></div>
+    <div class="mark">
+      <img src="images/saucer.png" onerror="this.style.display='none'"/>
+      <div class="logo">CARD<span>VERSE</span></div>
+    </div>
     <div class="user-pill" onclick="signOut()">
       <div class="dot"></div>
       <span id="user-name">Loading...</span>
@@ -99,8 +99,9 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
   </div>
 
   <div class="hero">
-    <h1>Daily games for<br/><em>card collectors</em></h1>
-    <p>Real cards · real pop counts · new challenges every day</p>
+    <div class="kicker">Enter the collector's universe</div>
+    <h1>DAILY GAMES<br/><em>FOR COLLECTORS</em></h1>
+    <p>Real cards · real pops · new drops daily</p>
   </div>
 
   <div class="streak-hero" id="streak-hero">
@@ -114,77 +115,37 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
     <div class="stat-box"><div class="stat-val" id="stat-pool">—</div><div class="stat-lbl">Cards in Play</div></div>
   </div>
 
-  <div class="sec-lbl">Choose your game</div>
+  <div class="sec-lbl">▸ Choose your game</div>
 
   <a class="game-tile" href="game.html">
-    <div class="tile-banner banner-pop">
-      <div class="fan">
-        <img src="https://i.ebayimg.com/images/g/1H0AAeSwlelqRosB/s-l500.webp" alt="" loading="lazy" onerror="this.style.display='none'"/>
-        <img src="https://firebasestorage.googleapis.com/v0/b/cardladder-71d53.appspot.com/o/sales%2Ffanatics-premier-21655?alt=media" alt="" loading="lazy" onerror="this.style.display='none'"/>
-        <img src="https://i.ebayimg.com/images/g/EPoAAeSwJSBqKAM0/s-l500.webp" alt="" loading="lazy" onerror="this.style.display='none'"/>
-      </div>
-      <div class="banner-fade"></div>
-    </div>
-    <div class="tile-body">
-      <div class="tile-info">
-        <div class="tile-title">Pop Report <span class="tile-tag tag-live">● Live</span></div>
-        <div class="tile-desc">Two graded cards. Which one is rarer? Pick the lower PSA pop, build a streak, survive the heat check.</div>
-      </div>
-      <div class="arrow">›</div>
-    </div>
+    <div class="tile-banner banner-pop"><div class="rays"></div><div class="glowmark">🃏</div></div>
+    <div class="tile-body"><div class="tile-info">
+      <div class="tile-title">Pop Report <span class="tile-tag tag-live">● LIVE</span></div>
+      <div class="tile-desc">Two graded cards. Which is rarer? Build a streak, survive the heat check.</div>
+    </div><div class="arrow">›</div></div>
   </a>
 
   <a class="game-tile" href="signtvre.html">
-    <div class="tile-banner banner-sig">
-      <div class="sig-mark">✍️</div>
-      <div class="banner-fade"></div>
-    </div>
-    <div class="tile-body">
-      <div class="tile-info">
-        <div class="tile-title">SIGNTVRE <span class="tile-tag tag-new">★ Daily</span></div>
-        <div class="tile-desc">One mystery autograph a day. Guess the athlete in 8 tries with Poeltl-style hints. Can you read the scribble?</div>
-      </div>
-      <div class="arrow">›</div>
-    </div>
-  </a>
-
-  <a class="game-tile" href="daily9.html">
-    <div class="tile-banner" style="background:linear-gradient(135deg,#1f2a4d 0%,#2a3d7a 55%,#1f2a4d 100%);">
-      <div style="display:grid;grid-template-columns:repeat(3,26px);gap:5px;transform:rotate(-4deg);filter:drop-shadow(0 4px 14px rgba(0,0,0,.5));font-size:15px;text-align:center;line-height:26px;">
-        <div style="background:rgba(255,255,255,.1);border-radius:6px;">💰</div><div style="background:rgba(255,255,255,.1);border-radius:6px;">✍️</div><div style="background:rgba(255,255,255,.1);border-radius:6px;">🔢</div>
-        <div style="background:rgba(255,255,255,.1);border-radius:6px;">🐋</div><div style="background:rgba(62,207,142,.35);border-radius:6px;">🌍</div><div style="background:rgba(255,255,255,.1);border-radius:6px;">🎆</div>
-        <div style="background:rgba(255,255,255,.1);border-radius:6px;">🐐</div><div style="background:rgba(255,255,255,.1);border-radius:6px;">🌟</div><div style="background:rgba(255,255,255,.1);border-radius:6px;">🗣️</div>
-      </div>
-      <div class="banner-fade"></div>
-    </div>
-    <div class="tile-body">
-      <div class="tile-info">
-        <div class="tile-title">The Daily 9 <span class="tile-tag tag-new">★ Daily</span></div>
-        <div class="tile-desc">9 categories, 1 question each — hoops to hobby slang. Same board for everyone, new board at midnight.</div>
-      </div>
-      <div class="arrow">›</div>
-    </div>
+    <div class="tile-banner banner-sig"><div class="rays"></div><div class="glowmark">✍️</div></div>
+    <div class="tile-body"><div class="tile-info">
+      <div class="tile-title">SIGNTVRE <span class="tile-tag tag-new">★ DAILY</span></div>
+      <div class="tile-desc">Guess the mystery autograph in 8 tries. Poeltl-style hints.</div>
+    </div><div class="arrow">›</div></div>
   </a>
 
   <div class="game-tile tile-locked">
     <div class="tape"><span>🚧 Building 🚧</span></div>
-    <div class="tile-banner banner-price">
-      <div class="price-mark">$?$</div>
-      <div class="banner-fade"></div>
-    </div>
-    <div class="tile-body">
-      <div class="tile-info">
-        <div class="tile-title">Price Count <span class="tile-tag tag-soon">Coming soon</span></div>
-        <div class="tile-desc">A PSA 10 Charizard vs. a Rolex vs. SGA's game check. Guess what real cards sold for — and what beats what.</div>
-      </div>
-      <div class="arrow">›</div>
-    </div>
+    <div class="tile-banner banner-price"><div class="rays"></div><div class="glowmark">💰</div></div>
+    <div class="tile-body"><div class="tile-info">
+      <div class="tile-title">Price Count <span class="tile-tag tag-soon">Soon</span></div>
+      <div class="tile-desc">A PSA 10 Charizard vs. a Rolex vs. a game check. Guess what wins.</div>
+    </div><div class="arrow">›</div></div>
   </div>
 
-  <div class="signout-wrap">
-    <button class="signout-btn" onclick="signOut()">Sign out</button>
-  </div>
-  <div class="foot">CARDVERSE MINI GAMES</div>
+  <img class="planetband" src="images/planets.png" onerror="this.style.display='none'"/>
+
+  <div class="signout-wrap"><button class="signout-btn" onclick="signOut()">Sign out</button></div>
+  <div class="foot">◇ CARDVERSE MINI GAMES ◇</div>
 </div>
 
 <script>
@@ -192,17 +153,15 @@ const SB_URL  = 'https://nwzsomfhidefbldsloxz.supabase.co';
 const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA';
 const sb = supabase.createClient(SB_URL, SB_ANON);
 
-// Stars
 const starsEl = document.getElementById('stars');
-for(let i=0;i<70;i++){
+for(let i=0;i<80;i++){
   const s=document.createElement('div'); s.className='star';
-  const sz=Math.random()*2+.5;
+  const sz=Math.random()*2.2+.4;
   s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*3}s;`;
   starsEl.appendChild(s);
 }
 
 async function init(){
-  // Live pool count — works for guests too
   sb.from('pr_cards').select('id',{count:'exact',head:true}).in('status',['active','featured'])
     .then(({count})=>{ if(count) document.getElementById('stat-pool').textContent=count.toLocaleString(); });
 
