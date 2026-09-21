@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>SIGNTVRE</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="share-card.js"></script>
 <style>
@@ -40,7 +40,11 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 .auto-placeholder .icon{font-size:48px;}
 .auto-placeholder .lbl{font-size:13px;font-weight:800;}
 .auto-overlay{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:800;color:#fff;}
-.guesses-left{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.65);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;color:#fff;}
+.guesses-left{position:absolute;top:10px;right:10px;background:#0b0b0b;border:2px solid var(--orange);border-radius:10px;padding:4px 9px 3px;text-align:center;box-shadow:0 0 14px rgba(255,107,53,.5);min-width:44px;}
+.guesses-left .sc-n{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--orange);line-height:1;text-shadow:0 0 8px rgba(255,107,53,.85);}
+.guesses-left .sc-l{font-size:7px;font-weight:900;color:#ffb08a;letter-spacing:.12em;margin-top:1px;}
+.guesses-left.low{border-color:var(--r);box-shadow:0 0 16px rgba(252,108,108,.6);}
+.guesses-left.low .sc-n{color:var(--r);text-shadow:0 0 8px rgba(252,108,108,.85);}
 
 /* SEARCH */
 .search-wrap{padding:0 16px 12px;position:relative;}
@@ -59,7 +63,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 /* HINT TABLE */
 .hint-table{padding:0 16px 12px;}
 .hint-header{display:grid;grid-template-columns:2fr repeat(6,1fr);gap:3px;margin-bottom:4px;}
-.hh{font-size:9px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;text-align:center;}
+.hh{font-size:9.5px;font-weight:900;color:var(--t);text-transform:uppercase;letter-spacing:.05em;text-align:center;}
 .hh:first-child{text-align:left;padding-left:4px;}
 
 /* GUESS ROW */
@@ -146,7 +150,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
     <!-- Full card reveal - shown on win/loss -->
     <img id="card-img" class="auto-img" style="display:none;"/>
     <div class="auto-overlay" id="auto-overlay" style="display:none;">✍️ Guess the Autograph</div>
-    <div class="guesses-left" id="guesses-left" style="display:none;">8 guesses left</div>
+    <div class="guesses-left" id="guesses-left" style="display:none;"><div class="sc-n" id="sc-n">8</div><div class="sc-l">LEFT</div></div>
     <!-- Reveal badge shown when card is shown -->
     <div id="reveal-badge" style="display:none;position:absolute;top:10px;left:10px;background:rgba(62,207,142,.9);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:900;color:#fff;">✓ Revealed!</div>
   </div>
@@ -515,7 +519,7 @@ async function loadPuzzle() {
     autoImgEl.style.display = 'block';
     autoImgEl.className = 'auto-img';
     ph.style.display = 'none';
-    document.getElementById('auto-overlay').style.display = 'block';
+    document.getElementById('auto-overlay').style.display = 'none';
     document.getElementById('guesses-left').style.display = 'block';
   } else {
     autoImgEl.style.display = 'none';
@@ -710,7 +714,9 @@ function buildEmptyRows() {
 function updateGuessesLeft() {
   const rem = MAX_GUESSES - guesses.length;
   const el = document.getElementById('guesses-left');
-  if(el) el.textContent = rem + ' guess' + (rem !== 1 ? 'es' : '') + ' left';
+  const n = document.getElementById('sc-n');
+  if(n) n.textContent = rem;
+  if(el) el.classList.toggle('low', rem <= 2);
 }
 
 // ── RESULT ──
