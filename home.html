@@ -12,12 +12,14 @@
 body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-height:100vh;overflow-x:hidden;}
 /* deep space */
 .space{position:fixed;inset:0;z-index:0;overflow:hidden;background:
- radial-gradient(120% 80% at 15% 0%,rgba(124,108,252,.28),transparent 55%),
- radial-gradient(110% 70% at 90% 12%,rgba(252,108,143,.20),transparent 55%),
- radial-gradient(120% 90% at 50% 112%,rgba(78,224,214,.13),transparent 55%),
- radial-gradient(100% 100% at 50% 50%,#0d0a1c,#070510);}
+ radial-gradient(90% 60% at 12% 4%,rgba(124,108,252,.34),transparent 52%),
+ radial-gradient(80% 55% at 88% 10%,rgba(252,108,143,.26),transparent 52%),
+ radial-gradient(70% 55% at 78% 60%,rgba(78,224,214,.16),transparent 55%),
+ radial-gradient(90% 70% at 25% 85%,rgba(150,90,255,.20),transparent 55%),
+ radial-gradient(120% 100% at 50% 45%,#171233 0%,#0f0a24 45%,#0a0718 100%);}
 .stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .star{position:absolute;background:#fff;border-radius:50%;animation:twinkle linear infinite alternate;}
+.star.big{box-shadow:0 0 6px 1px rgba(255,255,255,.8),0 0 12px 3px rgba(150,180,255,.4);}
 @keyframes twinkle{0%{opacity:.12}100%{opacity:.9}}
 .comet{position:fixed;width:120px;top:8%;left:58%;opacity:0;z-index:0;animation:comet 11s linear infinite;}
 @keyframes comet{0%{opacity:0;transform:translate(60px,-40px) scale(.7)}6%{opacity:.85}20%{opacity:.85}32%{opacity:0;transform:translate(-280px,300px) scale(1)}100%{opacity:0}}
@@ -154,10 +156,12 @@ const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const sb = supabase.createClient(SB_URL, SB_ANON);
 
 const starsEl = document.getElementById('stars');
-for(let i=0;i<80;i++){
-  const s=document.createElement('div'); s.className='star';
-  const sz=Math.random()*2.2+.4;
-  s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*3}s;`;
+for(let i=0;i<180;i++){
+  const s=document.createElement('div');
+  const big=Math.random()<0.10;
+  s.className='star'+(big?' big':'');
+  const sz=big?(Math.random()*1.6+2.2):(Math.random()*1.8+.4);
+  s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s;`;
   starsEl.appendChild(s);
 }
 
