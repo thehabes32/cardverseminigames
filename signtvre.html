@@ -132,7 +132,6 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
   <!-- SPORT TABS -->
   <div class="sport-tabs" id="sport-tabs">
     <button class="sport-tab active" data-sport="basketball" onclick="setSport('basketball')">🏀 NBA</button>
-    <button class="sport-tab" data-sport="baseball" onclick="setSport('baseball')">⚾ MLB</button>
     <button class="sport-tab" data-sport="football" onclick="setSport('football')">🏈 NFL</button>
   </div>
 
@@ -560,7 +559,7 @@ function handleSearch(val) {
 
   const usedNames = new Set(guesses.map(g => g.name.toLowerCase()));
   const matches = PLAYERS
-    .filter(p => p.name.toLowerCase().includes(q) && !usedNames.has(p.name.toLowerCase()))
+    .filter(p => (p.sport||'basketball')===sportFilter && p.name.toLowerCase().includes(q) && !usedNames.has(p.name.toLowerCase()))
     .slice(0, 8);
 
   if(!matches.length) { dd.style.display = 'none'; return; }
