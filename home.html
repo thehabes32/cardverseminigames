@@ -223,7 +223,7 @@ function renderTier(p){
   for(let i=1;i<TIERS.length;i++){ const T=TIERS[i]; if(days>=T.days||streak>=T.streak||pts>=T.pts) cur=i; }
   const now=TIERS[cur];
   document.getElementById('t-dot').style.background=now.col;
-  document.getElementById('t-now').textContent=now.n+' tier';
+  document.getElementById('t-now').textContent=now.n+' tier · Level '+(cur+1);
   const prog=document.getElementById('tier-prog'); prog.style.display='flex';
   if(cur>=TIERS.length-1){ document.getElementById('t-next').innerHTML='👑 Top dog — you own every border'; document.getElementById('t-bar').style.width='100%'; return; }
   const nx=TIERS[cur+1];
@@ -237,7 +237,7 @@ function renderTier(p){
   opts.forEach(o=>o.pct=o.need?Math.min(1,o.have/o.need):1);
   opts.sort((a,b)=>b.pct-a.pct);
   const best=opts[0];
-  document.getElementById('t-next').innerHTML='<b>'+best.lbl+'</b> to '+nx.n;
+  document.getElementById('t-next').innerHTML='🔓 <b>'+best.lbl+'</b> until '+nx.n;
   document.getElementById('t-bar').style.width=Math.round(best.pct*100)+'%';
 }
 
