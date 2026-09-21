@@ -40,11 +40,15 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 .auto-placeholder .icon{font-size:48px;}
 .auto-placeholder .lbl{font-size:13px;font-weight:800;}
 .auto-overlay{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:800;color:#fff;}
-.guesses-left{position:absolute;top:10px;right:10px;background:#0b0b0b;border:2px solid var(--orange);border-radius:10px;padding:4px 9px 3px;text-align:center;box-shadow:0 0 14px rgba(255,107,53,.5);min-width:44px;}
-.guesses-left .sc-n{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--orange);line-height:1;text-shadow:0 0 8px rgba(255,107,53,.85);}
-.guesses-left .sc-l{font-size:7px;font-weight:900;color:#ffb08a;letter-spacing:.12em;margin-top:1px;}
-.guesses-left.low{border-color:var(--r);box-shadow:0 0 16px rgba(252,108,108,.6);}
-.guesses-left.low .sc-n{color:var(--r);text-shadow:0 0 8px rgba(252,108,108,.85);}
+.guesses-left{position:absolute;top:10px;right:10px;background:#0b0b0b;border:2px solid #2ecf6e;border-radius:10px;padding:4px 9px 3px;text-align:center;box-shadow:0 0 14px rgba(46,207,110,.5);min-width:44px;transition:border-color .3s,box-shadow .3s;}
+.guesses-left .sc-n{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:#2ecf6e;line-height:1;text-shadow:0 0 8px rgba(46,207,110,.85);transition:color .3s;}
+.guesses-left .sc-l{font-size:7px;font-weight:900;color:rgba(255,255,255,.6);letter-spacing:.12em;margin-top:1px;}
+.guesses-left.clk-yellow{border-color:#f5c518;box-shadow:0 0 15px rgba(245,197,24,.55);}
+.guesses-left.clk-yellow .sc-n{color:#f5c518;text-shadow:0 0 8px rgba(245,197,24,.85);}
+.guesses-left.clk-orange{border-color:#ff6b35;box-shadow:0 0 15px rgba(255,107,53,.55);}
+.guesses-left.clk-orange .sc-n{color:#ff6b35;text-shadow:0 0 8px rgba(255,107,53,.85);}
+.guesses-left.clk-red{border-color:#fc4444;box-shadow:0 0 17px rgba(252,68,68,.65);}
+.guesses-left.clk-red .sc-n{color:#fc4444;text-shadow:0 0 8px rgba(252,68,68,.9);}
 
 /* SEARCH */
 .search-wrap{padding:0 16px 12px;position:relative;}
@@ -713,10 +717,16 @@ function buildEmptyRows() {
 
 function updateGuessesLeft() {
   const rem = MAX_GUESSES - guesses.length;
-  const el = document.getElementById('guesses-left');
   const n = document.getElementById('sc-n');
+  const el = document.getElementById('guesses-left');
   if(n) n.textContent = rem;
-  if(el) el.classList.toggle('low', rem <= 2);
+  if(el){
+    el.classList.remove('clk-yellow','clk-orange','clk-red');
+    if(rem <= 2) el.classList.add('clk-red');
+    else if(rem === 3) el.classList.add('clk-orange');
+    else if(rem <= 5) el.classList.add('clk-yellow');
+    // 6+ = green (default)
+  }
 }
 
 // ── RESULT ──
