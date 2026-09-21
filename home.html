@@ -45,11 +45,19 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .streak-hero .sh-n{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:var(--gold);line-height:1;}
 .streak-hero .sh-l{font-size:10.5px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
 
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.8rem;}
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;}
 .stat-box{background:rgba(255,255,255,.04);border:1px solid var(--b);border-radius:16px;padding:.9rem .4rem;text-align:center;}
 .stat-val{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;}
 .stat-lbl{font-size:9px;color:var(--m);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
 
+.tier-prog{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid var(--b);border-radius:16px;padding:.85rem 1.1rem;margin-bottom:1.8rem;}
+.tier-prog .tdot{width:16px;height:22px;border-radius:5px;flex-shrink:0;box-shadow:0 0 12px rgba(124,108,252,.4);}
+.tier-prog .tt{flex:1;}
+.tier-prog .tt .now{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;}
+.tier-prog .tt .nxt{font-size:11px;color:var(--m);font-weight:800;margin-top:2px;}
+.tier-prog .tt .nxt b{color:var(--gold);}
+.tbar{height:6px;background:var(--s2);border-radius:99px;overflow:hidden;margin-top:6px;}
+.tbar span{display:block;height:100%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:99px;}
 .sec-lbl{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.18em;margin-bottom:.9rem;}
 
 .game-tile{display:block;position:relative;border-radius:20px;overflow:hidden;margin-bottom:1rem;border:1.5px solid var(--b);background:var(--s);text-decoration:none;color:var(--t);transition:transform .18s,box-shadow .18s,border-color .18s;}
@@ -114,7 +122,14 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
   <div class="stats-row">
     <div class="stat-box"><div class="stat-val" id="stat-streak">—</div><div class="stat-lbl">Best Streak</div></div>
     <div class="stat-box"><div class="stat-val" id="stat-pts">—</div><div class="stat-lbl">Total Pts</div></div>
-    <div class="stat-box"><div class="stat-val" id="stat-pool">—</div><div class="stat-lbl">Cards in Play</div></div>
+  </div>
+  <div class="tier-prog" id="tier-prog" style="display:none;">
+    <div class="tdot" id="t-dot"></div>
+    <div class="tt">
+      <div class="now" id="t-now">Bronze</div>
+      <div class="nxt" id="t-next"></div>
+      <div class="tbar"><span id="t-bar" style="width:0%"></span></div>
+    </div>
   </div>
 
   <div class="sec-lbl">▸ Choose your game</div>
@@ -166,9 +181,6 @@ for(let i=0;i<180;i++){
 }
 
 async function init(){
-  sb.from('pr_cards').select('id',{count:'exact',head:true}).in('status',['active','featured'])
-    .then(({count})=>{ if(count) document.getElementById('stat-pool').textContent=count.toLocaleString(); });
-
   const {data:{session}} = await sb.auth.getSession();
   if(!session){
     const isGuest = sessionStorage.getItem('cv_guest') === '1';
@@ -187,10 +199,46 @@ async function init(){
       document.getElementById('sh-streak').textContent = p.best_streak;
       document.getElementById('streak-hero').style.display = 'flex';
     }
+    renderTier(p);
   } else {
     document.getElementById('user-name').textContent = session.user.email?.split('@')[0] || 'Player';
     ['stat-streak','stat-pts'].forEach(id=>document.getElementById(id).textContent='0');
   }
+}
+
+const TIERS=[
+  {n:'Bronze',   col:'linear-gradient(135deg,#4a2f12,#9c6b2e)', days:0,   streak:0,  pts:0},
+  {n:'Silver',   col:'linear-gradient(135deg,#8b909a,#e8edf5)', days:3,   streak:5,  pts:500},
+  {n:'Gold',     col:'linear-gradient(135deg,#b8860b,#fcd96c)', days:7,   streak:10, pts:1000},
+  {n:'Elite',    col:'linear-gradient(135deg,#7a1420,#fc4444)', days:14,  streak:15, pts:5000},
+  {n:'Diamond',  col:'linear-gradient(135deg,#2d7fd8,#8fd0ff)', days:30,  streak:20, pts:15000},
+  {n:'Superfractor', col:'conic-gradient(from 0deg,#fcd96c,#ff8a3c,#b56cff,#5cc8ff,#fcd96c)', days:60, streak:99, pts:30000},
+  {n:'Pink Amethyst', col:'linear-gradient(135deg,#b34ce0,#f59bff)', days:120, streak:99, pts:50000},
+  {n:'Nebula',   col:'linear-gradient(120deg,#3a1c71,#4ee0d6,#7c6cfc)', days:250, streak:99, pts:100000},
+];
+function renderTier(p){
+  const days=p.days_played||0, streak=p.best_streak||0, pts=p.total_pts||0;
+  // current tier = highest whose ANY threshold is met
+  let cur=0;
+  for(let i=1;i<TIERS.length;i++){ const T=TIERS[i]; if(days>=T.days||streak>=T.streak||pts>=T.pts) cur=i; }
+  const now=TIERS[cur];
+  document.getElementById('t-dot').style.background=now.col;
+  document.getElementById('t-now').textContent=now.n+' tier';
+  const prog=document.getElementById('tier-prog'); prog.style.display='flex';
+  if(cur>=TIERS.length-1){ document.getElementById('t-next').innerHTML='👑 Top dog — you own every border'; document.getElementById('t-bar').style.width='100%'; return; }
+  const nx=TIERS[cur+1];
+  // nearest single path to next tier
+  const opts=[
+    {kind:'pts', rem:Math.max(0,nx.pts-pts), lbl:(Math.max(0,nx.pts-pts)).toLocaleString()+' pts', have:pts, need:nx.pts},
+    {kind:'streak', rem:Math.max(0,nx.streak-streak), lbl:Math.max(0,nx.streak-streak)+' more streak', have:streak, need:nx.streak},
+    {kind:'days', rem:Math.max(0,nx.days-days), lbl:Math.max(0,nx.days-days)+' more days', have:days, need:nx.days}
+  ].filter(o=>o.need<99999);
+  // pick the path closest to completion (highest % done)
+  opts.forEach(o=>o.pct=o.need?Math.min(1,o.have/o.need):1);
+  opts.sort((a,b)=>b.pct-a.pct);
+  const best=opts[0];
+  document.getElementById('t-next').innerHTML='<b>'+best.lbl+'</b> to '+nx.n;
+  document.getElementById('t-bar').style.width=Math.round(best.pct*100)+'%';
 }
 
 async function signOut(){
