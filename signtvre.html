@@ -11,11 +11,12 @@
 :root{
   --bg:#0f0e17;--s:#1a1928;--s2:#232235;--s3:#2a293d;
   --b:rgba(255,255,255,.09);--t:#f2f0ff;--m:rgba(242,240,255,.5);--dim:rgba(242,240,255,.25);
-  --a:#7c6cfc;--orange:#ff6b35;--g:#538d4e;--yellow:#b59f3b;--grey:#3a3a3c;--r:#fc6c6c;
+  --a:#7c6cfc;--orange:#ff6b35;--g:#2ecf6e;--yellow:#f5c518;--grey:#3a3a3c;--r:#fc6c6c;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow-x:hidden;}
 body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;}
+@media(min-width:700px){body{max-width:680px;} .auto-img{height:300px;}}
 
 /* HEADER */
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--b);}
