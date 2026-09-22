@@ -41,19 +41,36 @@
     x.fillStyle=o.gameColor||'#fcd96c'; x.font='800 34px Orbitron, sans-serif';
     x.fillText((o.game||'').toUpperCase(), W/2, 400);
 
-    // big score
-    x.fillStyle=o.gem?'#fcd96c':'#f2f0ff'; x.font='900 150px Orbitron, sans-serif';
-    var big=String(o.big||''); x.fillText(big, W/2 - (o.small?30:0), 560);
-    if(o.small){ x.fillStyle='rgba(242,240,255,0.5)'; x.font='900 64px Orbitron, sans-serif';
-      var bw=x.measureText(big).width; x.textAlign='left'; x.fillText(o.small, W/2 - 30 + bw/2 + 8, 560); x.textAlign='center'; }
+    // big score — draw "5" and "/8" as one centered group so the number sits dead-center
+    var big=String(o.big||'');
+    var bigFont='900 140px Orbitron, sans-serif';
+    var smallFont='900 56px Orbitron, sans-serif';
+    x.textBaseline='alphabetic';
+    x.font=bigFont; var bw=x.measureText(big).width;
+    var sw2=0, gap=8;
+    if(o.small){ x.font=smallFont; sw2=x.measureText(o.small).width; }
+    var total=bw + (o.small ? gap+sw2 : 0);
+    var sx=(W-total)/2;
+    x.textAlign='left';
+    x.font=bigFont; x.fillStyle=o.gem?'#fcd96c':'#f2f0ff'; x.fillText(big, sx, 558);
+    if(o.small){ x.font=smallFont; x.fillStyle='rgba(242,240,255,0.5)'; x.fillText(o.small, sx+bw+gap, 558); }
+    x.textAlign='center';
 
     // sub
-    if(o.sub){ x.fillStyle='rgba(242,240,255,0.65)'; x.font='800 30px Nunito, sans-serif'; x.fillText(o.sub, W/2, 620); }
+    if(o.sub){ x.fillStyle='rgba(242,240,255,0.72)'; x.font='800 32px Nunito, sans-serif'; x.fillText(o.sub, W/2, 620); }
 
-    // emoji grid
-    var rows=o.rows||[]; x.font='58px Nunito, "Apple Color Emoji","Segoe UI Emoji", sans-serif';
-    var startY=710, lh=70;
+    // emoji grid — auto-fit rows into the space above the footer, with breathing room
+    var rows=o.rows||[];
+    var n=rows.length||1;
+    var top=666, area=316;                 // vertical band reserved for the grid
+    var lh=Math.min(78, area/n);           // per-row height, capped
+    var fs=Math.min(56, Math.round(lh-16));// emoji size follows the row height
+    var blockH=n*lh;
+    var startY=top + (area-blockH)/2 + fs; // baseline of the first row (block centered)
+    x.font=fs+'px Nunito, "Apple Color Emoji","Segoe UI Emoji", sans-serif';
+    try{ x.letterSpacing=Math.round(fs*0.16)+'px'; }catch(e){}
     for(var r=0;r<rows.length;r++){ x.fillText(rows[r], W/2, startY + r*lh); }
+    try{ x.letterSpacing='0px'; }catch(e){}
 
     // footer
     x.fillStyle='#4ee0d6'; x.font='800 30px Orbitron, sans-serif';

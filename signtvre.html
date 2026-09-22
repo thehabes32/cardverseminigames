@@ -111,7 +111,9 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 .result-emoji{font-size:40px;margin-bottom:8px;}
 .result-title{font-size:20px;font-weight:900;margin-bottom:4px;}
 .result-sub{font-size:12px;color:var(--m);font-weight:700;margin-bottom:12px;}
-.result-answer{background:var(--s2);border-radius:10px;padding:10px;font-size:14px;font-weight:900;color:var(--orange);margin-bottom:12px;}
+.result-answer{background:var(--s2);border-radius:10px;padding:10px;font-size:14px;font-weight:900;color:var(--orange);margin-bottom:10px;}
+.result-pts{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;color:var(--g);margin-bottom:12px;text-shadow:0 0 12px rgba(46,207,110,.5);}
+.result-pts.zero{color:var(--m);text-shadow:none;}
 .result-count{font-size:11px;font-weight:800;color:var(--m);margin-bottom:12px;}
 .result-count b{color:var(--a);}
 .result-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
@@ -234,6 +236,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
     <div class="result-title" id="result-title">Got it!</div>
     <div class="result-sub" id="result-sub">You solved today's Guess the Auto!</div>
     <div class="result-answer" id="result-answer"></div>
+    <div class="result-pts" id="result-pts"></div>
     <div class="share-preview" id="share-grid"></div>
     <div class="result-count" id="result-count" style="display:none;">Next auto in <b id="countdown">–</b></div>
     <div class="result-btns">
@@ -448,6 +451,13 @@ let currentPuzzle = null;
 let guesses = [];
 let gameOver = false;
 const MAX_GUESSES = 8;
+// Scoring: 100 max, -10 per extra guess (1 guess=100 … 8=30). Miss = 0.
+function calcPoints(won, g){ return won ? Math.max(20, 110 - g*10) : 0; }
+function showPts(pts){
+  const el = document.getElementById('result-pts');
+  el.textContent = (pts>0 ? '+'+pts+' points' : '0 points');
+  el.classList.toggle('zero', pts<=0);
+}
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded', async () => {
@@ -799,6 +809,9 @@ function showResult(won) {
 
   document.getElementById('result-answer').textContent = currentPuzzle.playerName;
 
+  const pts = calcPoints(won, guesses.length);
+  showPts(pts);
+
   // Build share grid (Wordle/Poeltl-style, spoiler-free)
   const emoji = {correct:'🟩', close:'🟨', wrong:'⬛'};
   const rows = guesses.map(g => g.hint.map(h => emoji[h.status]).join(''));
@@ -808,7 +821,7 @@ function showResult(won) {
   const scoreLine = (won ? guesses.length : 'X') + '/' + MAX_GUESSES + ' ' + sportEmoji;
   const shareText = head + '\n' + scoreLine + '\n\n' + rows.join('\n') + '\n\ncardverseminigames.com';
   document.getElementById('share-grid').textContent = shareText;
-  window._svShare = {won, guesses:guesses.slice(), rows, dayNum, scoreLine};
+  window._svShare = {won, guesses:guesses.slice(), rows, dayNum, scoreLine, pts};
 
   if(mode === 'unlimited') {
     document.getElementById('play-again-btn').style.display = 'inline-block';
@@ -816,7 +829,7 @@ function showResult(won) {
   } else {
     // DAILY: lock the puzzle for the rest of the day and show a countdown
     document.getElementById('play-again-btn').style.display = 'none';
-    saveDailyResult({date:todayStr(), won, guessCount:guesses.length, rows, answer:currentPuzzle.playerName, dayNum});
+    saveDailyResult({date:todayStr(), won, guessCount:guesses.length, rows, answer:currentPuzzle.playerName, dayNum, pts});
     document.getElementById('result-count').style.display = 'block';
     startCountdown();
   }
@@ -858,12 +871,15 @@ function showDailyLocked(saved){
   document.getElementById('result-sub').textContent = saved.won ? ('Solved in '+gw+' — come back tomorrow!') : 'Come back tomorrow for a new auto!';
   document.getElementById('result-answer').textContent = saved.answer;
 
+  const pts = (saved.pts!=null) ? saved.pts : calcPoints(saved.won, saved.guessCount);
+  showPts(pts);
+
   const sportEmoji = {basketball:'🏀',football:'🏈',baseball:'⚾'}[sportFilter] || '';
   const scoreLine = (saved.won ? saved.guessCount : 'X') + '/' + MAX_GUESSES + ' ' + sportEmoji;
   const head = 'Guess the Auto #' + saved.dayNum + ' ✍️';
   const shareText = head + '\n' + scoreLine + '\n\n' + saved.rows.join('\n') + '\n\ncardverseminigames.com';
   document.getElementById('share-grid').textContent = shareText;
-  window._svShare = {won:saved.won, guesses:new Array(saved.guessCount), rows:saved.rows, dayNum:saved.dayNum, scoreLine};
+  window._svShare = {won:saved.won, guesses:new Array(saved.guessCount), rows:saved.rows, dayNum:saved.dayNum, scoreLine, pts};
 
   document.getElementById('play-again-btn').style.display = 'none';
   document.getElementById('result-count').style.display = 'block';
@@ -891,8 +907,27 @@ function startCountdown(){
 
 function copyShare() {
   const text = document.getElementById('share-grid').textContent;
-  navigator.clipboard.writeText(text).then(() => setMsg('Copied to clipboard!', 'ok'))
-    .catch(() => setMsg('Copy failed', 'err'));
+  // Phone: open the native share sheet (iMessage, socials). Desktop: copy to clipboard.
+  if(navigator.share){
+    navigator.share({text}).then(()=>setMsg('Shared!','ok')).catch(err=>{
+      if(err && err.name==='AbortError') return; // user closed the sheet
+      // fall back to clipboard if share failed
+      if(navigator.clipboard) navigator.clipboard.writeText(text).then(()=>setMsg('Copied to clipboard!','ok')).catch(()=>{});
+    });
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>setMsg('Copied to clipboard!','ok'))
+      .catch(()=>fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text){
+  try{
+    const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    setMsg('Copied to clipboard!','ok');
+  }catch(e){ setMsg('Copy failed','err'); }
 }
 
 function saveShareImage() {
@@ -900,8 +935,8 @@ function saveShareImage() {
   cvShareImage({
     game:'Guess the Auto', gameColor:'#fc6c8f',
     big:(s.won? s.guesses.length : 'X'), small:'/'+MAX_GUESSES,
-    sub:(s.won? 'Guessed the auto' : 'Missed it'),
-    rows:s.rows, day:'#'+s.dayNum, filename:'signtvre-'+s.dayNum
+    sub:(s.won? ('+'+(s.pts!=null?s.pts:0)+' points') : 'Missed it'),
+    rows:s.rows, day:'#'+s.dayNum, filename:'guess-the-auto-'+s.dayNum
   });
   setMsg('Saving image…', 'ok');
 }
