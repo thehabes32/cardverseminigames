@@ -29,7 +29,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .mark{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--t);}
 .mark img{width:32px;filter:drop-shadow(0 0 10px rgba(124,108,252,.7));}
 .logo{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;letter-spacing:1px;}
-.logo span{color:var(--a);text-shadow:0 0 12px rgba(124,108,252,.8);}
+.logo span{color:var(--a);}
 
 /* HAMBURGER MENU */
 .menu-wrap{position:relative;}
@@ -54,7 +54,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .feature{display:flex;justify-content:center;margin:6px 0 4px;}
 .pcard{width:300px;border-radius:20px;padding:6px;position:relative;}
 .pcard .inner{border-radius:15px;background:linear-gradient(180deg,#141024,#0b0916);overflow:hidden;position:relative;height:420px;display:flex;flex-direction:column;}
-.pc-top{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 16px 0;z-index:2;}
+.pc-top{display:flex;justify-content:flex-end;align-items:flex-start;padding:14px 16px 0;z-index:2;}
 .pc-ovr{text-align:center;line-height:1;}
 .pc-ovr .n{font-family:'Orbitron',sans-serif;font-size:36px;font-weight:900;}
 .pc-ovr .l{font-size:8px;font-weight:800;color:var(--m);letter-spacing:.16em;margin-top:2px;}
@@ -139,7 +139,6 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
     <div class="pcard b-bronze" id="pcard">
       <div class="inner">
         <div class="pc-top">
-          <div class="pc-ovr"><div class="n" id="pc-ovr">50</div><div class="l">OVR</div></div>
           <div class="pc-tier" id="pc-tier">Bronze</div>
         </div>
         <div class="pc-char">
@@ -193,12 +192,10 @@ const TIERS=[
   {n:'Gold',          bcls:'b-gold',             glow:'#fcd96c', days:7,   streak:10, pts:1000,   rq:'Play 7 days or a 10 streak'},
   {n:'Elite',         bcls:'b-red',              glow:'#fc4444', days:14,  streak:15, pts:5000,   rq:'Play 14 days or a 15 streak'},
   {n:'Diamond',       bcls:'b-diamond',          glow:'#8fd0ff', days:30,  streak:20, pts:15000,  rq:'Play 30 days or a 20 streak'},
-  {n:'Superfractor',  bcls:'b-superfractor anim',glow:'#ffc864', days:60,  streak:99, pts:30000,  rq:'60 days or a perfect board'},
+  {n:'Superfractor',  bcls:'b-superfractor',     glow:'#ffc864', days:60,  streak:99, pts:30000,  rq:'60 days or a perfect board'},
   {n:'Pink Amethyst', bcls:'b-amethyst',         glow:'#f59bff', days:120, streak:99, pts:50000,  rq:'120 days or elite points'},
   {n:'Nebula',        bcls:'b-nebula anim',      glow:'#7c6cfc', days:250, streak:99, pts:100000, rq:'250 days — top dog'},
 ];
-
-function ovrFor(cur,pts,streak){ return Math.min(99, 55 + cur*5 + Math.floor(pts/2000) + Math.floor(streak/2)); }
 
 async function init(){
   const {data:{session}}=await sb.auth.getSession();
@@ -216,7 +213,6 @@ function render(p){
   let cur=0;
   for(let i=1;i<TIERS.length;i++){ const T=TIERS[i]; if(days>=T.days||streak>=T.streak||pts>=T.pts) cur=i; }
   const now=TIERS[cur];
-  const ovr=ovrFor(cur,pts,streak);
 
   // menu
   document.getElementById('menu-name').textContent=name;
@@ -224,7 +220,6 @@ function render(p){
 
   // card
   document.getElementById('pcard').className='pcard '+now.bcls;
-  document.getElementById('pc-ovr').textContent=ovr;
   document.getElementById('pc-tier').textContent=now.n;
   document.getElementById('pc-halo').style.background=now.glow;
   document.getElementById('pc-name').textContent=name;
