@@ -105,12 +105,12 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 
 /* HINT TABLE */
 .hint-table{padding:0 16px 12px;}
-.hint-header{display:grid;grid-template-columns:2fr repeat(6,1fr);gap:3px;margin-bottom:4px;}
+.hint-header{display:grid;grid-template-columns:1.7fr repeat(7,1fr);gap:3px;margin-bottom:4px;}
 .hh{font-size:9.5px;font-weight:900;color:var(--t);text-transform:uppercase;letter-spacing:.05em;text-align:center;}
 .hh:first-child{text-align:left;padding-left:4px;}
 
 /* GUESS ROW */
-.guess-row{display:grid;grid-template-columns:2fr repeat(6,1fr);gap:3px;margin-bottom:3px;}
+.guess-row{display:grid;grid-template-columns:1.7fr repeat(7,1fr);gap:3px;margin-bottom:3px;}
 .g-name{background:var(--s2);border:1.5px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 8px;font-size:12px;font-weight:800;display:flex;align-items:center;}
 .g-tile{border-radius:8px;height:44px;border:1.5px solid rgba(255,255,255,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:900;text-align:center;line-height:1.2;opacity:0;transform:scale(.8) rotateX(-90deg);transition:opacity .3s, transform .3s;}
 .g-tile.revealed{opacity:1;transform:scale(1) rotateX(0);}
@@ -120,7 +120,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 .g-tile .arrow{font-size:9px;margin-top:1px;opacity:.8;}
 
 /* EMPTY ROWS */
-.empty-row{display:grid;grid-template-columns:2fr repeat(6,1fr);gap:3px;margin-bottom:3px;opacity:.35;}
+.empty-row{display:grid;grid-template-columns:1.7fr repeat(7,1fr);gap:3px;margin-bottom:3px;opacity:.35;}
 .empty-cell{background:var(--s2);border:1.5px solid rgba(255,255,255,.16);border-radius:8px;height:44px;}
 .empty-name{background:var(--s2);border:1.5px solid rgba(255,255,255,.16);border-radius:8px;height:44px;}
 
@@ -234,6 +234,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
       <div class="hh">Pos</div>
       <div class="hh">Team</div>
       <div class="hh">Conf</div>
+      <div class="hh">Div</div>
       <div class="hh">#</div>
       <div class="hh">Age</div>
       <div class="hh">Ht</div>
@@ -700,19 +701,58 @@ function submitGuess(name) {
   }
 }
 
+// Map each team (by nickname / last word) to its division abbreviation
+const DIV_MAP = {
+  // NBA
+  celtics:'Atl', nets:'Atl', knicks:'Atl', '76ers':'Atl', raptors:'Atl',
+  bulls:'Cen', cavaliers:'Cen', pistons:'Cen', pacers:'Cen', bucks:'Cen',
+  hawks:'SE', hornets:'SE', heat:'SE', magic:'SE', wizards:'SE',
+  nuggets:'NW', timberwolves:'NW', thunder:'NW', blazers:'NW', jazz:'NW',
+  warriors:'Pac', clippers:'Pac', lakers:'Pac', suns:'Pac', kings:'Pac',
+  mavericks:'SW', rockets:'SW', grizzlies:'SW', pelicans:'SW', spurs:'SW',
+  // NFL
+  bills:'AFC E', dolphins:'AFC E', patriots:'AFC E', jets:'AFC E',
+  ravens:'AFC N', bengals:'AFC N', browns:'AFC N', steelers:'AFC N',
+  texans:'AFC S', colts:'AFC S', jaguars:'AFC S', titans:'AFC S',
+  broncos:'AFC W', chiefs:'AFC W', raiders:'AFC W', chargers:'AFC W',
+  cowboys:'NFC E', giants:'NFC E', eagles:'NFC E', commanders:'NFC E',
+  bears:'NFC N', lions:'NFC N', packers:'NFC N', vikings:'NFC N',
+  falcons:'NFC S', panthers:'NFC S', saints:'NFC S', buccaneers:'NFC S',
+  cardinals:'NFC W', rams:'NFC W', '49ers':'NFC W', seahawks:'NFC W'
+};
+function teamNick(team){ const w=(team||'').trim().split(/\s+/); return (w[w.length-1]||''); }
+function divisionFor(team){ return DIV_MAP[teamNick(team).toLowerCase()] || '?'; }
+
 function buildHint(player, answer) {
   if(!answer) {
-    // No answer player found in DB — just show wrong for everything
-    return ['pos','team','conf','jersey','age','height'].map(f => ({field:f, value:player[f], status:'wrong', arrow:''}));
+    return [
+      {field:'pos',value:player.pos,status:'wrong',arrow:''},
+      {field:'team',value:teamNick(player.team),status:'wrong',arrow:''},
+      {field:'conf',value:player.conf,status:'wrong',arrow:''},
+      {field:'division',value:divisionFor(player.team),status:'wrong',arrow:''},
+      {field:'jersey',value:player.jersey,status:'wrong',arrow:''},
+      {field:'age',value:player.age,status:'wrong',arrow:''},
+      {field:'height',value:player.height,status:'wrong',arrow:''},
+    ];
   }
   return [
     tileExact(player, answer, 'pos'),
-    tileExact(player, answer, 'team'),
+    tileTeam(player, answer),
     tileExact(player, answer, 'conf'),
+    tileDivision(player, answer),
     tileNum(player, answer, 'jersey', 5),
     tileNum(player, answer, 'age', 5),
     tileNum(player, answer, 'height', 5),
   ];
+}
+
+function tileTeam(p, a){
+  const pv=teamNick(p.team), av=teamNick(a.team);
+  return {field:'team', value:pv, status: pv.toLowerCase()===av.toLowerCase() ? 'correct':'wrong', arrow:''};
+}
+function tileDivision(p, a){
+  const pv=divisionFor(p.team), av=divisionFor(a.team);
+  return {field:'division', value:pv, status: (pv===av && pv!=='?') ? 'correct':'wrong', arrow:''};
 }
 
 function tileExact(p, a, field) {
@@ -768,7 +808,7 @@ function buildEmptyRows() {
   el.innerHTML = Array(remaining).fill(0).map(() => `
     <div class="empty-row">
       <div class="empty-name"></div>
-      ${Array(6).fill('<div class="empty-cell"></div>').join('')}
+      ${Array(7).fill('<div class="empty-cell"></div>').join('')}
     </div>`).join('');
 }
 
