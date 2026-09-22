@@ -821,6 +821,8 @@ function localDayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.
 function localDayNum(){ const d=new Date(); return Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000) + d.getFullYear()*366; }
 function todayStr(){ return localDayStr(); }
 function yesterdayStr(){ const d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// Monday that starts the current giveaway week (entries reset weekly, draw Sunday night)
+function weekStartStr(){ const d=new Date(); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
 // Puzzle number — day #1 was 2026-09-21, so today reads #2, #3, …
 function puzzleNumber(){
@@ -869,6 +871,13 @@ async function awardDaily(won, pts){
       best_streak:best_streak,
       last_played:today
     }).eq('id',uid);
+
+    // Sunday Card Giveaway: +1 raffle entry for playing today (once per day, per week)
+    try{
+      const wk=weekStartStr();
+      const {data:ge}=await sb.from('giveaway_entries').select('entries').eq('user_id',uid).eq('week_start',wk).maybeSingle();
+      await sb.from('giveaway_entries').upsert({user_id:uid, week_start:wk, entries:(ge?.entries||0)+1, updated_at:new Date().toISOString()}, {onConflict:'user_id,week_start'});
+    }catch(e){ console.log('giveaway entry failed:', e.message); }
   }catch(e){ console.log('awardDaily failed:', e.message); }
 }
 function dailyKey(){ return 'sv_daily_' + sportFilter; }
