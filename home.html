@@ -36,6 +36,24 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .logo span{color:var(--a);text-shadow:0 0 12px rgba(124,108,252,.8);}
 .user-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--b);border-radius:99px;padding:.35rem .85rem;font-size:12px;font-weight:800;color:var(--m);cursor:pointer;}
 .user-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 8px var(--g);flex-shrink:0;}
+/* HAMBURGER MENU */
+.menu-wrap{position:relative;}
+.hamburger{display:flex;flex-direction:column;justify-content:center;gap:4px;width:42px;height:42px;align-items:center;background:var(--s2);border:1px solid var(--b);border-radius:12px;cursor:pointer;}
+.hamburger span{width:18px;height:2px;background:var(--t);border-radius:2px;transition:.2s;}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+.menu-dd{position:absolute;top:52px;right:0;min-width:190px;background:var(--s2);border:1px solid var(--b);border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,.5);padding:8px;z-index:60;display:none;}
+.menu-dd.open{display:block;}
+.menu-user{padding:8px 12px 10px;border-bottom:1px solid var(--b);margin-bottom:6px;}
+.menu-user .mu-name{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;}
+.menu-user .mu-sub{font-size:10px;color:var(--m);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.menu-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:14px;font-weight:800;color:var(--t);text-decoration:none;cursor:pointer;}
+.menu-item:hover{background:var(--s);}
+.menu-item.active{background:rgba(124,108,252,.18);color:var(--a);}
+.menu-item .mi-ic{font-size:16px;width:20px;text-align:center;}
+.menu-item.danger{color:var(--r);}
+.menu-sep{height:1px;background:var(--b);margin:6px 4px;}
 
 .hero{text-align:center;margin:2.4rem 0 1.6rem;}
 .hero .kicker{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:800;letter-spacing:.32em;color:var(--teal);text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 10px rgba(78,224,214,.6);}
@@ -82,7 +100,10 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .arrow{margin-left:auto;color:rgba(242,240,255,.3);font-size:22px;}
 /* coming soon construction tape */
 .tile-locked{cursor:default;position:relative;}
-.tile-locked .tile-banner,.tile-locked .tile-body{opacity:.5;}
+.tile-locked{cursor:default;}
+.tile-locked .tile-banner,.tile-locked .tile-body{filter:blur(7px);opacity:.75;pointer-events:none;user-select:none;}
+.tile-locked .tape{filter:none;}
+.tape span{color:#111;font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 1px 0 rgba(255,255,255,.35);}
 .tile-locked:hover{transform:none;border-color:var(--b);box-shadow:none;}
 .tape{position:absolute;top:50%;left:-8%;width:116%;padding:7px 0;z-index:3;background:repeating-linear-gradient(45deg,#fcd96c 0 22px,#111 22px 44px);transform:translateY(-50%) rotate(-8deg);box-shadow:0 4px 16px rgba(0,0,0,.5);text-align:center;pointer-events:none;}
 .tape span{font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;letter-spacing:.1em;color:#111;background:#fcd96c;padding:2px 12px;border-radius:4px;text-transform:uppercase;}
@@ -105,9 +126,20 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
       <img src="images/saucer.png" onerror="this.style.display='none'"/>
       <div class="logo">CARD<span>VERSE</span></div>
     </div>
-    <div class="user-pill" onclick="signOut()">
-      <div class="dot"></div>
-      <span id="user-name">Loading...</span>
+    <div class="menu-wrap">
+      <div class="hamburger" id="hamburger" onclick="toggleMenu(event)">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="menu-dd" id="menu-dd">
+        <div class="menu-user">
+          <div class="mu-name" id="user-name">Loading…</div>
+          <div class="mu-sub" id="menu-tier">Collector</div>
+        </div>
+        <a class="menu-item active" href="home.html"><span class="mi-ic">🎮</span> Games</a>
+        <a class="menu-item" href="profile.html"><span class="mi-ic">👤</span> Profile</a>
+        <div class="menu-sep"></div>
+        <div class="menu-item danger" onclick="signOut()"><span class="mi-ic">⎋</span> Sign out</div>
+      </div>
     </div>
   </div>
 
@@ -137,13 +169,14 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 
   <div class="sec-lbl">▸ Choose your game</div>
 
-  <a class="game-tile" href="game.html">
+  <div class="game-tile tile-locked">
+    <div class="tape"><span>🚧 Building 🚧</span></div>
     <div class="tile-banner banner-pop"><div class="rays"></div><div class="glowmark">🃏</div></div>
     <div class="tile-body"><div class="tile-info">
       <div class="tile-title">Pop Report <span class="tile-tag tag-live">● LIVE</span></div>
       <div class="tile-desc">Two graded cards. Which is rarer? Build a streak, survive the heat check.</div>
     </div><div class="arrow">›</div></div>
-  </a>
+  </div>
 
   <a class="game-tile" href="signtvre.html">
     <div class="tile-banner banner-sig"><div class="rays"></div><div class="glowmark">✍️</div></div>
@@ -227,6 +260,7 @@ function renderTier(p){
   const now=TIERS[cur];
   document.getElementById('t-dot').style.background=now.col;
   document.getElementById('t-now').textContent=now.n+' tier · Level '+(cur+1);
+  const mt=document.getElementById('menu-tier'); if(mt) mt.textContent=now.n+' · Level '+(cur+1);
   const prog=document.getElementById('tier-prog'); prog.style.display='flex';
   if(cur>=TIERS.length-1){ document.getElementById('t-next').innerHTML='👑 Top dog — you own every border'; document.getElementById('t-bar').style.width='100%'; return; }
   const nx=TIERS[cur+1];
@@ -248,6 +282,18 @@ async function signOut(){
   await sb.auth.signOut();
   window.location.href='login.html';
 }
+
+function toggleMenu(e){
+  if(e) e.stopPropagation();
+  document.getElementById('menu-dd').classList.toggle('open');
+  document.getElementById('hamburger').classList.toggle('open');
+}
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.menu-wrap')){
+    document.getElementById('menu-dd').classList.remove('open');
+    document.getElementById('hamburger').classList.remove('open');
+  }
+});
 
 init();
 </script>
