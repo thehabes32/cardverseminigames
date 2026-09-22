@@ -907,6 +907,8 @@ function showDailyLocked(saved){
   gameOver = true;
   // Backfill the stats record for a day already finished (covers games played before history logging existed)
   saveGameHistory({date:saved.date, sport:sportFilter, won:saved.won, guesses:saved.guessCount, pts:saved.pts});
+  // Also bank points/streak into the account if today's result wasn't counted yet (idempotent — guarded server-side)
+  awardDaily(saved.won, (saved.pts!=null ? saved.pts : calcPoints(saved.won, saved.guessCount)));
   document.getElementById('search-input').disabled = true;
   document.getElementById('search-wrap').style.display = 'none';
 
