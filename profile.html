@@ -24,7 +24,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .star.big{box-shadow:0 0 6px 1px rgba(255,255,255,.8),0 0 12px 3px rgba(150,180,255,.4);}
 @keyframes twinkle{0%{opacity:.12}100%{opacity:.9}}
 
-.wrap{max-width:640px;margin:0 auto;padding:1.6rem 1rem 4rem;position:relative;z-index:2;}
+.wrap{max-width:620px;margin:0 auto;padding:1.6rem 1rem 4rem;position:relative;z-index:2;}
 .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;}
 .mark{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--t);}
 .mark img{width:32px;filter:drop-shadow(0 0 10px rgba(124,108,252,.7));}
@@ -50,37 +50,62 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .menu-item.danger{color:var(--r);}
 .menu-sep{height:1px;background:var(--b);margin:6px 4px;}
 
-/* PROFILE CARD (Madden-style, tier-bordered) */
-.pcard-frame{border-radius:24px;padding:4px;margin-bottom:1.4rem;background:linear-gradient(135deg,#4a2f12,#9c6b2e);box-shadow:0 0 34px rgba(124,108,252,.28);transition:background .3s;}
-.pcard{background:linear-gradient(180deg,#1b1733,#141026);border-radius:20px;padding:1.6rem 1.2rem;text-align:center;position:relative;overflow:hidden;}
-.pcard .rays{position:absolute;inset:0;background:radial-gradient(circle at 50% -10%,rgba(255,255,255,.10),transparent 55%);pointer-events:none;}
-.pc-avatar{width:96px;height:96px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:40px;font-weight:900;color:#fff;padding:4px;background:linear-gradient(135deg,#4a2f12,#9c6b2e);position:relative;}
-.pc-avatar .inner{width:100%;height:100%;border-radius:50%;background:#141026;display:flex;align-items:center;justify-content:center;}
-.pc-name{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;letter-spacing:.5px;}
-.pc-tierline{display:inline-flex;align-items:center;gap:7px;margin-top:8px;background:rgba(255,255,255,.06);border:1px solid var(--b);border-radius:99px;padding:5px 14px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;}
-.pc-tierline .tdot{width:12px;height:16px;border-radius:4px;background:#9c6b2e;box-shadow:0 0 10px rgba(124,108,252,.4);}
+/* ===== PLAYER CARD (Madden-style, glowing tier border) ===== */
+.feature{display:flex;justify-content:center;margin:6px 0 4px;}
+.pcard{width:300px;border-radius:20px;padding:6px;position:relative;}
+.pcard .inner{border-radius:15px;background:linear-gradient(180deg,#141024,#0b0916);overflow:hidden;position:relative;height:420px;display:flex;flex-direction:column;}
+.pc-top{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 16px 0;z-index:2;}
+.pc-ovr{text-align:center;line-height:1;}
+.pc-ovr .n{font-family:'Orbitron',sans-serif;font-size:36px;font-weight:900;}
+.pc-ovr .l{font-size:8px;font-weight:800;color:var(--m);letter-spacing:.16em;margin-top:2px;}
+.pc-tier{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;padding:5px 9px;border-radius:7px;background:rgba(124,108,252,.25);color:#c9c0ff;}
+.pc-char{flex:1;display:flex;align-items:center;justify-content:center;position:relative;}
+.pc-char img{width:190px;filter:drop-shadow(0 8px 24px rgba(0,0,0,.6));position:relative;z-index:1;}
+.pc-char .halo{position:absolute;width:220px;height:220px;border-radius:50%;filter:blur(34px);opacity:.55;background:#7c6cfc;animation:pulse 3.2s ease-in-out infinite;}
+.pc-name{text-align:center;padding:12px;background:rgba(0,0,0,.35);z-index:2;}
+.pc-name .u{font-family:'Orbitron',sans-serif;font-size:19px;font-weight:900;letter-spacing:.04em;}
+.pc-name .s{font-size:10px;color:var(--m);font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-top:3px;}
 
+/* stats + progress */
 .pc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1.3rem;}
-.pc-stat{background:var(--s2);border:1px solid var(--b);border-radius:14px;padding:.9rem .3rem;}
+.pc-stat{background:var(--s2);border:1px solid var(--b);border-radius:14px;padding:.9rem .3rem;text-align:center;}
 .pc-stat b{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;display:block;}
 .pc-stat span{font-size:9px;color:var(--m);font-weight:800;text-transform:uppercase;letter-spacing:.05em;display:block;margin-top:3px;}
-
-.pc-prog{margin-top:1.2rem;text-align:left;background:var(--s2);border:1px solid var(--b);border-radius:14px;padding:.9rem 1.1rem;}
+.pc-prog{margin-top:1rem;text-align:left;background:var(--s2);border:1px solid var(--b);border-radius:14px;padding:.9rem 1.1rem;}
 .pc-prog .pl{font-size:11px;color:var(--m);font-weight:800;margin-bottom:8px;}
 .pc-prog .pl b{color:var(--gold);}
 .tbar{height:8px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;}
 .tbar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--a),var(--a2));transition:width .5s;}
 
-.sec-lbl{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:.2em;color:var(--teal);font-weight:800;text-transform:uppercase;margin:1.6rem 0 .8rem;}
-/* TIER LADDER */
-.ladder{display:flex;flex-direction:column;gap:8px;}
-.trow{display:flex;align-items:center;gap:12px;background:var(--s2);border:1px solid var(--b);border-radius:14px;padding:.75rem 1rem;}
-.trow.locked{opacity:.45;}
-.trow.current{border-color:var(--a);box-shadow:0 0 18px rgba(124,108,252,.3);}
-.trow .ld{width:16px;height:22px;border-radius:5px;flex-shrink:0;box-shadow:0 0 10px rgba(0,0,0,.4);}
-.trow .ln{flex:1;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;}
-.trow .lr{font-size:10px;color:var(--m);font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
-.trow .lc{font-size:15px;}
+/* ===== BORDER STYLES ===== */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.7}}
+@keyframes drift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+.b-bronze{background:linear-gradient(135deg,#4a2f12,#9c6b2e,#3a2410);box-shadow:0 0 16px rgba(120,78,30,.5);}
+.b-silver{background:linear-gradient(135deg,#9aa0aa,#e8edf5,#8b909a);box-shadow:0 0 18px rgba(200,210,225,.5);}
+.b-gold{background:linear-gradient(135deg,#b8860b,#fcd96c,#a8760b);box-shadow:0 0 22px rgba(252,217,108,.55);}
+.b-red{background:linear-gradient(135deg,#7a1420,#fc4444,#7a1420);box-shadow:0 0 24px rgba(252,68,68,.6);}
+.b-diamond{background:linear-gradient(135deg,#2d7fd8,#8fd0ff,#1f5fb0);box-shadow:0 0 26px rgba(74,168,255,.7);}
+.b-superfractor{background:conic-gradient(from 0deg,#fcd96c,#ff8a3c,#ff5c8a,#b56cff,#5cc8ff,#5cffa6,#ffe86c,#fcd96c);box-shadow:0 0 32px rgba(255,200,100,.75);}
+.b-superfractor::after{content:'';position:absolute;inset:0;border-radius:20px;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.5) 0deg 1deg,transparent 1deg 9deg);mix-blend-mode:overlay;pointer-events:none;}
+.b-superfractor.anim{animation:spin 8s linear infinite;}
+.b-amethyst{background:linear-gradient(135deg,#b34ce0,#f59bff,#7a2ea8);box-shadow:0 0 28px rgba(224,108,245,.65);}
+.b-nebula{background:linear-gradient(120deg,#3a1c71,#d76d77,#4ee0d6,#7c6cfc,#3a1c71);background-size:200% 200%;box-shadow:0 0 36px rgba(124,108,252,.8);}
+.b-nebula.anim{animation:drift 6s linear infinite;}
+
+/* ===== BORDER LADDER ===== */
+.seclbl{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--teal);text-transform:uppercase;text-align:center;margin:1.8rem 0 1rem;}
+.ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+.trow{border-radius:14px;padding:3px;position:relative;}
+.trow.locked{opacity:.4;}
+.trow.current .ti{outline:2px solid rgba(124,108,252,.6);outline-offset:-2px;}
+.trow .ti{background:#0e0b1a;border-radius:12px;padding:13px 14px;display:flex;align-items:center;gap:12px;}
+.tswatch{width:38px;height:52px;border-radius:6px;padding:3px;flex-shrink:0;}
+.tswatch .c{width:100%;height:100%;border-radius:4px;background:#0b0916;}
+.tinfo .nm{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;}
+.tinfo .rq{font-size:10.5px;color:var(--m);font-weight:700;margin-top:3px;line-height:1.4;}
+.tstat{margin-left:auto;font-size:15px;}
+.tnum{position:absolute;top:8px;right:12px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;color:rgba(255,255,255,.28);}
 
 .foot{text-align:center;font-family:'Orbitron',sans-serif;font-size:10px;color:rgba(242,240,255,.3);font-weight:700;letter-spacing:.3em;margin-top:1.6rem;}
 </style>
@@ -96,9 +121,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
       <div class="logo">CARD<span>VERSE</span></div>
     </a>
     <div class="menu-wrap">
-      <div class="hamburger" id="hamburger" onclick="toggleMenu(event)">
-        <span></span><span></span><span></span>
-      </div>
+      <div class="hamburger" id="hamburger" onclick="toggleMenu(event)"><span></span><span></span><span></span></div>
       <div class="menu-dd" id="menu-dd">
         <div class="menu-user">
           <div class="mu-name" id="menu-name">Loading…</div>
@@ -112,27 +135,37 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
     </div>
   </div>
 
-  <div class="pcard-frame" id="pcard-frame">
-    <div class="pcard">
-      <div class="rays"></div>
-      <div class="pc-avatar" id="pc-avatar"><div class="inner" id="pc-initial">?</div></div>
-      <div class="pc-name" id="pc-name">Player</div>
-      <div class="pc-tierline"><span class="tdot" id="pc-tdot"></span><span id="pc-tier">Bronze · Level 1</span></div>
-
-      <div class="pc-stats">
-        <div class="pc-stat"><b id="pc-streak">0</b><span>Best Streak</span></div>
-        <div class="pc-stat"><b id="pc-pts">0</b><span>Total Pts</span></div>
-        <div class="pc-stat"><b id="pc-days">0</b><span>Days Played</span></div>
-      </div>
-
-      <div class="pc-prog">
-        <div class="pl" id="pc-next">🔓 Keep playing to rank up</div>
-        <div class="tbar"><span id="pc-bar" style="width:0%"></span></div>
+  <div class="feature">
+    <div class="pcard b-bronze" id="pcard">
+      <div class="inner">
+        <div class="pc-top">
+          <div class="pc-ovr"><div class="n" id="pc-ovr">50</div><div class="l">OVR</div></div>
+          <div class="pc-tier" id="pc-tier">Bronze</div>
+        </div>
+        <div class="pc-char">
+          <div class="halo" id="pc-halo"></div>
+          <img src="images/saucer.png" onerror="this.style.display='none'"/>
+        </div>
+        <div class="pc-name">
+          <div class="u" id="pc-name">Player</div>
+          <div class="s" id="pc-sub">New collector</div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="sec-lbl">▸ Border collection</div>
+  <div class="pc-stats">
+    <div class="pc-stat"><b id="pc-streak">0</b><span>Best Streak</span></div>
+    <div class="pc-stat"><b id="pc-pts">0</b><span>Total Pts</span></div>
+    <div class="pc-stat"><b id="pc-days">0</b><span>Days Played</span></div>
+  </div>
+
+  <div class="pc-prog">
+    <div class="pl" id="pc-next">🔓 Keep playing to rank up</div>
+    <div class="tbar"><span id="pc-bar" style="width:0%"></span></div>
+  </div>
+
+  <div class="seclbl">◆ The Border Ladder ◆</div>
   <div class="ladder" id="ladder"></div>
 
   <div class="foot">◇ CARDVERSE MINI GAMES ◇</div>
@@ -153,30 +186,28 @@ for(let i=0;i<180;i++){
   starsEl.appendChild(s);
 }
 
+// tier defs: border class, glow color, unlock rule, ladder blurb
 const TIERS=[
-  {n:'Bronze',        col:'linear-gradient(135deg,#4a2f12,#9c6b2e)',                        days:0,   streak:0,  pts:0},
-  {n:'Silver',        col:'linear-gradient(135deg,#8b909a,#e8edf5)',                        days:3,   streak:5,  pts:500},
-  {n:'Gold',          col:'linear-gradient(135deg,#b8860b,#fcd96c)',                        days:7,   streak:10, pts:1000},
-  {n:'Elite',         col:'linear-gradient(135deg,#7a1420,#fc4444)',                        days:14,  streak:15, pts:5000},
-  {n:'Diamond',       col:'linear-gradient(135deg,#2d7fd8,#8fd0ff)',                        days:30,  streak:20, pts:15000},
-  {n:'Superfractor',  col:'conic-gradient(from 0deg,#fcd96c,#ff8a3c,#b56cff,#5cc8ff,#fcd96c)',days:60,streak:99, pts:30000},
-  {n:'Pink Amethyst', col:'linear-gradient(135deg,#b34ce0,#f59bff)',                        days:120, streak:99, pts:50000},
-  {n:'Nebula',        col:'linear-gradient(120deg,#3a1c71,#4ee0d6,#7c6cfc)',               days:250, streak:99, pts:100000},
+  {n:'Bronze',        bcls:'b-bronze',           glow:'#9c6b2e', days:0,   streak:0,  pts:0,      rq:'Everyone starts here'},
+  {n:'Silver',        bcls:'b-silver',           glow:'#e8edf5', days:3,   streak:5,  pts:500,    rq:'Play 3 days or a 5 streak'},
+  {n:'Gold',          bcls:'b-gold',             glow:'#fcd96c', days:7,   streak:10, pts:1000,   rq:'Play 7 days or a 10 streak'},
+  {n:'Elite',         bcls:'b-red',              glow:'#fc4444', days:14,  streak:15, pts:5000,   rq:'Play 14 days or a 15 streak'},
+  {n:'Diamond',       bcls:'b-diamond',          glow:'#8fd0ff', days:30,  streak:20, pts:15000,  rq:'Play 30 days or a 20 streak'},
+  {n:'Superfractor',  bcls:'b-superfractor anim',glow:'#ffc864', days:60,  streak:99, pts:30000,  rq:'60 days or a perfect board'},
+  {n:'Pink Amethyst', bcls:'b-amethyst',         glow:'#f59bff', days:120, streak:99, pts:50000,  rq:'120 days or elite points'},
+  {n:'Nebula',        bcls:'b-nebula anim',      glow:'#7c6cfc', days:250, streak:99, pts:100000, rq:'250 days — top dog'},
 ];
+
+function ovrFor(cur,pts,streak){ return Math.min(99, 55 + cur*5 + Math.floor(pts/2000) + Math.floor(streak/2)); }
 
 async function init(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session){
-    if(sessionStorage.getItem('cv_guest')==='1'){ renderGuest(); return; }
+    if(sessionStorage.getItem('cv_guest')==='1'){ render({username:'Guest',best_streak:0,total_pts:0,days_played:0}); return; }
     window.location.href='login.html'; return;
   }
   const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).maybeSingle();
-  const prof = p || {username:(session.user.email||'Player').split('@')[0], best_streak:0, total_pts:0, days_played:0};
-  render(prof);
-}
-
-function renderGuest(){
-  render({username:'Guest', best_streak:0, total_pts:0, days_played:0});
+  render(p || {username:(session.user.email||'Player').split('@')[0],best_streak:0,total_pts:0,days_played:0});
 }
 
 function render(p){
@@ -185,31 +216,35 @@ function render(p){
   let cur=0;
   for(let i=1;i<TIERS.length;i++){ const T=TIERS[i]; if(days>=T.days||streak>=T.streak||pts>=T.pts) cur=i; }
   const now=TIERS[cur];
+  const ovr=ovrFor(cur,pts,streak);
 
-  document.getElementById('pc-name').textContent=name;
+  // menu
   document.getElementById('menu-name').textContent=name;
-  document.getElementById('pc-initial').textContent=(name[0]||'?').toUpperCase();
+  document.getElementById('menu-tier').textContent=now.n+' · Level '+(cur+1);
+
+  // card
+  document.getElementById('pcard').className='pcard '+now.bcls;
+  document.getElementById('pc-ovr').textContent=ovr;
+  document.getElementById('pc-tier').textContent=now.n;
+  document.getElementById('pc-halo').style.background=now.glow;
+  document.getElementById('pc-name').textContent=name;
+  document.getElementById('pc-sub').textContent = streak>0 ? (streak+'-day streak · '+now.n) : (now.n+' tier · Level '+(cur+1));
+
+  // stats
   document.getElementById('pc-streak').textContent=streak;
   document.getElementById('pc-pts').textContent=pts.toLocaleString();
   document.getElementById('pc-days').textContent=days;
-  document.getElementById('pc-tier').textContent=now.n+' · Level '+(cur+1);
-  document.getElementById('menu-tier').textContent=now.n+' · Level '+(cur+1);
 
-  // apply tier border + avatar ring + tier dot
-  document.getElementById('pcard-frame').style.background=now.col;
-  document.getElementById('pc-avatar').style.background=now.col;
-  document.getElementById('pc-tdot').style.background=now.col;
-
-  // progress to next tier (nearest path)
+  // progress
   if(cur>=TIERS.length-1){
     document.getElementById('pc-next').innerHTML='👑 Top dog — every border unlocked';
     document.getElementById('pc-bar').style.width='100%';
   } else {
     const nx=TIERS[cur+1];
     const opts=[
-      {rem:Math.max(0,nx.pts-pts), lbl:Math.max(0,nx.pts-pts).toLocaleString()+' pts', have:pts, need:nx.pts},
-      {rem:Math.max(0,nx.streak-streak), lbl:Math.max(0,nx.streak-streak)+' more streak', have:streak, need:nx.streak},
-      {rem:Math.max(0,nx.days-days), lbl:Math.max(0,nx.days-days)+' more days', have:days, need:nx.days}
+      {lbl:Math.max(0,nx.pts-pts).toLocaleString()+' pts', have:pts, need:nx.pts},
+      {lbl:Math.max(0,nx.streak-streak)+' more streak', have:streak, need:nx.streak},
+      {lbl:Math.max(0,nx.days-days)+' more days', have:days, need:nx.days}
     ].filter(o=>o.need<99999);
     opts.forEach(o=>o.pct=o.need?Math.min(1,o.have/o.need):1);
     opts.sort((a,b)=>b.pct-a.pct);
@@ -218,17 +253,16 @@ function render(p){
     document.getElementById('pc-bar').style.width=Math.round(best.pct*100)+'%';
   }
 
-  // tier ladder
-  const ladder=document.getElementById('ladder');
-  ladder.innerHTML=TIERS.map((T,i)=>{
-    const unlocked=i<=cur;
-    const isNow=i===cur;
-    const req = i===0 ? 'Starter border' : (T.pts.toLocaleString()+' pts · '+T.streak+' streak · '+T.days+' days');
-    return `<div class="trow ${unlocked?'':'locked'} ${isNow?'current':''}">
-      <div class="ld" style="background:${T.col}"></div>
-      <div class="ln">${T.n}</div>
-      <div class="lr">${isNow?'Current':req}</div>
-      <div class="lc">${unlocked?'✓':'🔒'}</div>
+  // ladder
+  document.getElementById('ladder').innerHTML=TIERS.map((T,i)=>{
+    const unlocked=i<=cur, isNow=i===cur;
+    return `<div class="trow ${T.bcls} ${unlocked?'':'locked'} ${isNow?'current':''}">
+      <div class="tnum">${i+1}</div>
+      <div class="ti">
+        <div class="tswatch ${T.bcls}"><div class="c"></div></div>
+        <div class="tinfo"><div class="nm">${T.n}</div><div class="rq">${isNow?'Your current border':T.rq}</div></div>
+        <div class="tstat">${unlocked?'✓':'🔒'}</div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -244,7 +278,6 @@ document.addEventListener('click', e=>{
     document.getElementById('hamburger').classList.remove('open');
   }
 });
-
 async function signOut(){ await sb.auth.signOut(); window.location.href='login.html'; }
 
 init();
