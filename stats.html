@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Stats — Cardverse Mini Games</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="shortcut icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#0a0813;--s:#161327;--s2:#1f1b38;--b:rgba(255,255,255,.10);--t:#f2f0ff;--m:rgba(242,240,255,.55);--a:#7c6cfc;--a2:#fc6c8f;--teal:#4ee0d6;--g:#2ecf6e;--r:#fc6c6c;--gold:#fcd96c;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-height:100vh;overflow-x:hidden;}
+.space{position:fixed;inset:0;z-index:0;background:
+ radial-gradient(90% 60% at 12% 4%,rgba(124,108,252,.34),transparent 52%),
+ radial-gradient(80% 55% at 88% 10%,rgba(252,108,143,.26),transparent 52%),
+ radial-gradient(70% 55% at 78% 60%,rgba(78,224,214,.16),transparent 55%),
+ linear-gradient(180deg,#171233,#0f0a24 55%,#0a0718);}
+.stars{position:fixed;inset:0;z-index:1;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle linear infinite alternate;}
+.star.big{box-shadow:0 0 6px 1px rgba(255,255,255,.8),0 0 12px 3px rgba(150,180,255,.4);}
+@keyframes twinkle{0%{opacity:.12}100%{opacity:.9}}
+
+.wrap{max-width:560px;margin:0 auto;padding:1.6rem 1rem 4rem;position:relative;z-index:2;}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;}
+.mark{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--t);}
+.mark img{width:32px;filter:drop-shadow(0 0 10px rgba(124,108,252,.7));}
+.logo{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;letter-spacing:1px;}
+.logo span{color:var(--a);}
+
+.menu-wrap{position:relative;}
+.hamburger{display:flex;flex-direction:column;justify-content:center;gap:4px;width:42px;height:42px;align-items:center;background:var(--s2);border:1px solid var(--b);border-radius:12px;cursor:pointer;}
+.hamburger span{width:18px;height:2px;background:var(--t);border-radius:2px;transition:.2s;}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+.menu-dd{position:absolute;top:52px;right:0;min-width:190px;background:var(--s2);border:1px solid var(--b);border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,.5);padding:8px;z-index:60;display:none;}
+.menu-dd.open{display:block;}
+.menu-user{padding:8px 12px 10px;border-bottom:1px solid var(--b);margin-bottom:6px;}
+.menu-user .mu-name{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;}
+.menu-user .mu-sub{font-size:10px;color:var(--m);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.menu-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:14px;font-weight:800;color:var(--t);text-decoration:none;cursor:pointer;}
+.menu-item:hover{background:var(--s);}
+.menu-item.active{background:rgba(124,108,252,.18);color:var(--a);}
+.menu-item .mi-ic{font-size:16px;width:20px;text-align:center;}
+.menu-item.danger{color:var(--r);}
+.menu-sep{height:1px;background:var(--b);margin:6px 4px;}
+
+h1.title{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;margin-bottom:4px;}
+.sub{color:var(--m);font-size:12px;font-weight:700;margin-bottom:1.2rem;}
+
+/* sport + range tabs */
+.tabs{display:flex;gap:6px;margin-bottom:14px;}
+.tab{flex:1;padding:9px 0;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;color:var(--m);border:1.5px solid var(--b);background:var(--s2);font-family:'Nunito',sans-serif;text-align:center;}
+.tab.active{background:var(--a);color:#fff;border-color:var(--a);}
+
+/* summary */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.4rem;}
+.sbox{background:var(--s2);border:1px solid var(--b);border-radius:12px;padding:.8rem .2rem;text-align:center;}
+.sbox b{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;display:block;}
+.sbox span{font-size:8.5px;color:var(--m);font-weight:800;text-transform:uppercase;letter-spacing:.04em;display:block;margin-top:3px;}
+
+.dist-title{font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:800;margin-bottom:12px;}
+.drow{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.dlabel{width:16px;text-align:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;color:var(--m);}
+.dtrack{flex:1;background:rgba(255,255,255,.05);border-radius:6px;overflow:hidden;height:26px;}
+.dbar{height:100%;background:var(--grey,#3a3a3c);display:flex;align-items:center;justify-content:flex-end;padding:0 8px;min-width:26px;border-radius:6px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#fff;transition:width .5s;}
+.dbar.win{background:var(--g);}
+.dbar.best{background:var(--a);}
+.dbar.fail{background:var(--r);}
+.empty{text-align:center;color:var(--m);font-weight:700;font-size:13px;padding:30px 10px;}
+.foot{text-align:center;font-family:'Orbitron',sans-serif;font-size:10px;color:rgba(242,240,255,.3);font-weight:700;letter-spacing:.3em;margin-top:1.8rem;}
+</style>
+</head>
+<body>
+<div class="space"></div>
+<div class="stars" id="stars"></div>
+
+<div class="wrap">
+  <div class="header">
+    <a class="mark" href="home.html"><img src="images/saucer.png" onerror="this.style.display='none'"/><div class="logo">CARD<span>VERSE</span></div></a>
+    <div class="menu-wrap">
+      <div class="hamburger" id="hamburger" onclick="toggleMenu(event)"><span></span><span></span><span></span></div>
+      <div class="menu-dd" id="menu-dd">
+        <div class="menu-user"><div class="mu-name" id="menu-name">Loading…</div><div class="mu-sub">Stats</div></div>
+        <a class="menu-item" href="home.html"><span class="mi-ic">🎮</span> Games</a>
+        <a class="menu-item" href="profile.html"><span class="mi-ic">👤</span> Profile</a>
+        <a class="menu-item active" href="stats.html"><span class="mi-ic">📊</span> Stats</a>
+        <div class="menu-sep"></div>
+        <div class="menu-item danger" onclick="signOut()"><span class="mi-ic">⎋</span> Sign out</div>
+      </div>
+    </div>
+  </div>
+
+  <h1 class="title">Guess the Auto — Stats</h1>
+  <div class="sub">Your guess distribution, like Wordle.</div>
+
+  <div class="tabs" id="sport-tabs">
+    <div class="tab active" data-sport="all" onclick="setSport('all')">All sports</div>
+    <div class="tab" data-sport="basketball" onclick="setSport('basketball')">🏀 NBA</div>
+    <div class="tab" data-sport="football" onclick="setSport('football')">🏈 NFL</div>
+  </div>
+  <div class="tabs" id="range-tabs">
+    <div class="tab" data-range="week" onclick="setRange('week')">Weekly</div>
+    <div class="tab" data-range="month" onclick="setRange('month')">Monthly</div>
+    <div class="tab active" data-range="all" onclick="setRange('all')">Overall</div>
+  </div>
+
+  <div class="summary">
+    <div class="sbox"><b id="s-played">0</b><span>Played</span></div>
+    <div class="sbox"><b id="s-win">0%</b><span>Win %</span></div>
+    <div class="sbox"><b id="s-cur">0</b><span>Streak</span></div>
+    <div class="sbox"><b id="s-max">0</b><span>Best</span></div>
+  </div>
+
+  <div class="dist-title">Guess distribution</div>
+  <div id="dist"></div>
+
+  <div class="foot">◇ CARDVERSE MINI GAMES ◇</div>
+</div>
+
+<script>
+const SB_URL='https://nwzsomfhidefbldsloxz.supabase.co';
+const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA';
+const sb=supabase.createClient(SB_URL,SB_ANON);
+
+const starsEl=document.getElementById('stars');
+for(let i=0;i<160;i++){const s=document.createElement('div');const big=Math.random()<0.10;s.className='star'+(big?' big':'');const sz=big?(Math.random()*1.6+2.2):(Math.random()*1.8+.4);s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s;`;starsEl.appendChild(s);}
+
+let sportFilter='all', rangeFilter='all';
+let HISTORY=[];
+try{ HISTORY=JSON.parse(localStorage.getItem('cv_gta_history')||'[]'); }catch(e){ HISTORY=[]; }
+const MAX_GUESSES=8;
+
+function daysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+function filtered(){
+  return HISTORY.filter(r=>{
+    if(sportFilter!=='all' && (r.sport||'basketball')!==sportFilter) return false;
+    if(rangeFilter==='week' && r.date < daysAgo(6)) return false;
+    if(rangeFilter==='month' && r.date < daysAgo(29)) return false;
+    return true;
+  });
+}
+
+function render(){
+  const rows=filtered();
+  const played=rows.length;
+  const wins=rows.filter(r=>r.won).length;
+  document.getElementById('s-played').textContent=played;
+  document.getElementById('s-win').textContent=played? Math.round(wins/played*100)+'%' : '0%';
+
+  // distribution 1..8 wins + fails
+  const counts=[]; for(let g=1;g<=MAX_GUESSES;g++) counts.push(rows.filter(r=>r.won && r.guesses===g).length);
+  const fails=rows.filter(r=>!r.won).length;
+  const maxc=Math.max(1,...counts,fails);
+  const bestIdx=counts.indexOf(Math.max(...counts));
+
+  const dist=document.getElementById('dist');
+  if(!played){ dist.innerHTML='<div class="empty">No games yet — play Guess the Auto to build your stats.</div>'; return; }
+  let html='';
+  for(let g=1;g<=MAX_GUESSES;g++){
+    const c=counts[g-1];
+    const pct=Math.round(c/maxc*100);
+    const cls = (c>0 && g-1===bestIdx) ? 'best' : 'win';
+    html+=`<div class="drow"><div class="dlabel">${g}</div><div class="dtrack"><div class="dbar ${c>0?cls:''}" style="width:${c>0?Math.max(pct,8):0}%">${c>0?c:''}</div></div></div>`;
+  }
+  html+=`<div class="drow"><div class="dlabel">✗</div><div class="dtrack"><div class="dbar ${fails>0?'fail':''}" style="width:${fails>0?Math.max(Math.round(fails/maxc*100),8):0}%">${fails>0?fails:''}</div></div></div>`;
+  dist.innerHTML=html;
+}
+
+// streaks: from the account when logged in; otherwise leave at local best-effort
+async function loadStreaks(){
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(session){
+      const {data:p}=await sb.from('profiles').select('username,current_streak,best_streak').eq('id',session.user.id).maybeSingle();
+      if(p){
+        document.getElementById('menu-name').textContent=p.username||'Player';
+        document.getElementById('s-cur').textContent=p.current_streak||0;
+        document.getElementById('s-max').textContent=p.best_streak||0;
+        return;
+      }
+    }
+    document.getElementById('menu-name').textContent = sessionStorage.getItem('cv_guest')==='1' ? 'Guest' : 'Player';
+  }catch(e){}
+}
+
+function setSport(s){ sportFilter=s; document.querySelectorAll('#sport-tabs .tab').forEach(t=>t.classList.toggle('active',t.dataset.sport===s)); render(); }
+function setRange(r){ rangeFilter=r; document.querySelectorAll('#range-tabs .tab').forEach(t=>t.classList.toggle('active',t.dataset.range===r)); render(); }
+
+function toggleMenu(e){ if(e)e.stopPropagation(); document.getElementById('menu-dd').classList.toggle('open'); document.getElementById('hamburger').classList.toggle('open'); }
+document.addEventListener('click',e=>{ if(!e.target.closest('.menu-wrap')){ document.getElementById('menu-dd').classList.remove('open'); document.getElementById('hamburger').classList.remove('open'); } });
+async function signOut(){ await sb.auth.signOut(); window.location.href='login.html'; }
+
+render();
+loadStreaks();
+</script>
+</body>
+</html>

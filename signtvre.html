@@ -492,27 +492,31 @@ async function setSport(s) {
 }
 
 // ── PUZZLE LOADING ──
+async function fetchAutos(){
+  const sb=ensureSB(); if(!sb) return [];
+  try{
+    const q=sb.from('autograph_puzzles').select('id,player_name,sport,game_date,autograph_img,card_img,status').eq('status','active');
+    const {data}=await Promise.race([q, new Promise(r=>setTimeout(()=>r({data:null}),6000))]);
+    return (data||[]).map(a=>({...a, playerName:a.player_name, img:a.autograph_img}));
+  }catch(e){ console.log('Supabase unavailable:', e.message); return []; }
+}
+function readAutoCache(){ try{ return JSON.parse(localStorage.getItem('cv_auto_cache')||'[]'); }catch(e){ return []; } }
+function writeAutoCache(a){ try{ localStorage.setItem('cv_auto_cache', JSON.stringify(a)); }catch(e){} }
+
 async function loadPuzzle() {
-  // Read from Supabase (live website data)
-  let autos = [];
-  try {
-    if(typeof supabase !== 'undefined' && !window._sb) {
-      window._sb = supabase.createClient('https://nwzsomfhidefbldsloxz.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA');
-    }
-    if(window._sb) {
-      const q = window._sb.from('autograph_puzzles').select('*').eq('status','active');
-      const {data} = await Promise.race([q, new Promise(r=>setTimeout(()=>r({data:null}),6000))]);
-      autos = data || [];
-      allAutos = autos;
-      // Also map field names for compatibility
-      autos = autos.map(a => ({...a, playerName: a.player_name, img: a.autograph_img}));
-    }
-  } catch(e) { console.log('Supabase unavailable:', e.message); }
-  
-  // Fallback to localStorage if Supabase fails
+  // Cache-first: render instantly from the last known puzzles, then refresh in the background
+  let autos = readAutoCache();
+  if(autos && autos.length){
+    fetchAutos().then(fresh=>{ if(fresh.length) writeAutoCache(fresh); });
+  } else {
+    autos = await fetchAutos();
+    if(autos.length) writeAutoCache(autos);
+  }
+  allAutos = autos;
+
+  // Legacy fallback
   if(!autos.length) {
-    autos = JSON.parse(localStorage.getItem('cv_autographs') || '[]');
-    autos = autos.map(a => ({...a, playerName: a.playerName || a.player}));
+    autos = JSON.parse(localStorage.getItem('cv_autographs') || '[]').map(a => ({...a, playerName: a.playerName || a.player}));
   }
 
   if(!autos.length) { showNoPuzzle(); return; }
@@ -794,7 +798,7 @@ function showResult(won) {
   // Build share grid (Wordle/Poeltl-style, spoiler-free)
   const emoji = {correct:'🟩', close:'🟨', wrong:'⬛'};
   const rows = guesses.map(g => g.hint.map(h => emoji[h.status]).join(''));
-  const dayNum = Math.floor((Date.now()/86400000) - (new Date('2026-08-17').getTime()/86400000)) + 1;
+  const dayNum = puzzleNumber();
   const head = 'Guess the Auto ' + (mode==='daily' ? ('#'+dayNum) : 'Unlimited') + ' ✍️';
   const sportEmoji = {basketball:'🏀',football:'🏈',baseball:'⚾'}[sportFilter] || '';
   const scoreLine = (won ? guesses.length : 'X') + '/' + MAX_GUESSES + ' ' + sportEmoji;
@@ -804,6 +808,7 @@ function showResult(won) {
 
   // Lock today's puzzle and show the countdown to the next one (local midnight)
   saveDailyResult({date:todayStr(), won, guessCount:guesses.length, rows, answer:currentPuzzle.playerName, dayNum, pts});
+  saveGameHistory({date:todayStr(), sport:sportFilter, won, guesses:guesses.length, pts});
   document.getElementById('result-count').style.display = 'block';
   startCountdown();
 
@@ -816,6 +821,24 @@ function localDayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.
 function localDayNum(){ const d=new Date(); return Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000) + d.getFullYear()*366; }
 function todayStr(){ return localDayStr(); }
 function yesterdayStr(){ const d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+// Puzzle number — day #1 was 2026-09-21, so today reads #2, #3, …
+function puzzleNumber(){
+  const START=new Date(2026,8,21); // months are 0-indexed → 8 = September
+  const d=new Date(); const todayMid=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  return Math.max(1, Math.floor((todayMid-START)/86400000)+1);
+}
+
+// Per-game history for the Stats page (local, Wordle-style)
+function saveGameHistory(rec){
+  try{
+    const key='cv_gta_history';
+    const h=JSON.parse(localStorage.getItem(key)||'[]');
+    if(h.some(x=>x.date===rec.date && x.sport===rec.sport)) return; // one record per day+sport
+    h.push(rec);
+    localStorage.setItem(key, JSON.stringify(h));
+  }catch(e){}
+}
 
 function ensureSB(){
   if(!window._sb && typeof supabase!=='undefined'){
