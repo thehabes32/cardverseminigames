@@ -321,7 +321,7 @@ async function buildLive(){
       while(decoys.length<3&&pool.length){ const d=pool.splice(Math.floor(rng()*pool.length),1)[0]; if(!decoys.includes(d.player_name)) decoys.push(d.player_name); }
       if(decoys.length===3){
         const opts=shuffleSeeded([pick.player_name,...decoys]);
-        todayQ[1]={type:'image',q:'Whose autograph is this?',img:pick.autograph_img,opts,ans:opts.indexOf(pick.player_name),fact:'That\'s <b>'+pick.player_name+'</b>. Play SIGNTVRE for a full mystery auto every day.'};
+        todayQ[1]={type:'image',q:'Whose autograph is this?',img:pick.autograph_img,opts,ans:opts.indexOf(pick.player_name),fact:'That\'s <b>'+pick.player_name+'</b>. Play Guess the Auto for a full mystery auto every day.'};
       }
     }
   }catch(e){}

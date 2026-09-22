@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>SIGNTVRE</title>
+<title>Guess the Auto</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="shortcut icon" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -131,7 +131,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 <!-- HEADER -->
 <div class="header">
   <a href="home.html" class="back-btn">← Games</a>
-  <div class="logo">Sign<span>tvre</span></div>
+  <div class="logo">Guess the <span>Auto</span></div>
   <div class="mode-tabs">
     <button class="mode-tab active" id="tab-daily" onclick="setMode('daily')">Daily</button>
     <button class="mode-tab" id="tab-unlimited" onclick="setMode('unlimited')">Unlimited</button>
@@ -211,7 +211,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
   <div class="result-banner">
     <div class="result-emoji" id="result-emoji">🎉</div>
     <div class="result-title" id="result-title">Got it!</div>
-    <div class="result-sub" id="result-sub">You solved today's SIGNTVRE!</div>
+    <div class="result-sub" id="result-sub">You solved today's Guess the Auto!</div>
     <div class="result-answer" id="result-answer"></div>
     <div class="share-preview" id="share-grid"></div>
     <div class="result-btns">
@@ -618,7 +618,7 @@ function submitGuess(name) {
   const target = currentPuzzle.playerName;
   let answer = PLAYERS.find(p => p.name.toLowerCase() === (target||'').toLowerCase())
             || PLAYERS.find(p => norm(p.name) === norm(target));
-  if(!answer) console.warn('SIGNTVRE: puzzle answer "'+target+'" not found in player DB — hints will be grey. Fix the name spelling in Admin.');
+  if(!answer) console.warn('Guess the Auto: puzzle answer "'+target+'" not found in player DB — hints will be grey. Fix the name spelling in Admin.');
 
   // Build hint row
   const hint = buildHint(player, answer);
@@ -775,7 +775,7 @@ function showResult(won) {
   const emoji = {correct:'🟩', close:'🟨', wrong:'⬛'};
   const rows = guesses.map(g => g.hint.map(h => emoji[h.status]).join(''));
   const dayNum = Math.floor((Date.now()/86400000) - (new Date('2026-08-17').getTime()/86400000)) + 1;
-  const head = 'SIGNTVRE ' + (mode==='daily' ? ('#'+dayNum) : 'Unlimited') + ' ✍️';
+  const head = 'Guess the Auto ' + (mode==='daily' ? ('#'+dayNum) : 'Unlimited') + ' ✍️';
   const sportEmoji = {basketball:'🏀',football:'🏈',baseball:'⚾'}[sportFilter] || '';
   const scoreLine = (won ? guesses.length : 'X') + '/' + MAX_GUESSES + ' ' + sportEmoji;
   const shareText = head + '\n' + scoreLine + '\n\n' + rows.join('\n') + '\n\ncardverseminigames.com';
@@ -798,7 +798,7 @@ function copyShare() {
 function saveShareImage() {
   const s = window._svShare; if(!s || typeof cvShareImage!=='function') { setMsg('Image unavailable', 'err'); return; }
   cvShareImage({
-    game:'SIGNTVRE', gameColor:'#fc6c8f',
+    game:'Guess the Auto', gameColor:'#fc6c8f',
     big:(s.won? s.guesses.length : 'X'), small:'/'+MAX_GUESSES,
     sub:(s.won? 'Guessed the auto' : 'Missed it'),
     rows:s.rows, day:'#'+s.dayNum, filename:'signtvre-'+s.dayNum
