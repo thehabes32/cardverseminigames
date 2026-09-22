@@ -789,6 +789,7 @@ function showResult(won) {
 
   const pts = calcPoints(won, guesses.length);
   showPts(pts);
+  awardDaily(won, pts);  // bank points/streak/days into the account
 
   // Build share grid (Wordle/Poeltl-style, spoiler-free)
   const emoji = {correct:'🟩', close:'🟨', wrong:'⬛'};
@@ -814,6 +815,39 @@ function showResult(won) {
 function localDayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function localDayNum(){ const d=new Date(); return Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000) + d.getFullYear()*366; }
 function todayStr(){ return localDayStr(); }
+function yesterdayStr(){ const d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+function ensureSB(){
+  if(!window._sb && typeof supabase!=='undefined'){
+    window._sb=supabase.createClient('https://nwzsomfhidefbldsloxz.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53enNvbWZoaWRlZmJsZHNsb3h6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODY3MTAsImV4cCI6MjA5MDQ2MjcxMH0.YmXfQ4DtaYVP09fvAuPTveYSKxqXxw3kcXxGGcJH-jA');
+  }
+  return window._sb;
+}
+
+// Bank points/streak/days into the player's account — once per local day, logged-in users only
+async function awardDaily(won, pts){
+  try{
+    const sb=ensureSB(); if(!sb) return;
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session) return; // guests don't earn
+    const uid=session.user.id;
+    const {data:p}=await sb.from('profiles').select('total_pts,best_streak,current_streak,days_played,best_score,last_played').eq('id',uid).maybeSingle();
+    if(!p) return;
+    const today=todayStr();
+    if(p.last_played===today) return; // already counted today — no double-dipping
+    const prevStreak=(p.last_played===yesterdayStr()) ? (p.current_streak||0) : 0;
+    const cur = won ? prevStreak+1 : 0;               // a win extends the streak, a miss resets it
+    const best_streak=Math.max(p.best_streak||0, cur);
+    await sb.from('profiles').update({
+      total_pts:(p.total_pts||0)+pts,
+      days_played:(p.days_played||0)+1,
+      best_score:Math.max(p.best_score||0, pts),
+      current_streak:cur,
+      best_streak:best_streak,
+      last_played:today
+    }).eq('id',uid);
+  }catch(e){ console.log('awardDaily failed:', e.message); }
+}
 function dailyKey(){ return 'sv_daily_' + sportFilter; }
 function saveDailyResult(state){ try{ localStorage.setItem(dailyKey(), JSON.stringify(state)); }catch(e){} }
 function getDailyResult(){
