@@ -20,6 +20,20 @@
 html,body{height:100%;overflow-x:hidden;}
 body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;}
 @media(min-width:700px){body{max-width:680px;} .auto-img{height:300px;}}
+/* phone: zoom out a touch so the whole board fits without scrolling */
+@media(max-width:480px){
+  .auto-wrap{margin:10px 12px;}
+  .auto-img{height:150px;padding:6px;}
+  .auto-placeholder{height:150px;}
+  .hint-table{padding:0 12px 10px;}
+  .search-wrap{padding:0 12px 10px;}
+  .sport-tabs{padding:8px 12px 4px;}
+  .g-tile,.empty-cell,.empty-name{height:38px;font-size:10px;}
+  .g-name{font-size:11px;padding:6px;}
+  .hh{font-size:8.5px;}
+  .guesses-left .sc-n{font-size:19px;}
+  .how-panel{margin:0 12px 14px;padding:12px;}
+}
 
 /* HEADER */
 .header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--b);}
@@ -88,13 +102,19 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 .empty-cell{background:var(--s2);border:1.5px solid rgba(255,255,255,.16);border-radius:8px;height:44px;}
 .empty-name{background:var(--s2);border:1.5px solid rgba(255,255,255,.16);border-radius:8px;height:44px;}
 
-/* RESULT BANNER */
-.result-banner{margin:0 16px 16px;background:var(--s);border:1px solid var(--b);border-radius:14px;padding:16px;text-align:center;}
-.result-emoji{font-size:36px;margin-bottom:8px;}
-.result-title{font-size:18px;font-weight:900;margin-bottom:4px;}
+/* RESULT MODAL (pops up over the game) */
+#result-wrap{position:fixed;inset:0;z-index:200;background:rgba(8,6,18,.82);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;}
+.result-banner{position:relative;width:100%;max-width:380px;background:var(--s);border:1px solid var(--b);border-radius:18px;padding:22px 18px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.6);animation:pop .32s cubic-bezier(.2,.9,.3,1.3);}
+@keyframes pop{from{opacity:0;transform:scale(.85) translateY(12px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.result-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--m);font-size:20px;font-weight:900;cursor:pointer;line-height:1;}
+.result-close:hover{color:var(--t);}
+.result-emoji{font-size:40px;margin-bottom:8px;}
+.result-title{font-size:20px;font-weight:900;margin-bottom:4px;}
 .result-sub{font-size:12px;color:var(--m);font-weight:700;margin-bottom:12px;}
 .result-answer{background:var(--s2);border-radius:10px;padding:10px;font-size:14px;font-weight:900;color:var(--orange);margin-bottom:12px;}
-.result-btns{display:flex;gap:8px;justify-content:center;}
+.result-count{font-size:11px;font-weight:800;color:var(--m);margin-bottom:12px;}
+.result-count b{color:var(--a);}
+.result-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
 .rbtn{border:none;border-radius:99px;font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;padding:9px 20px;cursor:pointer;}
 .rbtn-primary{background:var(--a);color:#fff;}
 .rbtn-ghost{background:transparent;border:1.5px solid var(--b);color:var(--m);}
@@ -209,13 +229,15 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 <!-- RESULT OVERLAY -->
 <div id="result-wrap" style="display:none;">
   <div class="result-banner">
+    <button class="result-close" onclick="closeResult()" title="View board">✕</button>
     <div class="result-emoji" id="result-emoji">🎉</div>
     <div class="result-title" id="result-title">Got it!</div>
     <div class="result-sub" id="result-sub">You solved today's Guess the Auto!</div>
     <div class="result-answer" id="result-answer"></div>
     <div class="share-preview" id="share-grid"></div>
+    <div class="result-count" id="result-count" style="display:none;">Next auto in <b id="countdown">–</b></div>
     <div class="result-btns">
-      <button class="rbtn rbtn-primary" onclick="copyShare()">📋 Copy</button>
+      <button class="rbtn rbtn-primary" onclick="copyShare()">📋 Share</button>
       <button class="rbtn rbtn-ghost" onclick="saveShareImage()">🖼️ Save image</button>
       <button class="rbtn rbtn-primary" onclick="newPuzzle()" id="play-again-btn" style="display:none;">Play Again ▶</button>
     </div>
@@ -544,6 +566,12 @@ async function loadPuzzle() {
   
   document.getElementById('search-input').disabled = false;
   setMsg('Guess the mystery autograph in ' + MAX_GUESSES + ' tries!');
+
+  // DAILY: if they already played today's auto for this sport, show their result (locked until tomorrow)
+  if(mode === 'daily'){
+    const saved = getDailyResult();
+    if(saved) showDailyLocked(saved);
+  }
 }
 
 function showNoPuzzle(sport) {
@@ -760,7 +788,7 @@ function showResult(won) {
     overlayEl.textContent = won ? '✓ Correct!' : '✍️ Autograph';
   }
   
-  document.getElementById('result-wrap').style.display = 'block';
+  document.getElementById('result-wrap').style.display = 'flex';
   document.getElementById('result-emoji').textContent = won ? '🎉' : '😔';
   document.getElementById('result-title').textContent = won ? 'Nailed it!' : 'Better luck next time';
 
@@ -780,13 +808,85 @@ function showResult(won) {
   const scoreLine = (won ? guesses.length : 'X') + '/' + MAX_GUESSES + ' ' + sportEmoji;
   const shareText = head + '\n' + scoreLine + '\n\n' + rows.join('\n') + '\n\ncardverseminigames.com';
   document.getElementById('share-grid').textContent = shareText;
-  window._svShare = {won, guesses, rows, dayNum, scoreLine};
+  window._svShare = {won, guesses:guesses.slice(), rows, dayNum, scoreLine};
 
   if(mode === 'unlimited') {
     document.getElementById('play-again-btn').style.display = 'inline-block';
+    document.getElementById('result-count').style.display = 'none';
+  } else {
+    // DAILY: lock the puzzle for the rest of the day and show a countdown
+    document.getElementById('play-again-btn').style.display = 'none';
+    saveDailyResult({date:todayStr(), won, guessCount:guesses.length, rows, answer:currentPuzzle.playerName, dayNum});
+    document.getElementById('result-count').style.display = 'block';
+    startCountdown();
   }
 
   document.getElementById('search-wrap').style.display = 'none';
+}
+
+// ── DAILY LOCK (one play per day, per sport) ──
+function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function dailyKey(){ return 'sv_daily_' + sportFilter; }
+function saveDailyResult(state){ try{ localStorage.setItem(dailyKey(), JSON.stringify(state)); }catch(e){} }
+function getDailyResult(){
+  try{ const s = JSON.parse(localStorage.getItem(dailyKey())||'null'); return (s && s.date === todayStr()) ? s : null; }
+  catch(e){ return null; }
+}
+
+// Re-open the result for a day already played — no replaying until tomorrow
+function showDailyLocked(saved){
+  gameOver = true;
+  document.getElementById('search-input').disabled = true;
+  document.getElementById('search-wrap').style.display = 'none';
+
+  // Reveal the full card if we have one
+  const autoImgEl = document.getElementById('auto-img');
+  const cardImgEl = document.getElementById('card-img');
+  const overlayEl = document.getElementById('auto-overlay');
+  if(currentPuzzle && currentPuzzle.card_img){
+    autoImgEl.style.display = 'none';
+    cardImgEl.classList.add('revealed-card');
+    cardImgEl.style.display = 'block';
+    cardImgEl.style.opacity = '1';
+    overlayEl.textContent = '🃏 Full Card';
+  }
+  document.getElementById('guesses-left').style.display = 'none';
+
+  document.getElementById('result-emoji').textContent = saved.won ? '🎉' : '😔';
+  document.getElementById('result-title').textContent = saved.won ? 'Nailed it!' : 'Better luck next time';
+  const gw = saved.guessCount === 1 ? '1 guess' : saved.guessCount + ' guesses';
+  document.getElementById('result-sub').textContent = saved.won ? ('Solved in '+gw+' — come back tomorrow!') : 'Come back tomorrow for a new auto!';
+  document.getElementById('result-answer').textContent = saved.answer;
+
+  const sportEmoji = {basketball:'🏀',football:'🏈',baseball:'⚾'}[sportFilter] || '';
+  const scoreLine = (saved.won ? saved.guessCount : 'X') + '/' + MAX_GUESSES + ' ' + sportEmoji;
+  const head = 'Guess the Auto #' + saved.dayNum + ' ✍️';
+  const shareText = head + '\n' + scoreLine + '\n\n' + saved.rows.join('\n') + '\n\ncardverseminigames.com';
+  document.getElementById('share-grid').textContent = shareText;
+  window._svShare = {won:saved.won, guesses:new Array(saved.guessCount), rows:saved.rows, dayNum:saved.dayNum, scoreLine};
+
+  document.getElementById('play-again-btn').style.display = 'none';
+  document.getElementById('result-count').style.display = 'block';
+  document.getElementById('result-wrap').style.display = 'flex';
+  startCountdown();
+}
+
+function closeResult(){ document.getElementById('result-wrap').style.display = 'none'; }
+
+let _cdTimer = null;
+function startCountdown(){
+  if(_cdTimer) clearInterval(_cdTimer);
+  const tick = () => {
+    const now = new Date();
+    const midnight = new Date(now); midnight.setHours(24,0,0,0);
+    let ms = midnight - now;
+    const h = Math.floor(ms/3600000); ms -= h*3600000;
+    const m = Math.floor(ms/60000); ms -= m*60000;
+    const s = Math.floor(ms/1000);
+    const el = document.getElementById('countdown');
+    if(el) el.textContent = h + 'h ' + m + 'm ' + s + 's';
+  };
+  tick(); _cdTimer = setInterval(tick, 1000);
 }
 
 function copyShare() {
