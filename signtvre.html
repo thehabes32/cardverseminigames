@@ -36,9 +36,24 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 }
 
 /* HEADER */
-.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--b);}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--b);position:sticky;top:0;z-index:300;background:var(--bg);}
 .logo{font-size:20px;font-weight:900;letter-spacing:.04em;}
 .logo span{color:var(--orange);}
+/* HAMBURGER MENU */
+.menu-wrap{position:relative;}
+.hamburger{display:flex;flex-direction:column;justify-content:center;gap:4px;width:38px;height:38px;align-items:center;background:var(--s2);border:1px solid var(--b);border-radius:11px;cursor:pointer;}
+.hamburger span{width:17px;height:2px;background:var(--t);border-radius:2px;transition:.2s;}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+.menu-dd{position:absolute;top:46px;right:0;min-width:180px;background:var(--s2);border:1px solid var(--b);border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,.5);padding:8px;z-index:320;display:none;}
+.menu-dd.open{display:block;}
+.menu-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;font-size:14px;font-weight:800;color:var(--t);text-decoration:none;cursor:pointer;}
+.menu-item:hover{background:var(--s);}
+.menu-item.active{background:rgba(124,108,252,.18);color:var(--a);}
+.menu-item .mi-ic{font-size:16px;width:20px;text-align:center;}
+.menu-item.danger{color:var(--r);}
+.menu-sep{height:1px;background:var(--b);margin:6px 4px;}
 .mode-tabs{display:flex;gap:4px;background:var(--s2);border-radius:99px;padding:3px;}
 .mode-tab{padding:5px 14px;border-radius:99px;font-size:11px;font-weight:800;cursor:pointer;color:var(--m);border:none;background:none;font-family:'Nunito',sans-serif;transition:all .15s;}
 .mode-tab.active{background:var(--a);color:#fff;}
@@ -154,7 +169,16 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 <div class="header">
   <a href="home.html" class="back-btn">← Games</a>
   <div class="logo">Guess the <span>Auto</span></div>
-  <div class="mode-tabs"><span class="mode-tab active" style="cursor:default;">Daily</span></div>
+  <div class="menu-wrap">
+    <div class="hamburger" id="hamburger" onclick="toggleMenu(event)"><span></span><span></span><span></span></div>
+    <div class="menu-dd" id="menu-dd">
+      <a class="menu-item active" href="home.html"><span class="mi-ic">🎮</span> Games</a>
+      <a class="menu-item" href="profile.html"><span class="mi-ic">👤</span> Profile</a>
+      <a class="menu-item" href="stats.html"><span class="mi-ic">📊</span> Stats</a>
+      <div class="menu-sep"></div>
+      <div class="menu-item danger" onclick="signOutGta()"><span class="mi-ic">⎋</span> Sign out</div>
+    </div>
+  </div>
 </div>
 
 <div id="game-wrap">
@@ -881,6 +905,8 @@ function getDailyResult(){
 // Re-open the result for a day already played — no replaying until tomorrow
 function showDailyLocked(saved){
   gameOver = true;
+  // Backfill the stats record for a day already finished (covers games played before history logging existed)
+  saveGameHistory({date:saved.date, sport:sportFilter, won:saved.won, guesses:saved.guessCount, pts:saved.pts});
   document.getElementById('search-input').disabled = true;
   document.getElementById('search-wrap').style.display = 'none';
 
@@ -1013,6 +1039,20 @@ function setMsg(msg, type = '') {
   el.textContent = msg;
   el.className = 'msg-bar' + (type ? ' ' + type : '');
 }
+
+// ── NAV MENU ──
+function toggleMenu(e){
+  if(e) e.stopPropagation();
+  document.getElementById('menu-dd').classList.toggle('open');
+  document.getElementById('hamburger').classList.toggle('open');
+}
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.menu-wrap')){
+    const dd=document.getElementById('menu-dd'), hb=document.getElementById('hamburger');
+    if(dd) dd.classList.remove('open'); if(hb) hb.classList.remove('open');
+  }
+});
+async function signOutGta(){ try{ const sb=ensureSB(); if(sb) await sb.auth.signOut(); }catch(e){} window.location.href='login.html'; }
 </script>
 </body>
 </html>
