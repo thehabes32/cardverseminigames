@@ -77,15 +77,6 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
 .tier-prog .tt .now{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;}
 .tier-prog .tt .nxt{font-size:11px;color:var(--m);font-weight:800;margin-top:2px;}
 .tier-prog .tt .nxt b{color:var(--gold);}
-/* SUNDAY GIVEAWAY BANNER */
-.giveaway{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,rgba(78,224,214,.14),rgba(124,108,252,.14));border:1px solid rgba(78,224,214,.4);border-radius:16px;padding:.85rem 1.1rem;margin-bottom:1.4rem;}
-.giveaway .gv-ic{font-size:26px;filter:drop-shadow(0 0 8px rgba(78,224,214,.6));}
-.giveaway .gv-t{flex:1;min-width:0;}
-.giveaway .gv-h{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;}
-.giveaway .gv-s{font-size:11px;color:var(--m);font-weight:800;margin-top:2px;}
-.giveaway .gv-n{text-align:center;flex-shrink:0;}
-.giveaway .gv-n b{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;color:var(--teal);display:block;line-height:1;}
-.giveaway .gv-n span{font-size:8px;color:var(--m);font-weight:800;text-transform:uppercase;letter-spacing:.05em;}
 .tbar{height:6px;background:var(--s2);border-radius:99px;overflow:hidden;margin-top:6px;}
 .tbar span{display:block;height:100%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:99px;}
 .sec-lbl{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:800;color:var(--m);text-transform:uppercase;letter-spacing:.18em;margin-bottom:.9rem;}
@@ -177,15 +168,6 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;min-hei
     </div>
   </div>
 
-  <div class="giveaway" id="giveaway" style="display:none;">
-    <div class="gv-ic">🎟️</div>
-    <div class="gv-t">
-      <div class="gv-h">Sunday Card Giveaway</div>
-      <div class="gv-s" id="gv-sub">Play daily to earn entries · Draw Sunday night</div>
-    </div>
-    <div class="gv-n"><b id="gv-entries">0</b><span>Entries</span></div>
-  </div>
-
   <div class="sec-lbl">▸ Choose your game</div>
 
   <a class="game-tile" href="signtvre.html">
@@ -259,20 +241,6 @@ async function init(){
     document.getElementById('user-name').textContent = session.user.email?.split('@')[0] || 'Player';
     ['stat-streak','stat-pts'].forEach(id=>document.getElementById(id).textContent='0');
   }
-  loadGiveaway(session.user.id);
-}
-
-// This week's giveaway prize — update the text here (or tell Claude the card and image)
-const GIVEAWAY_PRIZE = 'a mystery graded card';
-function weekStartStr(){ const d=new Date(); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-async function loadGiveaway(uid){
-  try{
-    const wk=weekStartStr();
-    const {data:ge}=await sb.from('giveaway_entries').select('entries').eq('user_id',uid).eq('week_start',wk).maybeSingle();
-    document.getElementById('gv-entries').textContent = ge?.entries || 0;
-    document.getElementById('gv-sub').textContent = '🏆 This week: '+GIVEAWAY_PRIZE+' · Draw Sunday night';
-    document.getElementById('giveaway').style.display='flex';
-  }catch(e){ console.log('giveaway load failed:', e.message); }
 }
 
 const TIERS=[
