@@ -164,12 +164,30 @@ async function doLogin(){
   else{showMsg('Welcome back! Loading...','ok');setTimeout(()=>window.location.href='home.html',700);}
 }
 
+// Block inappropriate usernames. Normalizes common leetspeak so f4ggot / n1663r etc. are caught.
+function isCleanUsername(name){
+  let s = name.toLowerCase()
+    .replace(/[0]/g,'o').replace(/[1!|]/g,'i').replace(/[3]/g,'e').replace(/[4@]/g,'a')
+    .replace(/[5$]/g,'s').replace(/[7]/g,'t').replace(/[8]/g,'b').replace(/[9]/g,'g')
+    .replace(/[^a-z]/g,'');
+  const banned = [
+    'nigg','nigr','faggot','fagot','retard','chink','spic','kike','wetback','coon',
+    'tranny','rape','rapist','molest','pedo','paedo','nazi','hitler','kkk','slut','whore',
+    'cunt','fuck','shit','bitch','bastard','dick','cock','pussy','penis','vagina','boob',
+    'anus','anal','cum','jizz','wank','porn','sex','tits','twat','fuk','fuc','phuck',
+    'asshole','dildo','handjob','blowjob','nutsack','ballsack','jerkoff','beaner','gook','dyke'
+  ];
+  return !banned.some(w => s.includes(w));
+}
+
 async function doSignup(){
   const username=document.getElementById('up-username').value.trim();
   const email=document.getElementById('up-email').value.trim();
   const pw=document.getElementById('up-pw').value;
   if(!username||!email||!pw){showMsg('Fill in all fields','err');return;}
   if(username.length<3){showMsg('Username needs at least 3 characters','err');return;}
+  if(!/^[A-Za-z0-9_]+$/.test(username)){showMsg('Username can only use letters, numbers, and underscores','err');return;}
+  if(!isCleanUsername(username)){showMsg('Please choose a different username','err');return;}
   if(pw.length<6){showMsg('Password needs at least 6 characters','err');return;}
   setBtn('btn-up',true,'Create Account');
 

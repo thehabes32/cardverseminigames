@@ -154,10 +154,7 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
 <div class="header">
   <a href="home.html" class="back-btn">← Games</a>
   <div class="logo">Guess the <span>Auto</span></div>
-  <div class="mode-tabs">
-    <button class="mode-tab active" id="tab-daily" onclick="setMode('daily')">Daily</button>
-    <button class="mode-tab" id="tab-unlimited" onclick="setMode('unlimited')">Unlimited</button>
-  </div>
+  <div class="mode-tabs"><span class="mode-tab active" style="cursor:default;">Daily</span></div>
 </div>
 
 <div id="game-wrap">
@@ -242,7 +239,6 @@ body{background:var(--bg);color:var(--t);font-family:'Nunito',sans-serif;max-wid
     <div class="result-btns">
       <button class="rbtn rbtn-primary" onclick="copyShare()">📋 Share</button>
       <button class="rbtn rbtn-ghost" onclick="saveShareImage()">🖼️ Save image</button>
-      <button class="rbtn rbtn-primary" onclick="newPuzzle()" id="play-again-btn" style="display:none;">Play Again ▶</button>
     </div>
   </div>
 </div>
@@ -488,14 +484,6 @@ async function loadPlayers(){
   }catch(e){ console.log('Player DB load failed, using cache/fallback:', e.message); }
 }
 
-async function setMode(m) {
-  mode = m;
-  document.getElementById('tab-daily').classList.toggle('active', m === 'daily');
-  document.getElementById('tab-unlimited').classList.toggle('active', m === 'unlimited');
-  resetGame();
-  await loadPuzzle();
-}
-
 async function setSport(s) {
   sportFilter = s;
   document.querySelectorAll('.sport-tab').forEach(b => b.classList.toggle('active', b.dataset.sport === s));
@@ -533,19 +521,11 @@ async function loadPuzzle() {
   const pool = autos.filter(a => (a.sport || 'basketball') === sportFilter);
   if(!pool.length) { showNoPuzzle(sportFilter); return; }
 
-  if(mode === 'daily') {
-    const today = new Date().toISOString().split('T')[0];
-    // Admin can hand-schedule a puzzle for today+sport; otherwise date-seed one from the pool
-    const scheduled = pool.find(a => a.game_date === today || a.date === today);
-    const dayNum = Math.floor(Date.now() / 86400000);
-    currentPuzzle = scheduled || pool[dayNum % pool.length];
-  } else {
-    const key = 'sv_played_' + sportFilter;
-    const played = JSON.parse(sessionStorage.getItem(key) || '[]');
-    const remaining = pool.filter(a => !played.includes(a.id));
-    if(!remaining.length) { sessionStorage.removeItem(key); currentPuzzle = pool[Math.floor(Math.random()*pool.length)]; }
-    else currentPuzzle = remaining[Math.floor(Math.random()*remaining.length)];
-  }
+  // Daily puzzle — rolls over at local midnight every night
+  const today = localDayStr();
+  // Admin can hand-schedule a puzzle for today+sport; otherwise date-seed one from the pool
+  const scheduled = pool.find(a => a.game_date === today || a.date === today);
+  currentPuzzle = scheduled || pool[localDayNum() % pool.length];
 
   // Load images
   const autoImgEl = document.getElementById('auto-img');
@@ -672,11 +652,9 @@ function submitGuess(name) {
   const won = hint.every(h => h.status === 'correct');
   if(won) {
     gameOver = true;
-    if(mode === 'unlimited') markPlayed();
     setTimeout(() => showResult(true), 600);
   } else if(guesses.length >= MAX_GUESSES) {
     gameOver = true;
-    if(mode === 'unlimited') markPlayed();
     setTimeout(() => showResult(false), 600);
   } else {
     setMsg('');
@@ -823,22 +801,19 @@ function showResult(won) {
   document.getElementById('share-grid').textContent = shareText;
   window._svShare = {won, guesses:guesses.slice(), rows, dayNum, scoreLine, pts};
 
-  if(mode === 'unlimited') {
-    document.getElementById('play-again-btn').style.display = 'inline-block';
-    document.getElementById('result-count').style.display = 'none';
-  } else {
-    // DAILY: lock the puzzle for the rest of the day and show a countdown
-    document.getElementById('play-again-btn').style.display = 'none';
-    saveDailyResult({date:todayStr(), won, guessCount:guesses.length, rows, answer:currentPuzzle.playerName, dayNum, pts});
-    document.getElementById('result-count').style.display = 'block';
-    startCountdown();
-  }
+  // Lock today's puzzle and show the countdown to the next one (local midnight)
+  saveDailyResult({date:todayStr(), won, guessCount:guesses.length, rows, answer:currentPuzzle.playerName, dayNum, pts});
+  document.getElementById('result-count').style.display = 'block';
+  startCountdown();
 
   document.getElementById('search-wrap').style.display = 'none';
 }
 
 // ── DAILY LOCK (one play per day, per sport) ──
-function todayStr(){ return new Date().toISOString().split('T')[0]; }
+// Local-time day helpers so the puzzle + lock roll over at LOCAL midnight (matches the countdown)
+function localDayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function localDayNum(){ const d=new Date(); return Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000) + d.getFullYear()*366; }
+function todayStr(){ return localDayStr(); }
 function dailyKey(){ return 'sv_daily_' + sportFilter; }
 function saveDailyResult(state){ try{ localStorage.setItem(dailyKey(), JSON.stringify(state)); }catch(e){} }
 function getDailyResult(){
@@ -881,7 +856,6 @@ function showDailyLocked(saved){
   document.getElementById('share-grid').textContent = shareText;
   window._svShare = {won:saved.won, guesses:new Array(saved.guessCount), rows:saved.rows, dayNum:saved.dayNum, scoreLine, pts};
 
-  document.getElementById('play-again-btn').style.display = 'none';
   document.getElementById('result-count').style.display = 'block';
   document.getElementById('result-wrap').style.display = 'flex';
   startCountdown();
